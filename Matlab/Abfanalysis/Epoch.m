@@ -43,6 +43,8 @@ classdef Epoch < Sharedmethods & Trace
         typestr             % epoch type as string (e.g. "step" or "ramp")
         amplitude           % amplitude of injected current. For steps: constant, for ramps: final value at end of ramp, for chirps: absolute deviation from zero line (so peak-to-peak amp = 2*amplitude). 
         maxfrequency        % maximum frequency of chirp (chirps always starts at 0!).
+        pulsewidth          % Width of train pulses          %RWS
+        pulseperiod         % Period (start to start interval) of train pulses          %RWS
         initlevel           % starting point of ramp. (Determined by previous epoch) ##NOTE!! not sure where and if to update with scaling factor...    
         extfilename  = '';  % name of text file with noise waveform
         extfilescale = [];  % scaling of text file
@@ -106,6 +108,8 @@ classdef Epoch < Sharedmethods & Trace
             obj.typestr      = epochtab.typestr;
             obj.amplitude    = epochtab.firstlevel;
             obj.maxfrequency = epochtab.maxfrequency;
+            obj.pulsewidth   = epochtab.pulsewidth; %RWS
+            obj.pulseperiod  = epochtab.pulseperiod;   %RWS
             if nargin == 2, obj.initlevel = initlevel; end
             
             if ~isempty(obj.typestr)
@@ -143,6 +147,7 @@ classdef Epoch < Sharedmethods & Trace
                 switch lower(obj(i).typestr)
                     case 'step',                                wf = waveform_step(obj(i));
                     case 'ramp',                                wf = waveform_ramp(obj(i));
+                    case 'train',                               wf = waveform_train(obj(i));    %RWS      
                     case 'chirp',                               wf = waveform_chirp(obj(i));
                     case {'noisepp','noisespiking','truenoise'},wf = waveform_noise(obj(i));
                     otherwise, error('Epoch type "%s" unknown or not implemented yet',obj(i).typestr)
@@ -154,6 +159,16 @@ classdef Epoch < Sharedmethods & Trace
         function wf = waveform_step(obj)
             % get waveform of step epoch as a timeseries object
             wf = linspace(obj.amplitude,obj.amplitude,milliseconds(obj.timespan)*obj.samplefreq*1e-3)';
+            wf = timeseries(wf);
+            wf = setuniformtime(wf,'StartTime',0,'Interval',1e3/obj.samplefreq);
+        end
+
+        function wf = waveform_train(obj)   %Added by RWS 22-09-2017
+            % get waveform of train epoch as a timeseries object
+            pulse = linspace(obj.amplitude,obj.amplitude,obj.pulsewidth)';
+            gap = linspace(obj.initlevel,obj.initlevel,obj.pulseperiod-obj.pulsewidth)';
+            pulsenr = round((milliseconds(obj.timespan)*obj.samplefreq*1e-3-obj.pulsewidth)/obj.pulseperiod);
+            wf=[repmat([pulse; gap],pulsenr,1);pulse];
             wf = timeseries(wf);
             wf = setuniformtime(wf,'StartTime',0,'Interval',1e3/obj.samplefreq);
         end
@@ -322,7 +337,10 @@ classdef Epoch < Sharedmethods & Trace
                 catch err;
                 end
                 if strcmp(f_status,'Passed'),
-                    tau      = fitresult.b;
+                    tau      = 1/fitresult.b;      %Bugfix DBH/RWS 03-10-2017
+                    if tau < 5 || tau > 100        %Added DBH/RWS 03-10-2017
+                        tau=NaN;
+                    end
                     tau_time = xdata;
                 end 
             else

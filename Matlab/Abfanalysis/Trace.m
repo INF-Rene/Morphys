@@ -48,14 +48,20 @@ classdef Trace < timeseries
             
             if ~isscalar(obj), error('object must be scalar'); end
             if any(cellfun(@isa,varargin,repmat({'Actionpotential'},1,numel(varargin)))) % if any input is an actionpotential
-                if numel(varargin)==1
+                if ~any(ismember(varargin(2:2:end), {'parent_guid'})) % added RWS 20171003 to allow guid to be passed in the function. This is to prevent sweep guids to be used as parent guids when APs are passed from sweeps to epochs
+                    varargin={varargin{1:end}, 'parent_guid', obj.guid};
+                end
+                if numel(varargin)==1 || numel(varargin)==3
                     ap = varargin{1};
+                    ap=set(ap, 'parent_guid', varargin{3});
                 else
-                    error('Only one input argument expected when providing Actionpotential object as input.') 
+                    error('Only 1 or 3 (in case of guid passing) input arguments expected when providing Actionpotential object as input.') 
                 end
             else
-                ap = Actionpotential('parent_guid',obj.guid,varargin{:});  % make the ap
+                varargin={varargin{1:end}, 'parent_guid', obj.guid};
+                ap = Actionpotential(varargin{:});  % make the ap
             end
+            
             % add it 
             if isempty(obj.aps), obj.aps        = ap; 
             else                 obj.aps(end+1) = ap;  

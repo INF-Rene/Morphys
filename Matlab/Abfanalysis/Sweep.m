@@ -126,7 +126,7 @@ classdef Sweep < Sharedmethods & Trace
                             if isempty(obj.epochs), obj.epochs        = Epoch(epochtab);
                             else                    obj.epochs(end+1) = Epoch(epochtab);
                             end
-                case 'ramp', 
+                case {'ramp', 'train'},                 %RWS
                             if isempty(obj.epochs), obj.epochs        = Epoch(epochtab,obj.getstartendepochwave(obj.nrofepochs,'end'));
                             else                    obj.epochs(end+1) = Epoch(epochtab,obj.getstartendepochwave(obj.nrofepochs,'end'));
                             end
@@ -215,7 +215,7 @@ classdef Sweep < Sharedmethods & Trace
                     epochnumbers = discretize([obj(i).getap.peak_time],obj(i).epochborders);
                     if any(isnan(epochnumbers)), error('action potentials found that do not fall within an epoch boundary... Time for debuggin'); end
                     for ii=1:obj(i).nrofaps
-                        obj(i).epochs(epochnumbers(ii)) = obj(i).getepoch(epochnumbers(ii)).addap(obj(i).getap(ii));
+                        obj(i).epochs(epochnumbers(ii)) = obj(i).getepoch(epochnumbers(ii)).addap(obj(i).getap(ii), 'parent_guid', obj(i).epochs(epochnumbers(ii)).guid); % added guid argument RWS 20171003
                     end
                 end
             end

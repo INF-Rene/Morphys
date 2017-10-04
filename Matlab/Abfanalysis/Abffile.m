@@ -297,7 +297,8 @@ classdef Abffile < Sharedpaths & Setupsettings
             end
             
             % Ditch Channels with no Analoginputs and update guid and filename fields
-            for i=1:obj.nrofchannels
+            %for i=1:obj.nrofchannels  %Bugfix RWS 21-09-2017
+            for i=obj.nrofchannels:-1:1  
                 if isempty(obj.getchannel(i).nrofanalogins) || obj.getchannel(i).nrofanalogins == 0
                     obj = obj.removechannel(i); 
                 else
