@@ -15,9 +15,8 @@ aps      = bb.aptable ;
 %% get new batch
 cc = Abfbatch('gui');
 %% analyze
-tic
 cc = cc.analysebatch ;
-toc
+
 %% test
 bb.getabf(1).getchannel(1).getin('signal','primary').getsweep(14).plotanalysis
 
