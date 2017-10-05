@@ -251,20 +251,20 @@ classdef Trace < timeseries
             for i = 1:numel(obj)    
                 obj(i) = obj(i).findaps;
                 obj(i) = obj(i).getthresh;     % get initial estimate to determine maxdvdt a.o.
+                obj(i) = obj(i).getmaxdvdt;
+                obj(i) = obj(i).getmindvdt;
+                obj(i) = obj(i).getthresh2;    % get final estimate based on Allen institute method
                 obj(i) = obj(i).getahp;
                 obj(i) = obj(i).getrelahp;
                 %obj(i) = obj(i).getadp;
                 %obj(i) = obj(i).getreladp;
                 obj(i) = obj(i).getrelamp;
                 obj(i) = obj(i).gethalfwidth;
-                obj(i) = obj(i).getmaxdvdt;
-                obj(i) = obj(i).getmindvdt;
                 obj(i) = obj(i).getonsrapidity;
                 obj(i) = obj(i).getapstartend;
                 obj(i) = obj(i).findapnr;
                 obj(i) = obj(i).isifreqaps;
-                obj(i) = obj(i).addapts;     
-                obj(i) = obj(i).getthresh2;    % get final estimate based on Allen institute method
+                obj(i) = obj(i).addapts;                    
             end
         end
         
