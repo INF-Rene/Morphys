@@ -26,7 +26,7 @@
     end
     
     properties (Hidden = true)      % default analysis settings
-        apMinPeakHeightVm   = 0;    % (mV) minimum AP height to be detected
+        apMinPeakHeightVm   = -5;    % (mV) minimum AP height to be detected
         apMinPeakHeightDvdt = 30;   % (mV/ms) for detecting peaks in dvdt trace 
         apThreshDvdt        = 15;   % (mV/ms) dVdt threshold for determining AP threshold. Value of 10 mV/ms usually does well, but perhaps ~20 best for recordings with more high-frequency noise...    
         apThreshRapidity    = 30;   % (mV/ms) onset rapidity will be measured as slope of phase plane when it crosses this threshold.    

@@ -250,7 +250,7 @@ classdef Trace < timeseries
             % find APs and all currently available features
             for i = 1:numel(obj)    
                 obj(i) = obj(i).findaps;
-                obj(i) = obj(i).getthresh;
+                obj(i) = obj(i).getthresh;     % get initial estimate to determine maxdvdt a.o.
                 obj(i) = obj(i).getahp;
                 obj(i) = obj(i).getrelahp;
                 %obj(i) = obj(i).getadp;
@@ -263,7 +263,8 @@ classdef Trace < timeseries
                 obj(i) = obj(i).getapstartend;
                 obj(i) = obj(i).findapnr;
                 obj(i) = obj(i).isifreqaps;
-                obj(i) = obj(i).addapts;                
+                obj(i) = obj(i).addapts;     
+                obj(i) = obj(i).getthresh2;    % get final estimate based on Allen institute method
             end
         end
         
@@ -305,6 +306,53 @@ classdef Trace < timeseries
             end
             if cnt>0, fprintf('%d out of %d action potentials: no threshold.\n',cnt,obj.nrofaps); end
         end
+        
+        function obj = getthresh2(obj)  
+            % Djai's version (based on allen institute method)
+            % find the threshold of action potentials using derivative of timeseries. 
+            % similar to the one used above, only difference is that the threshold for dv/dt is set as 
+            % 5 percent of the max dv/dt (averaged over all APs in trace)
+            % NOTE: Assumes list of ACTIONPOTENTIALS is sorted!
+            % See also ACTIONPOTENTIAL
+            if ~isscalar(obj), error('Object must be scalar'); end
+            cnt=0;       
+            maxdvdts = [] ;
+            
+            for i = 1:obj.nrofaps 
+                if ~isempty(obj.getap(i).maxdvdt)
+                maxdvdts(i) = obj.getap(i).maxdvdt ;
+                end
+            end
+            
+            if ~isempty(maxdvdts)
+                Mmaxdvdt = nanmean(maxdvdts) ;
+            else
+                Mmaxdvdt = NaN ;
+            end
+            
+            for i = 1:obj.nrofaps                                                                               % for every AP event
+                if i == 1 
+                     strt = obj.TimeInfo.Start;                                                                 % find start point.
+                else strt = obj.getap(i-1).peak_time;
+                end
+                isi       = obj.getsampleusingtime(strt,obj.getap(i).peak_time);                                % get timeseries of trace before AP peak
+                isidvdt   = isi.getdvdtts.medianfilter(obj.dvdtmedfilt);                                        % get derivative. Perform a modest median filter to selectively filter out capacative transients
+                strtidx   = find(isidvdt.Data==max(isidvdt),1);                                                 % choose max dvdt of rising phase of current AP
+                
+                if i == 1                                                                                       % calculate threshold index.
+                threshidx = strtidx - find(flipud(isidvdt.Data(1:strtidx)) < 0.05*obj.getap(i).maxdvdt,1)+1;    % for first AP (with usually high max dv/dt)           
+                else
+                threshidx = strtidx - find(flipud(isidvdt.Data(1:strtidx)) < 0.05*Mmaxdvdt,1)+1;                % average max dv/dt for other APs
+                end
+                
+                if ~isempty(threshidx)
+                    obj   = obj.updateap(i,'thresh',isi.Data(threshidx),'thresh_time',isi.Time(threshidx));     % update AP
+                else
+                    cnt=cnt+1;
+                end
+            end
+            if cnt>0, fprintf('%d out of %d action potentials: no threshold.\n',cnt,obj.nrofaps); end
+        end  %Djai's version               
         
         function obj = getahp(obj)
             % find the after-hyperpolarising potential of APs. 
