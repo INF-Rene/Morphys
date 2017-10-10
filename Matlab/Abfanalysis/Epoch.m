@@ -304,7 +304,20 @@ classdef Epoch < Sharedmethods & Trace
                 end
 
                 % check inputs
-                if nargin == 1, fitstart = obj.TimeInfo.Start+0.1; fitend = obj.TimeInfo.Start+obj.tau_win;
+                if nargin == 1
+                    fitstart = obj.TimeInfo.Start+0.1;
+                    if obj.stepdiff<0
+                        [~,fitborder] = min(obj.medianfilter(0.5,'truncate').getdata);
+                        fitborder=(obj.Time(fitborder)-obj.TimeInfo.Start)*0.9;
+                        if fitborder<obj.tau_win && obj.stepdiff<0
+                            fitend=obj.TimeInfo.Start+fitborder;  %end of fit can never be too close to the max hyperpol, otherwise Ih current may influence the result
+                        else
+                            fitend = obj.TimeInfo.Start+obj.tau_win;
+                        end
+                    else
+                        fitend = obj.TimeInfo.Start+obj.tau_win;
+                    end
+                    
                 elseif nargin == 2, error('please provide a start and end time for fitting'),           
                 end
                 
