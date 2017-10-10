@@ -96,7 +96,7 @@ end
 %   column21: double (%f)
 %	column22: text (%s)
 % For more information, see the TEXTSCAN documentation.
-formatSpec = '%s%{yyyy-MM-dd HH:mm:ss.SSSSSS}D%{dd-MMM-yyyy HH:mm:ss}D%s%s%s%s%f%{HH:mm:ss.SSSSSS}D%{yyyy-MM-dd HH:mm:ss.SSSSSS}D%{yyyy-MM-dd HH:mm:ss.SSSSSS}D%s%s%s%s%f%{HH:mm:ss}D%f%s%s%f%s%[^\n\r]';
+formatSpec = '%s%s%s%s%s%s%s%f%s%s%s%s%s%s%s%f%{HH:mm:ss}D%f%s%s%f%s%[^\n\r]';
 
 %% Open the text file.
 fileID = fopen(filename,'r');
