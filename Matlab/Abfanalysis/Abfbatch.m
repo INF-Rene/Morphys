@@ -521,7 +521,7 @@ classdef Abfbatch < Sharedmethods & Sharedpaths
             % make a name and save it
             datestring = datetime(year(now),month(now),day(now),hour(now),minute(now),second(now),'Format','yyyy-MM-dd_HHmmss');
             path2file  = fullfile(destinationdir,sprintf('Batch_%s_%s_%s.%s',datestring,whichTable,obj.guid,extension));
-            writetable(table2print,path2file,'WriteVariableNames',true)
+            writetable(table2print,path2file,'WriteVariableNames',false)
         end
     end       
 end
