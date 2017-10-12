@@ -15,12 +15,12 @@ function abf = ImportCSVstoStruct(mainfolder, savename)
 %   Written by Djai Heyer
 
 %% import CSV files
-abfs = table2struct(readtable(fullfile(mainfolder, 'Abffiles','Abffiles.csv'))) ;
-channels = table2struct(readtable(fullfile(mainfolder, 'Channels','Channels.csv'))) ;
-ins = table2struct(readtable(fullfile(mainfolder, 'Analogins','Analogins.csv'))) ;
-sweeps = table2struct(readtable(fullfile(mainfolder, 'Sweeps','Sweeps.csv'))) ;
-epochs = table2struct(readtable(fullfile(mainfolder, 'Epochs','Epochs.csv'))) ;
-aps = table2struct(readtable(fullfile(mainfolder, 'Actionpotentials','Actionpotentials.csv'))) ;
+abfs = table2struct(readtable(fullfile(mainfolder, 'Abffiles','Abffiles.txt'))) ;
+channels = table2struct(readtable(fullfile(mainfolder, 'Channels','Channels.txt'))) ;
+ins = table2struct(readtable(fullfile(mainfolder, 'Analogins','Analogins.txt'))) ;
+sweeps = table2struct(readtable(fullfile(mainfolder, 'Sweeps','Sweeps.txt'))) ;
+epochs = table2struct(readtable(fullfile(mainfolder, 'Epochs','Epochs.txt'))) ;
+aps = table2struct(readtable(fullfile(mainfolder, 'Actionpotentials','Actionpotentials.txt'))) ;
 
 %% Create nested structure
 for i = 1:length(epochs)    
