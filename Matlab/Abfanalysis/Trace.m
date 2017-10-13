@@ -275,7 +275,7 @@ classdef Trace < timeseries
             % See also FINDPEAKS
             if ~isscalar(obj), error('Object must be scalar'); end
             warning('off', 'signal:findpeaks:largeMinPeakHeight') % fisrt turn off the annoying findpeaks warnings that occur when no peaks are found.
-            [pks, locs] = findpeaks(obj.plateaufix(obj.getdata),'MinPeakHeight',obj.apMinPeakHeightVm,'minpeakdistance',floor(obj.apMinPeakDistance*obj.samplefreq*1e-3));
+            [pks, locs] = findpeaks(obj.plateaufix(obj.getdata),'MinPeakHeight',obj.apMinPeakHeightVm,'minpeakdistance',floor(obj.apMinPeakDistance*obj.samplefreq*1e-3), 'MinPeakProminence', obj.apMinPeakProminence);
             for i=1:numel(pks)
                 obj = obj.addap('peak',pks(i),'peak_time',(locs(i)-1)*1e3/obj.samplefreq+obj.TimeInfo.Start);
             end
