@@ -3,8 +3,8 @@
 close all, clear all
 
 %% Set path to load and save data
-basedir = 'C:\Users\DBHeyer\Documents\PhD\Human Database\Test' ;
-savename = 'DataSummary2.mat' ;
+basedir = 'D:\Morphys\Data\Labbooks\NAG\MetadataABF' ;
+savename = 'DataSummaryNAG.mat' ;
 
 %% import CSV files
 % requires specific folder- and filenames in location basedir!
@@ -19,10 +19,11 @@ aps = readtable(fullfile(basedir, 'Actionpotentials','Actionpotentials.txt')) ;
 index = 1 ;
 for i = 1:height(abfs)
     %% Make subset of data per abf file
+    fprintf('Looking for CC-step protocols: file nr %1.0f \n', i);
     abf = SubsetTable2struct(abfs(i,:),channels,ins,sweeps,epochs,aps) ;
-
     %% If abf is a stepprotocol: continue with analysis
     if isccstep(abf) 
+        fprintf('Retrieving analysis parameters from CC-step file %1.0f \n', index);
         %% Analyze
         sweep = abf.channel.in.sweep ;
         NrofSweeps = length(sweep) ;  
@@ -49,30 +50,36 @@ for i = 1:height(abfs)
                 break
             end
         end
-        % find trainsweep
+        % find trainsweep 
         TrainCurr = sweep(frstspikeswp).epoch(step).stepdiff +50 ;
         for j = 1:NrofSweeps
             tmp(j) = abs(sweep(j).epoch(step).stepdiff - TrainCurr) ;
         end
 
         [TrSwp TrSwp] = min(tmp) ;
-
+        CurrAbvRheo=NaN;
         for TrainSweep = TrSwp:NrofSweeps      
             if length(sweep(TrainSweep).ap) > 3           
                 CurrAbvRheo = sweep(TrainSweep).epoch(step).stepdiff - (TrainCurr-50) ;
+                TrSweepCrit=1;
                 break
+            elseif TrainSweep==NrofSweeps
+                TrSweepCrit=0;
             end  
         end
 
         % calculate variables
         vmbase = [sweep.vmbase] ;
-
+        Freqs=[];
+        StimInts=[];
         for j = 1:NrofSweeps           
             if sweep(j,1).currinj >= -100 && sweep(j,1).currinj < 0
                 voltageResponses(j,1) = sweep(j,1).vmresponse ; 
                 currInjections_R(j,1) = sweep(j,1).currinj ;
                 if sweep(j,1).epoch(step).tau < 100 && sweep(j,1).epoch(step).tau > 0
                     taus(j,1) = sweep(j,1).epoch(step).tau ;
+                else
+                    taus(j,1) = NaN;
                 end
             end       
 
@@ -101,24 +108,45 @@ for i = 1:height(abfs)
         else
             NrofRBAPsM = 0 ;
         end
-
+        
         for l = 1:length(sweep(TrainSweep).ap)           
             if ~isempty(sweep(TrainSweep).ap(l,1).halfwidth)
                 HWsTS(l,1) = [sweep(TrainSweep).ap(l,1).halfwidth] ;  
             end       
         end
 
-        TSbasetothresh = ([sweep(TrainSweep).ap.thresh]-sweep(TrainSweep).vmbase) ; 
-        TSpeaktoahp = ([sweep(TrainSweep).ap.ahp_time]-[sweep(TrainSweep).ap.peak_time]) ; 
-        AmpsTSthresh = [sweep(TrainSweep).ap.amp] ;               
-        AHPsTS = [sweep(TrainSweep).ap.relahp] ;  
-        ISIsTS = [sweep(TrainSweep).ap(2:end).isi] ;    
-
+  
+        if TrSweepCrit==1
+            TSbasetothresh = ([sweep(TrainSweep).ap.thresh]-sweep(TrainSweep).vmbase) ;
+            TSpeaktoahp = ([sweep(TrainSweep).ap.ahp_time]-[sweep(TrainSweep).ap.peak_time]) ;
+            AmpsTSthresh = [sweep(TrainSweep).ap.amp] ;
+            AHPsTS = [sweep(TrainSweep).ap.relahp] ;
+            ISIsTS = [sweep(TrainSweep).ap(2:end).isi] ;
+            FreqTrSwp = mean([sweep(TrainSweep).ap(4:end).freq]) ;
+            NrOfAPsTrSwp = length(sweep(TrainSweep).ap) ; 
+            OnsetTSFAP = sweep(TrainSweep).ap(1).thresh_time - (sum(second({sweep(TrainSweep).epoch(1:step-1).timespan}))*1000) ;
+        else
+            TSbasetothresh = NaN;
+            TSpeaktoahp = NaN;
+            AmpsTSthresh = NaN;
+            AHPsTS = NaN;
+            ISIsTS = NaN;
+            FreqTrSwp = NaN;
+            NrOfAPsTrSwp = NaN;
+            OnsetTSFAP = NaN;
+        end
 
         % calculate input resistance     
-        f_R=fittype('R*x+b');
-        [fitR]=fit(currInjections_R(currInjections_R~=0),voltageResponses(voltageResponses~=0),f_R, 'StartPoint', [0 0]); 
-
+        tmp=length(find(currInjections_R~=0 & ~isnan(voltageResponses)));
+        if tmp > 1
+            f_R=fittype('R*x+b');
+            [fitR]=fit(currInjections_R(currInjections_R~=0 & ~isnan(voltageResponses)),voltageResponses(voltageResponses~=0 & ~isnan(voltageResponses)),f_R, 'StartPoint', [0 0]); 
+            Rin=fitR.R*1e3; % In mOhm
+        elseif tmp ==1  % If there is only one point, use that to calculate Rin directly:
+            Rin=voltageResponses(voltageResponses~=0 & ~isnan(voltageResponses))/currInjections_R(currInjections_R~=0 & ~isnan(voltageResponses))*1e3;
+        else
+            Rin=NaN;
+        end
         % determine sweep for sag, (minimum voltage response closest to -100)
         tmp = abs(MinVmResponse+100) ;
         [sagswp sagswp] = min(tmp) ;
@@ -162,11 +190,11 @@ for i = 1:height(abfs)
         Summary(index).CurrAbvRheo        = CurrAbvRheo ;
         Summary(index).vmbaseM            = nanmean(vmbase) ;
         Summary(index).vmbaseSD           = nanstd(vmbase) ;
-        Summary(index).InputR             = fitR.R*1e3 ;% in MOhm...
+        Summary(index).InputR             = Rin ;% in MOhm...
         Summary(index).FreqMax            = max(Freqs) ;
         Summary(index).NrOfAPsMax         = max(NrofAPs) ; 
-        Summary(index).FreqTrSwp          = mean([sweep(TrainSweep).ap(4:end).freq]) ;
-        Summary(index).NrOfAPsTrSwp       = length(sweep(TrainSweep).ap) ; 
+        Summary(index).FreqTrSwp          = FreqTrSwp ;
+        Summary(index).NrOfAPsTrSwp       = NrOfAPsTrSwp ; 
         Summary(index).FrqChngStimInt     = FrqChngStimInt ;
         Summary(index).NrofRBAPs          = sum(NrofRBAPs) ;
         Summary(index).NrofRBAPsM         = NrofRBAPsM ;
@@ -184,7 +212,7 @@ for i = 1:height(abfs)
         Summary(index).UpStrkFrstAP       = sweep(frstspikeswp).ap(1).maxdvdt ;
         Summary(index).DwnStrkFrstAP      = sweep(frstspikeswp).ap(1).mindvdt ;
         Summary(index).UpDwnStrkRatio     = abs(sweep(frstspikeswp).ap(1).maxdvdt) / abs(sweep(frstspikeswp).ap(1).mindvdt) ;
-        Summary(index).OnsetTSFAP         = sweep(TrainSweep).ap(1).thresh_time - (sum(second({sweep(TrainSweep).epoch(1:step-1).timespan}))*1000) ;  
+        Summary(index).OnsetTSFAP         = OnsetTSFAP ;  
         Summary(index).TSbasetothreshM    = mean(TSbasetothresh) ; 
         Summary(index).TSbasetothreshSD   = std(TSbasetothresh) ; 
         Summary(index).AmpTSthreshM       = mean(AmpsTSthresh) ; 
@@ -207,8 +235,8 @@ for i = 1:height(abfs)
     end
 end
 %% save
-save(fullfile(basedir, savename), 'abf', 'Summary') ;
-clearvars -except abf Summary i
+save(fullfile(basedir, savename), 'Summary') ;
+clearvars -except Summary i
 
 
 

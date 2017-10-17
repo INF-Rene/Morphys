@@ -45,7 +45,7 @@ if isempty(chs), chs=[]; return; end
 % epoch B needs to be at least 4 different stepdiffs
 for j=chs
     epochABC=[abf.channel([abf.channel.number]==j).in(strcmp({abf.channel([abf.channel.number]==j).in.signal},'primary')).sweep(:).epoch];
-    epochABC=epochABC(ismember({epochABC.Name},{'Epoch A', 'Epoch B', 'Epoch C'} ));
+    epochABC=epochABC([epochABC.number]==0 | [epochABC.number]==1 | [epochABC.number]==2);
     if ~all(strcmp({epochABC.typestr}, 'step'))
         chs(chs==j)=[];
     elseif ~all(0.5<cellfun(@(x) seconds(duration(str2double(strsplit(x,':')))),{epochABC([epochABC.number]==1).timespan})<1.5)
