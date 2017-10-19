@@ -3,8 +3,9 @@
 close all, clear all
 
 %% Set path to load and save data
-basedir = 'D:\Morphys\Data\Labbooks\NAG\MetadataABF' ;
-savename = 'DataSummaryNAG.mat' ;
+%basedir = 'D:\Morphys\Data\Labbooks\NAG\MetadataABF' ;
+basedir = 'C:\Users\DBHeyer\Documents\PhD\Human Database\Morphys\Data\Labbooks\NAG\MetadataABF' ;
+savename = 'DataSummaryNAG2.mat' ;
 
 %% import CSV files
 % requires specific folder- and filenames in location basedir!
@@ -137,9 +138,9 @@ for i = 1:height(abfs)
         end
 
         % calculate input resistance     
+        f_R=fittype('R*x+b');
         tmp=length(find(currInjections_R~=0 & ~isnan(voltageResponses)));
-        if tmp > 1
-            f_R=fittype('R*x+b');
+        if tmp > 1         
             [fitR]=fit(currInjections_R(currInjections_R~=0 & ~isnan(voltageResponses)),voltageResponses(voltageResponses~=0 & ~isnan(voltageResponses)),f_R, 'StartPoint', [0 0]); 
             Rin=fitR.R*1e3; % In mOhm
         elseif tmp ==1  % If there is only one point, use that to calculate Rin directly:
@@ -173,6 +174,21 @@ for i = 1:height(abfs)
             ISIRatio1toAll = NaN;
             AdaptIdx = NaN;
         end
+        
+        % Amplitude accomodation
+        if length(AmpsTSthresh) > 2           
+            N = length(AmpsTSthresh)-1 ;
+            for n = 1:N
+                Ampchanges(n,1) = (AmpsTSthresh(n+1)-AmpsTSthresh(n)) / (AmpsTSthresh(n+1)+AmpsTSthresh(n));
+                HWchanges(n,1) = (HWsTS(n+1)-HWsTS(n)) / (HWsTS(n+1)+HWsTS(n));
+            end
+            AmpAccom = (1/N)*sum(Ampchanges) ;  
+            HWAccom = (1/N)*sum(HWchanges) ;
+        else
+            AmpAccom = NaN;    
+            HWAccom = NaN; 
+        end        
+        
 
         %% Create summary  
         Summary(index).File               = abf.filename ;
@@ -227,6 +243,8 @@ for i = 1:height(abfs)
         Summary(index).ISITrSwpSD         = std(ISIsTS(ISIsTS~=0)) ;
         Summary(index).ISITrSwpCV         = (std(ISIsTS(ISIsTS~=0)) / mean(ISIsTS(ISIsTS~=0))) ; %coefficient of variation
         Summary(index).AdaptIndexTS       = AdaptIdx ;
+        Summary(index).AmpAccomTS         = AmpAccom ;
+        Summary(index).HWAccomTS          = HWAccom ;
         Summary(index).ISIRatio1toAll     = ISIRatio1toAll ;
 
         %clear variables assigned in "sweep" For loop
