@@ -44,19 +44,23 @@ if isempty(chs), chs=[]; return; end
 % the stepdiff of C is always equal to -1*(stepdiff of b)
 % epoch B needs to be at least 4 different stepdiffs
 for j=chs
-    epochABC=[abf.channel([abf.channel.number]==j).in(strcmp({abf.channel([abf.channel.number]==j).in.signal},'primary')).sweep(:).epoch];
-    epochABC=epochABC([epochABC.number]==0 | [epochABC.number]==1 | [epochABC.number]==2);
-    if ~all(strcmp({epochABC.typestr}, 'step'))
-        chs(chs==j)=[];
-    elseif ~all(0.5<cellfun(@(x) seconds(duration(str2double(strsplit(x,':')))),{epochABC([epochABC.number]==1).timespan})<1.5)
-        chs(chs==j)=[];
-    elseif ~all([epochABC([epochABC.number]==0).stepdiff]==0)
-        chs(chs==j)=[];
-    elseif ~all([epochABC([epochABC.number]==1).stepdiff]== -[epochABC([epochABC.number]==2).stepdiff])
-        chs(chs==j)=[];
-    elseif numel(unique([epochABC([epochABC.number]==1).stepdiff]))<4
-        chs(chs==j)=[];
-    elseif ~(any([epochABC([epochABC.number]==1).stepdiff]<0) && any([epochABC([epochABC.number]==1).stepdiff]>0))
+    try
+        epochABC=[abf.channel([abf.channel.number]==j).in(strcmp({abf.channel([abf.channel.number]==j).in.signal},'primary')).sweep(:).epoch];
+        epochABC=epochABC([epochABC.number]==0 | [epochABC.number]==1 | [epochABC.number]==2);
+        if ~all(strcmp({epochABC.typestr}, 'step'))
+            chs(chs==j)=[];
+        elseif ~all(0.5<cellfun(@(x) seconds(duration(str2double(strsplit(x,':')))),{epochABC([epochABC.number]==1).timespan})<1.5)
+            chs(chs==j)=[];
+        elseif ~all([epochABC([epochABC.number]==0).stepdiff]==0)
+            chs(chs==j)=[];
+        elseif ~all([epochABC([epochABC.number]==1).stepdiff]== -[epochABC([epochABC.number]==2).stepdiff])
+            chs(chs==j)=[];
+        elseif numel(unique([epochABC([epochABC.number]==1).stepdiff]))<4
+            chs(chs==j)=[];
+        elseif ~(any([epochABC([epochABC.number]==1).stepdiff]<0) && any([epochABC([epochABC.number]==1).stepdiff]>0))
+            chs(chs==j)=[];
+        end
+    catch
         chs(chs==j)=[];
     end
 end

@@ -4,11 +4,11 @@ close all, clear all
 
 %% Set path to load and save data
 %basedir = 'D:\Morphys\Data\Labbooks\NAG\MetadataABF' ;
-basedir = 'C:\Users\DBHeyer\Documents\PhD\Human Database\Morphys\Data\Labbooks\NAG\MetadataABF' ;
-savename = 'DataSummaryNAG2.mat' ;
+basedir = 'C:\Users\DBHeyer\Documents\PhD\Human Database\Morphys\Data\Labbooks\MBV\MetadataCSVs' ;
+savename = 'DataSummaryMBV.mat' ;
 
 %% import CSV files
-% requires specific folder- and filenames in location basedir!
+%requires specific folder- and filenames in location basedir!
 abfs = readtable(fullfile(basedir, 'Abffiles','Abffiles.txt')) ;
 channels = readtable(fullfile(basedir, 'Channels','Channels.txt')) ;
 ins = readtable(fullfile(basedir, 'Analogins','Analogins.txt')) ;
@@ -16,6 +16,8 @@ sweeps = readtable(fullfile(basedir, 'Sweeps','Sweeps.txt')) ;
 epochs = readtable(fullfile(basedir, 'Epochs','Epochs.txt')) ;
 aps = readtable(fullfile(basedir, 'Actionpotentials','Actionpotentials.txt')) ;
 
+% for data Thijs:
+%load(fullfile(basedir,'selectedtables.mat'))
 %% Loop through abfs
 index = 1 ;
 for i = 1:height(abfs)
@@ -23,10 +25,11 @@ for i = 1:height(abfs)
     fprintf('Looking for CC-step protocols: file nr %1.0f \n', i);
     abf = SubsetTable2struct(abfs(i,:),channels,ins,sweeps,epochs,aps) ;
     %% If abf is a stepprotocol: continue with analysis
-    if isccstep(abf) 
+    [ccabf, chs] = isccstep(abf) ;
+    if ccabf == 1 && length(chs) == 1 
         fprintf('Retrieving analysis parameters from CC-step file %1.0f \n', index);
         %% Analyze
-        sweep = abf.channel.in.sweep ;
+        sweep = abf.channel(chs).in.sweep ;
         NrofSweeps = length(sweep) ;  
         % find current injection epoch and assign aps to sweep
         for step = 1:length(sweep(1).epoch)
