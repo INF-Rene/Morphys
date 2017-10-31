@@ -29,7 +29,7 @@ for i = 1:height(abfs)
     if ccabf == 1 && length(chs) == 1 
         fprintf('Retrieving analysis parameters from CC-step file %1.0f \n', index);
         %% Analyze
-        sweep = abf.channel(chs).in.sweep ;
+        sweep = abf.channel(abf.channel.number == chs).in.sweep ;
         NrofSweeps = length(sweep) ;  
         % find current injection epoch and assign aps to sweep
         for step = 1:length(sweep(1).epoch)
