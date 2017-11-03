@@ -230,6 +230,7 @@ classdef Abffile < Sharedpaths & Setupsettings
                     infostruct.profilename  = obj.proname;
                     infostruct.path2stim    = '';
                     infostruct.stimfilename = '';
+                    
                     epochstruct = rmfield(epochstruct,'nDACNum');                               % remove DAC number from table (now redundant)
                     epochstruct = obj.standardiseepochstruct(epochstruct,obj.sampleint*1e-3);   % standardise epochStruct
                     t = struct2table(epochstruct);
@@ -291,6 +292,11 @@ classdef Abffile < Sharedpaths & Setupsettings
                     for ii=1:obj.nrofchannels
                         if infostruct.number == obj.getchannel(ii).get('dacnum')
                             obj.channels(ii)  = obj.getchannel(ii).addout(infostruct);
+                            if ~isempty(obj.getchannel(ii).getin('signal','secondary'))
+                                sf = obj.getchannel(ii).getout.getscalefactor(obj.getchannel(ii).getin('signal','secondary'));
+                                obj.channels(ii).analogouts = obj.getchannel(ii).getout.set('scalefactor',sf);
+                                obj.channels(ii).analogouts.analogwaveformtable = obj.getchannel(ii).getout.analogwaveformtable.set('scalefactor',sf);
+                            end
                         end
                     end
                 end

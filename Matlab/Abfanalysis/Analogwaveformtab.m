@@ -63,7 +63,9 @@ classdef Analogwaveformtab < Sharedmethods
             elseif ~isscalar(idx), error('Index must be scalar.')
             end
             swptab = obj.tab;
-            swptab.firstlevel = swptab.firstlevel + swptab.deltalevel*(idx-1);
+            firstlevel = swptab.firstlevel*obj.scalefactor;
+            deltalevel = swptab.deltalevel*obj.scalefactor;
+            swptab.firstlevel = firstlevel + deltalevel*(idx-1);
             
             epdur = cellfun(@(x) eval(x),swptab.timespan,'UniformOutput',false);
             if all(cellfun('length',epdur)==1)

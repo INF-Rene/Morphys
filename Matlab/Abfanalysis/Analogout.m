@@ -53,11 +53,11 @@ classdef Analogout < Sharedmethods
             obj.path2pro     = infostruct.path2pro;
             obj.protocolfile = infostruct.profilename;
             obj.path2stim    = infostruct.path2stim;
-            obj.stimulusfile = infostruct.stimfilename;
+            obj.stimulusfile = infostruct.stimfilename;            
             if isempty(obj.stimulusfile), obj.epochinfosource = 'pClampProFile';
             else                          obj.epochinfosource = 'pClampAtfFile';
             end
-            obj.analogwaveformtable = infostruct.analogwaveformtable;
+            obj.analogwaveformtable = infostruct.analogwaveformtable;          
         end
         
         % ------------------------------------------- HELPER METHODS --------------------------------------------------------
@@ -84,23 +84,27 @@ classdef Analogout < Sharedmethods
             % secondary output of this channel. For different protocols, the method of scalefactor determination may differ.
             % Switch statement is used to determine how. 
             % --------------------
-            error('not yet completed/implemented')
-%             if ~isscalar(obj), error('Analogout object must be scalar.'); end
-%             % 2. Calculate scalefactor
-%             switch obj.stimulusfile 
-%                 case {'eCode_1_APwaveform'} % all protocols with steps
-%                     sf = 1;
-%                 case {'eCode_2_Noise'}      % noise protocols
-%                     sf = 1;
-%                 case {'eCode_2_Resonance'}  % resonance...
-%                     sf = 1; 
-%                 otherwise
-%                     sf = 1;
-%             end
-%             % 3. Standardise scalefactor. Now scalefactor is determined, it has to be standardised, or rather, rounded to the 
-%             % nearest 2.5% increment. So for example, 1.269 scalefactor becomes 1.275)
-%             resolution = 2.5;
-%             sf = round(sf*100/resolution,0)*resolution/100; % round to nearest X%
+            %error('not yet completed/implemented')
+            if ~isscalar(obj), error('Analogout object must be scalar.'); end
+            % 2. Calculate scalefactor
+            switch obj.stimulusfile 
+                case {'eCode_1_IV'} % all protocols with steps
+                    epo1dur = fix((str2double(obj.analogwaveformtable.tab(1,:).timespan)/1000)*obj.analogwaveformtable.samplefreq);
+                    epo2dur = fix(((str2double(obj.analogwaveformtable.tab(2,:).timespan)/1000)*obj.analogwaveformtable.samplefreq)+epo1dur);
+                    epo1 = INobj.getsweep(1).Data(1:epo1dur);
+                    epo2 = INobj.getsweep(1).Data(epo1dur:epo2dur);
+                    sf = (nanmedian(epo2)-nanmedian(epo1))/-140;
+                case {'eCode_2_Noise'}      % noise protocols
+                    sf = 1;
+                case {'eCode_2_Resonance'}  % resonance...
+                    sf = 1; 
+                otherwise
+                    sf = 1;
+            end
+            % 3. Standardise scalefactor. Now scalefactor is determined, it has to be standardised, or rather, rounded to the 
+            % nearest 2.5% increment. So for example, 1.269 scalefactor becomes 1.275)
+            resolution = 2.5;
+            sf = round(sf*100/resolution,0)*resolution/100; % round to nearest X%
         end
 
         % ------------------------------------------ PLOTTING METHODS -------------------------------------------------------
