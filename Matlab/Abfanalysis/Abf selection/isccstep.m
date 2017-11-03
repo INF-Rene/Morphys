@@ -26,7 +26,7 @@ if abf.samplefreq<10000, chs=[]; return; end
 for j=chs
         if ~strcmp(abf.channel([abf.channel.number]==j).in(strcmp({abf.channel([abf.channel.number]==j).in.signal},'primary')).units, 'mV')
             chs(chs==j)=[];
-        elseif any([abf.channel([abf.channel.number]==j).in(strcmp({abf.channel([abf.channel.number]==j).in.signal},'primary')).sweep.nrofepochs]<4)
+        elseif any([abf.channel([abf.channel.number]==j).in(strcmp({abf.channel([abf.channel.number]==j).in.signal},'primary')).sweep.nrofepochs]<3)
             chs(chs==j)=[];
         elseif ~all(0.5<cellfun(@(x) seconds(duration(str2double(strsplit(x, ':')))),{abf.channel([abf.channel.number]==j).in(strcmp({abf.channel([abf.channel.number]==j).in.signal},'primary')).sweep.timespan})<6)
             chs(chs==j)=[];
@@ -51,7 +51,7 @@ for j=chs
             chs(chs==j)=[];
         elseif ~all(0.5<cellfun(@(x) seconds(duration(str2double(strsplit(x,':')))),{epochABC([epochABC.number]==1).timespan})<1.5)
             chs(chs==j)=[];
-        elseif ~all([epochABC([epochABC.number]==0).stepdiff]==0)
+        elseif ~(all([epochABC([epochABC.number]==0).stepdiff]==0) || all(isnan([epochABC([epochABC.number]==0).stepdiff])) )
             chs(chs==j)=[];
         elseif ~all([epochABC([epochABC.number]==1).stepdiff]== -[epochABC([epochABC.number]==2).stepdiff])
             chs(chs==j)=[];
