@@ -268,7 +268,8 @@
                                                             'protocolfile'
                                                             'path2stim'
                                                             'stimulusfile'
-                                                            'scalefactor'   
+                                                            'scalefactor'
+                                                            'holdingI'
                                                             };
                     case 'Analogin', metadataproperties = { 'guid'
                                                             'guid_channel'
