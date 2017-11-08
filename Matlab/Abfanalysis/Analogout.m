@@ -21,6 +21,7 @@ classdef Analogout < Sharedmethods
         path2stim           % path to stimulus file ('.atf') used
         stimulusfile        % name of the stimulus file used for analog waveform output (is empty if no atf file was used)
         scalefactor = 1     % scalefactor of protocol injected waveform. Applies to analog waveforms defined by ATF stimfiles (else scalefactor=1)
+        holdingI = nan      % holding current determined from secondary analog in
     end
        
 %####################################################### METHODS ############################################################
@@ -84,7 +85,7 @@ classdef Analogout < Sharedmethods
             % secondary output of this channel. For different protocols, the method of scalefactor determination may differ.
             % Switch statement is used to determine how. 
             % --------------------
-            %error('not yet completed/implemented')
+            
             if ~isscalar(obj), error('Analogout object must be scalar.'); end
             % 2. Calculate scalefactor
             switch obj.stimulusfile 
@@ -106,6 +107,25 @@ classdef Analogout < Sharedmethods
             resolution = 2.5;
             sf = round(sf*100/resolution,0)*resolution/100; % round to nearest X%
         end
+        
+        function holdI = getholdingcurrent(obj,INobj)
+            % function extracts holding current by looking at the intitial current injected in first step epoch 
+            % recorded in the analog IN object INobj. This channel is assumed to be the analog IN recording the corresponding
+            % secondary output of this channel. If epoch 'A' is not a step, holding current can not be determined 
+            % (unless manually specified otherwise for certain protocols). 
+            % --------------------      
+            if ~isscalar(obj), error('Analogout object must be scalar.'); end
+            
+            holdI = NaN;
+            if strcmp(INobj.units, 'pA')                
+                epoA = INobj.getsweep(1).getepoch('Name', 'Epoch A');
+                if strcmp(epoA.typestr, 'step') && epoA.amplitude == 0
+                    holdI = nanmedian(epoA.Data);
+                end
+            end        
+        end
+                
+        
 
         % ------------------------------------------ PLOTTING METHODS -------------------------------------------------------
         function plot(obj,varargin)

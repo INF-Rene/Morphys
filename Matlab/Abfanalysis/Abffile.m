@@ -315,7 +315,14 @@ classdef Abffile < Sharedpaths & Setupsettings
             % Make Epochs using Analogwaveformtab of Analogout
             fprintf('Adding epochs...\n')
             obj = obj.makeepochs;
-
+            
+            % Get holding current
+            for i=1:obj.nrofchannels
+                if ~isempty(obj.getchannel(i).getin('signal','secondary'))
+                    holdI = obj.getchannel(i).getout.getholdingcurrent(obj.getchannel(i).getin('signal','secondary'));
+                    obj.channels(i).analogouts = obj.getchannel(i).getout.set('holdingI',holdI);                  
+                end      
+            end     
         end
         
         % ------------------------------------------ HELPER METHODS ---------------------------------------------------------
