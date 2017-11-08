@@ -350,8 +350,9 @@ classdef Epoch < Sharedmethods & Trace
                 catch err;
                 end
                 if strcmp(f_status,'Passed'),
-                    tau      = 1/fitresult.b;     
-                    if tau < 5 || tau > 100 || gof.rsquare<0.8        
+                    tau      = 1/fitresult.b;
+                    gof=gof.rsquare;
+                    if tau < 5 || tau > 100 || gof<0.8        
                         tau=NaN;
                     end
                     tau_time = xdata;

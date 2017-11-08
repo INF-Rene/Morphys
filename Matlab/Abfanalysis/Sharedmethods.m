@@ -313,6 +313,7 @@
                                                             'stepdiff'
                                                             'vstep'
                                                             'tau'
+                                                            'gof'
                                                             'steadystate'
                                                             'steadystate_diff'
                                                             'sag' 
