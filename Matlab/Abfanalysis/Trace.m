@@ -254,6 +254,7 @@ classdef Trace < timeseries
                 obj(i) = obj(i).getmaxdvdt;               
                 obj(i) = obj(i).getthresh2;    % get final estimate based on Allen institute method
                 obj(i) = obj(i).getahp;
+                obj(i) = obj(i).getslowahp;
                 obj(i) = obj(i).getrelahp;
                 obj(i) = obj(i).getmindvdt;
                 %obj(i) = obj(i).getadp;
@@ -354,7 +355,7 @@ classdef Trace < timeseries
             if cnt>0, fprintf('%d out of %d action potentials: no threshold.\n',cnt,obj.nrofaps); end
         end  %Djai's version               
         
-        function obj = getahp(obj)
+        function obj = getslowahp(obj)
             % find the after-hyperpolarising potential of APs. 
             % Runs a window of few milliseconds (obj.ahpSnakeWin) from peak of AP forward in 
             % time, until it finds point where the head of this window has a larger value than the tail. Then takes minumum 
@@ -367,21 +368,58 @@ classdef Trace < timeseries
             %obj = obj.sortaps; % could add this line to be sure...
             for i = 1:obj.nrofaps                                                                   % for every AP event
                 if i == obj.nrofaps, 
-                     endpoint = obj.TimeInfo.End;                                                   % find end point
-                else endpoint = obj.getap(i+1).peak_time;
+                    endpoint = obj.TimeInfo.End;                                                    % find end point
+                else
+                    endpoint = obj.getap(i+1).peak_time;
                 end
-                isi        = obj.getsampleusingtime(obj.getap(i).peak_time,endpoint);               % get timeseries of data after AP
-                ahpwinstrt = find(isi.Data(1:end-snakelen+1)<isi.Data(snakelen:end),1) + 1;         % find start of ahp window
+                isi        = obj.getsampleusingtime(obj.getap(i).peak_time+5,endpoint);             % get timeseries of data after AP
+                ahpwinstrt = find(isi.Data(1:end-snakelen+1)<isi.Data(snakelen:end),1);             % find start of ahp window
                 ahpwinend  = ahpwinstrt + snakelen;                                                 % get end window
-                if ~isempty(ahpwinstrt)
-                    ahpidx = find(isi.Data==min(isi.Data((ahpwinstrt:ahpwinend)+1)),1);             % find index of minimum
-                    obj    = obj.updateap(i,'ahp',isi.Data(ahpidx),'ahp_time',isi.Time(ahpidx));    % update AP
+                if ~isempty(ahpwinstrt) && ahpwinstrt>1
+                    ahpidx = find(isi.Data==min(isi.Data((ahpwinstrt:ahpwinend))),1)-1;             % find index of minimum
+                    obj    = obj.updateap(i,'ahp_slow',isi.Data(ahpidx),'ahp_slow_time',isi.Time(ahpidx));    % update AP
                 else
                     cnt=cnt+1;
                 end
             end
             if cnt>0, 
-                fprintf('%d out of %d action potentials: no AHP.\n',cnt,obj.nrofaps); 
+                fprintf('%d out of %d action potentials: no slow AHP.\n',cnt,obj.nrofaps); 
+            end
+        end
+ 
+        function obj = getahp(obj)
+            % find the after-hyperpolarising potential of APs. 
+            % Runs a window of few milliseconds (obj.ahpSnakeWin) from peak of AP forward in 
+            % time, until it finds point where the head of this window has a larger value than the tail. Then takes minumum 
+            % value within window as AHP.
+            % NOTE: Assumes list of ACTIONPOTENTIALS is sorted!
+            % See also ACTIONPOTENTIAL
+            if ~isscalar(obj), error('Object must be scalar'); end
+            cnt=0;
+            snakelen = floor(obj.ahpSnakeWin/mean(diff(obj.Time)));                                 % obtain length of ahp window
+            %obj = obj.sortaps; % could add this line to be sure...
+            for i = 1:obj.nrofaps                                                                   % for every AP event
+%                 if i == obj.nrofaps, 
+%                      endpoint = obj.TimeInfo.End;                                                   % find end point
+%                 else endpoint = obj.getap(i+1).peak_time;
+%                 end
+                endpoint = obj.getap(i).peak_time+8;                                                % fast ahp needs to be within 5 ms after peak
+                isi        = obj.getsampleusingtime(obj.getap(i).peak_time,endpoint);               % get timeseries of data after AP
+                ahpwinstrt = find(isi.Data(1:end-snakelen+1)<isi.Data(snakelen:end),1);             % find start of ahp window
+                ahpwinend  = ahpwinstrt + snakelen;                                                 % get end window
+                if ~isempty(ahpwinstrt)
+                    ahpidx = find(isi.Data==min(isi.Data((ahpwinstrt:ahpwinend))),1)-1;             % find index of minimum
+                    if isi.Time(ahpidx)-obj.getap(i).peak_time<5
+                    obj    = obj.updateap(i,'ahp',isi.Data(ahpidx),'ahp_time',isi.Time(ahpidx));    % update AP (only if AHP is fast enough)
+                    else
+                        cnt=cnt+1;
+                    end
+                else
+                    cnt=cnt+1;
+                end
+            end
+            if cnt>0, 
+                fprintf('%d out of %d action potentials: no fast AHP.\n',cnt,obj.nrofaps); 
             end
         end
         
@@ -724,7 +762,7 @@ classdef Trace < timeseries
             % Feature should be either a string or a cell array of strings.
             % See also ACTIONPOTENTIAL, TIMESERIES, TSDATA.EVENT.
             if isscalar(obj)
-                if nargin == 1, obj.addapevents('peak','thresh','ahp').plot(varargin{:})
+                if nargin == 1, obj.addapevents('peak','thresh','ahp', 'ahp_slow').plot(varargin{:})
                 elseif ischar(feature)
                     obj.addapevents(feature).plot(varargin{:})
                 elseif iscell(feature) && all(cellfun(@ischar,feature))
@@ -734,7 +772,7 @@ classdef Trace < timeseries
                     error('Feature should be either a string or a cell array of strings.')
                 end
             else
-                if nargin == 1, feature = {'peak','thresh','ahp'}; end
+                if nargin == 1, feature = {'peak','thresh','ahp', 'ahp_slow'}; end
                 hold on
                     arrayfun(@(x) obj(x).plotapevents(feature,varargin{:}),1:numel(obj),'UniformOutput',false)
                 hold off

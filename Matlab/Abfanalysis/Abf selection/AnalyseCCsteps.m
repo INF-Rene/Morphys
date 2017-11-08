@@ -80,7 +80,7 @@ for i = 1:height(abfs)
             if sweep(j,1).currinj >= -100 && sweep(j,1).currinj < 0
                 voltageResponses(j,1) = sweep(j,1).vmresponse ; 
                 currInjections_R(j,1) = sweep(j,1).currinj ;
-                if sweep(j,1).epoch(step).tau < 100 && sweep(j,1).epoch(step).tau > 0
+                if sweep(j,1).epoch(step).tau < 100 && sweep(j,1).epoch(step).tau > 0 
                     taus(j,1) = sweep(j,1).epoch(step).tau ;
                 else
                     taus(j,1) = NaN;
@@ -122,9 +122,12 @@ for i = 1:height(abfs)
   
         if TrSweepCrit==1
             TSbasetothresh = ([sweep(TrainSweep).ap.thresh]-sweep(TrainSweep).vmbase) ;
-            TSpeaktoahp = ([sweep(TrainSweep).ap.ahp_time]-[sweep(TrainSweep).ap.peak_time]) ;
+            TSpeaktoahp = ([sweep(TrainSweep).ap.ahp_time]-[sweep(TrainSweep).ap.peak_time]);
+            tmp = TSpeaktoahp<5; %only take the fast AHPs for analysis
+            TSpeaktoahp = TSpeaktoahp(tmp); 
             AmpsTSthresh = [sweep(TrainSweep).ap.amp] ;
             AHPsTS = [sweep(TrainSweep).ap.relahp] ;
+            AHPsTS = AHPsTS(tmp);
             ISIsTS = [sweep(TrainSweep).ap(2:end).isi] ;
             FreqTrSwp = mean([sweep(TrainSweep).ap(4:end).freq]) ;
             NrOfAPsTrSwp = length(sweep(TrainSweep).ap) ; 

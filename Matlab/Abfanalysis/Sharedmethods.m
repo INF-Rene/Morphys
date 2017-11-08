@@ -325,6 +325,8 @@
                                                             'peak_time'
                                                             'ahp'
                                                             'ahp_time'
+                                                            'ahp_slow'
+                                                            'ahp_slow_time'
                                                             'relahp'
                                                             'adp'
                                                             'adp_time'

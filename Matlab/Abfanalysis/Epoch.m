@@ -350,8 +350,8 @@ classdef Epoch < Sharedmethods & Trace
                 catch err;
                 end
                 if strcmp(f_status,'Passed'),
-                    tau      = 1/fitresult.b;      %Bugfix DBH/RWS 03-10-2017
-                    if tau < 5 || tau > 100        %Added DBH/RWS 03-10-2017
+                    tau      = 1/fitresult.b;     
+                    if tau < 5 || tau > 100 || gof.rsquare<0.8        
                         tau=NaN;
                     end
                     tau_time = xdata;

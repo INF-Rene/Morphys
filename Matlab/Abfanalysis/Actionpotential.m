@@ -16,8 +16,10 @@ classdef Actionpotential < Sharedmethods
         end_time            = nan;% time of AP end (ms)
         peak                = nan;% absolute peak amplitude (mV)
         peak_time           = nan;% time of peak (ms)
-        ahp                 = nan;% after-hyperpolarising potential (mV)
-        ahp_time            = nan;% ahp time (ms)
+        ahp                 = nan;% fast component of after-hyperpolarising potential (mV)
+        ahp_time            = nan;% time of fast ahp (ms)
+        ahp_slow            = nan;% slow component of after-hyperpolarising potential (mV)
+        ahp_slow_time       = nan;% time of slow ahp(ms)
         relahp              = nan;% relative ahp (ahp-thresh; mV)
         adp                 = nan;% after-depolarising potential (mV)
         adp_time            = nan;% adp time (ms)
@@ -65,10 +67,11 @@ classdef Actionpotential < Sharedmethods
             
             if isscalar(obj)
                 switch feature
-                    case 'peak',   t = 'peak_time';
-                    case 'ahp',    t = 'ahp_time';
-                    case 'adp',    t = 'adp_time';
-                    case 'thresh', t = 'thresh_time';
+                    case 'peak',     t = 'peak_time';
+                    case 'ahp',      t = 'ahp_time';
+                    case 'ahp_slow', t = 'ahp_slow_time';
+                    case 'adp',      t = 'adp_time';
+                    case 'thresh',   t = 'thresh_time';
                     otherwise, error('Unknown AP feature requested')
                 end
                 if ~isempty(obj.(t)) && ~isnan(obj.(t))
