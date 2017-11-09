@@ -319,6 +319,9 @@
                                                             'steadystate_diff'
                                                             'sag' 
                                                             'rinput'
+                                                            'amplitude'
+                                                            'jitter'
+                                                            'meansignal'
                                                             };
                     case 'Actionpotential', metadataproperties = {'guid'
                                                             'parent_guid'
