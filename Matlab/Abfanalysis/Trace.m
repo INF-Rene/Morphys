@@ -253,14 +253,14 @@ classdef Trace < timeseries
                 obj(i) = obj(i).getthresh;     % get initial estimate to determine maxdvdt a.o.
                 obj(i) = obj(i).getmaxdvdt;               
                 obj(i) = obj(i).getthresh2;    % get final estimate based on Allen institute method
+                obj(i) = obj(i).getrelamp;
+                obj(i) = obj(i).gethalfwidth;
                 obj(i) = obj(i).getahp;
                 obj(i) = obj(i).getslowahp;
                 obj(i) = obj(i).getrelahp;
                 obj(i) = obj(i).getmindvdt;
                 %obj(i) = obj(i).getadp;
                 %obj(i) = obj(i).getreladp;
-                obj(i) = obj(i).getrelamp;
-                obj(i) = obj(i).gethalfwidth;
                 obj(i) = obj(i).getonsrapidity;
                 obj(i) = obj(i).getapstartend;
                 obj(i) = obj(i).findapnr;
@@ -364,7 +364,7 @@ classdef Trace < timeseries
             % See also ACTIONPOTENTIAL
             if ~isscalar(obj), error('Object must be scalar'); end
             cnt=0;
-            snakelen = floor(obj.ahpSnakeWin/mean(diff(obj.Time)));                                 % obtain length of ahp window
+            snakelen = floor(obj.ahpSnakeWin/mean(diff(obj.Time)));                               % obtain length of ahp window
             %obj = obj.sortaps; % could add this line to be sure...
             for i = 1:obj.nrofaps                                                                   % for every AP event
                 if i == obj.nrofaps, 
@@ -372,12 +372,31 @@ classdef Trace < timeseries
                 else
                     endpoint = obj.getap(i+1).peak_time;
                 end
-                isi        = obj.getsampleusingtime(obj.getap(i).peak_time+5,endpoint);             % get timeseries of data after AP
-                ahpwinstrt = find(isi.Data(1:end-snakelen+1)<isi.Data(snakelen:end),1);             % find start of ahp window
-                ahpwinend  = ahpwinstrt + snakelen;                                                 % get end window
-                if ~isempty(ahpwinstrt) && ahpwinstrt>1
-                    ahpidx = find(isi.Data==min(isi.Data((ahpwinstrt-1:ahpwinend-1))),1);             % find index of minimum
-                    obj    = obj.updateap(i,'ahp_slow',isi.Data(ahpidx),'ahp_slow_time',isi.Time(ahpidx));    % update AP
+                
+                if ~isempty(obj.getap(i).ahp_time) && ~isnan(obj.getap(i).ahp_time)
+                    startpoint = obj.getap(i).ahp_time;
+                    isi        = obj.getsampleusingtime(startpoint,endpoint);                          
+                    startpoint = isi.Time(find(isi.Data(1:end-snakelen*2+1)>isi.Data(snakelen*2:end),1));  % check if signal goed down again if a fast AHP happened
+                else
+                    startpoint = obj.getap(i).peak_time;
+                end
+                if ~isempty(startpoint)                                                          % do not search for slow ahp if the signal does not go down again after fast ahp
+                isi        = obj.getsampleusingtime(startpoint,endpoint);                           % get timeseries of data after AP
+                ahpwinstrt = find(isi.Data(1:end-snakelen*3+1)<isi.Data(snakelen*3:end),1);             % find start of ahp window
+                ahpwinend  = ahpwinstrt + snakelen*3;   
+                if ahpwinend > numel(isi.Data)                                                      % get end window
+                    ahpwinend = numel(isi.Data);                 
+                end
+                if ~isempty(ahpwinstrt)
+                    ahpidx = find(isi.Data==min(isi.Data((ahpwinstrt:ahpwinend))),1);             % find index of minimum
+                    if ahpidx>3
+                    obj    = obj.updateap(i,'ahp_slow',isi.Data(ahpidx+1),'ahp_slow_time',isi.Time(ahpidx+1));    % update AP
+                    else
+                    cnt=cnt+1;
+                    end
+                else
+                    cnt=cnt+1;
+                end
                 else
                     cnt=cnt+1;
                 end
@@ -399,11 +418,7 @@ classdef Trace < timeseries
             snakelen = floor(obj.ahpSnakeWin/mean(diff(obj.Time)));                                 % obtain length of ahp window
             %obj = obj.sortaps; % could add this line to be sure...
             for i = 1:obj.nrofaps                                                                   % for every AP event
-%                 if i == obj.nrofaps, 
-%                      endpoint = obj.TimeInfo.End;                                                   % find end point
-%                 else endpoint = obj.getap(i+1).peak_time;
-%                 end
-                endpoint = obj.getap(i).peak_time+8;                                                % fast ahp needs to be within 5 ms after peak
+                endpoint   = obj.getap(i).peak_time+obj.getap(i).halfwidth+4.5+obj.ahpSnakeWin;     % fast ahp needs to be within 4.5+halfwidth ms after peak
                 isi        = obj.getsampleusingtime(obj.getap(i).peak_time,endpoint);               % get timeseries of data after AP
                 ahpwinstrt = find(isi.Data(1:end-snakelen+1)<isi.Data(snakelen:end),1);             % find start of ahp window
                 ahpwinend  = ahpwinstrt + snakelen;                                                 % get end window
