@@ -376,7 +376,7 @@ classdef Trace < timeseries
                 ahpwinstrt = find(isi.Data(1:end-snakelen+1)<isi.Data(snakelen:end),1);             % find start of ahp window
                 ahpwinend  = ahpwinstrt + snakelen;                                                 % get end window
                 if ~isempty(ahpwinstrt) && ahpwinstrt>1
-                    ahpidx = find(isi.Data==min(isi.Data((ahpwinstrt:ahpwinend))),1)-1;             % find index of minimum
+                    ahpidx = find(isi.Data==min(isi.Data((ahpwinstrt-1:ahpwinend-1))),1);             % find index of minimum
                     obj    = obj.updateap(i,'ahp_slow',isi.Data(ahpidx),'ahp_slow_time',isi.Time(ahpidx));    % update AP
                 else
                     cnt=cnt+1;
@@ -408,7 +408,7 @@ classdef Trace < timeseries
                 ahpwinstrt = find(isi.Data(1:end-snakelen+1)<isi.Data(snakelen:end),1);             % find start of ahp window
                 ahpwinend  = ahpwinstrt + snakelen;                                                 % get end window
                 if ~isempty(ahpwinstrt)
-                    ahpidx = find(isi.Data==min(isi.Data((ahpwinstrt:ahpwinend))),1)-1;             % find index of minimum
+                    ahpidx = find(isi.Data==min(isi.Data((ahpwinstrt-1:ahpwinend-1))),1);             % find index of minimum
                     if isi.Time(ahpidx)-obj.getap(i).peak_time<5
                     obj    = obj.updateap(i,'ahp',isi.Data(ahpidx),'ahp_time',isi.Time(ahpidx));    % update AP (only if AHP is fast enough)
                     else
