@@ -270,6 +270,7 @@
                                                             'stimulusfile'
                                                             'scalefactor'
                                                             'holdingI'
+                                                            'holdingV'
                                                             };
                     case 'Analogin', metadataproperties = { 'guid'
                                                             'guid_channel'
