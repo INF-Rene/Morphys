@@ -81,7 +81,7 @@ for i = 1:height(abfs)
             if sweep(j,1).currinj >= -100 && sweep(j,1).currinj < 0
                 voltageResponses(j,1) = sweep(j,1).vmresponse ; 
                 currInjections_R(j,1) = sweep(j,1).currinj ;
-                if sweep(j,1).epoch(step).tau < 100 && sweep(j,1).epoch(step).tau > 0 
+                if sweep(j,1).epoch(step).tau < 100 && sweep(j,1).epoch(step).tau > 0 && sweep(j,1).epoch(step).gof > 0.95
                     taus(j,1) = sweep(j,1).epoch(step).tau ;
                 else
                     taus(j,1) = NaN;
