@@ -120,13 +120,13 @@ classdef Analogout < Sharedmethods
             holdV = NaN;
             % if current clamp; get holding current
             if strcmp(CHobj.getin('signal','primary').units, 'mV') && strcmp(CHobj.getin('signal','secondary').units, 'pA')                
-                epoA = CHobj.getsweep(1).getepoch('Name', 'Epoch A');
+                epoA = CHobj.getin('signal','secondary').getsweep(1).getepoch('Name', 'Epoch A');
                 if strcmp(epoA.typestr, 'step') && epoA.amplitude == 0
                     holdI = nanmedian(epoA.Data);
                 end
             % elseif voltage clamp; get holding voltage
             elseif strcmp(CHobj.getin('signal','primary').units, 'pA') && strcmp(CHobj.getin('signal','secondary').units, 'mV')                
-                epoA = CHobj.getsweep(1).getepoch('Name', 'Epoch A');
+                epoA = CHobj.getin('signal','secondary').getsweep(1).getepoch('Name', 'Epoch A');
                 if strcmp(epoA.typestr, 'step') && epoA.amplitude == 0
                     holdV = nanmedian(epoA.Data);
                 end            
