@@ -383,7 +383,7 @@ classdef Trace < timeseries
                 end
             end
             if cnt>0, 
-                fprintf('%d out of %d action potentials: no slow AHP.\n',cnt,obj.nrofaps); 
+                %fprintf('%d out of %d action potentials: no slow AHP.\n',cnt,obj.nrofaps); 
             end
         end
  
@@ -419,7 +419,7 @@ classdef Trace < timeseries
                 end
             end
             if cnt>0, 
-                fprintf('%d out of %d action potentials: no fast AHP.\n',cnt,obj.nrofaps); 
+                %fprintf('%d out of %d action potentials: no fast AHP.\n',cnt,obj.nrofaps); 
             end
         end
         
@@ -462,6 +462,8 @@ classdef Trace < timeseries
             % NOTE: Needs threshold and ahp of aps to calculate. 
             % See also ACTIONPOTENTIAL, GETAHP
             if ~isscalar(obj), error('Object must be scalar'); end
+            
+            %fast component:
             cnt=0;
             for i = 1:obj.nrofaps
                 if ~isempty(obj.getap(i).ahp) && ~isempty(obj.getap(i).thresh) && ~isnan(obj.getap(i).ahp) && ~isnan(obj.getap(i).thresh)
@@ -470,7 +472,18 @@ classdef Trace < timeseries
                     cnt=cnt+1;
                 end
             end
-            if cnt>0, fprintf('%d out of %d action potentials: no relative AHP.\n',cnt,obj.nrofaps); end
+            %if cnt>0, fprintf('%d out of %d action potentials: no relative AHP.\n',cnt,obj.nrofaps); end
+            
+            %slow component:
+            cnt=0;
+            for i = 1:obj.nrofaps
+                if ~isempty(obj.getap(i).ahp_slow) && ~isempty(obj.getap(i).thresh) && ~isnan(obj.getap(i).ahp_slow) && ~isnan(obj.getap(i).thresh)
+                    obj = obj.updateap(i,'relahp_slow',obj.getap(i).ahp_slow-obj.getap(i).thresh); % update AP 
+                else
+                    cnt=cnt+1;
+                end
+            end
+            %if cnt>0, fprintf('%d out of %d action potentials: no relative AHP.\n',cnt,obj.nrofaps); end
         end
         
         function obj = getreladp(obj)
@@ -558,8 +571,13 @@ classdef Trace < timeseries
             if ~isscalar(obj), error('Object must be scalar'); end
             cnt=0;
             for i = 1:obj.nrofaps 
-                if ~isempty(obj.getap(i).ahp_time) && ~isempty(obj.getap(i).peak_time) && ~isnan(obj.getap(i).ahp_time) && ~isnan(obj.getap(i).peak_time)
-                    ts  = obj.getsampleusingtime(obj.getap(i).peak_time,obj.getap(i).ahp_time).getdvdtts;
+                if ~isempty(obj.getap(i).ahp_time) && ~isnan(obj.getap(i).ahp_time)
+                    ahp_time=obj.getap(i).ahp_time;
+                else
+                    ahp_time=obj.getap(i).ahp_slow_time;
+                end
+                if ~isempty(ahp_time) && ~isempty(obj.getap(i).peak_time) && ~isnan(ahp_time) && ~isnan(obj.getap(i).peak_time)
+                    ts  = obj.getsampleusingtime(obj.getap(i).peak_time,ahp_time).getdvdtts;
                     mn  = min(ts);
                     obj = obj.updateap(i,'mindvdt',mn,'mindvdt_time',ts.Time(find(ts.Data==mn,1))); % update AP 
                 else
@@ -616,16 +634,21 @@ classdef Trace < timeseries
             cnt=0;
             obj = obj.sortaps; % to be sure
             for i = 1:obj.nrofaps
+                if ~isempty(obj.getap(i).ahp_time) && ~isnan(obj.getap(i).ahp_time)
+                    ahp_time=obj.getap(i).ahp_time;
+                else
+                    ahp_time=obj.getap(i).ahp_slow_time;
+                end
                 if ~isempty(obj.getap(i).thresh_time) && ~isnan(obj.getap(i).thresh_time)
                     obj = obj.updateap(i,'start_time',obj.getap(i).thresh_time-obj.preAPtime); % update AP
                 else
                     cnt=cnt+1;
                 end
-                if ~isempty(obj.getap(i).ahp_time) && ~isnan(obj.getap(i).ahp_time)
+                if ~isempty(ahp_time) && ~isnan(ahp_time)
                     if i == obj.nrofaps
-                        endtime = min([obj.TimeInfo.End,obj.getap(i).ahp_time+obj.postAPtime]);
+                        endtime = min([obj.TimeInfo.End,ahp_time+obj.postAPtime]);
                     else
-                        endtime = min([obj.TimeInfo.End,obj.getap(i).ahp_time+obj.postAPtime,obj.getap(i+1).thresh_time]);
+                        endtime = min([obj.TimeInfo.End,ahp_time+obj.postAPtime,obj.getap(i+1).thresh_time]);
                     end
                     obj = obj.updateap(i,'end_time',endtime); % update AP
                 else

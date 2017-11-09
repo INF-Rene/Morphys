@@ -331,6 +331,7 @@
                                                             'ahp_slow'
                                                             'ahp_slow_time'
                                                             'relahp'
+                                                            'relahp_slow'
                                                             'adp'
                                                             'adp_time'
                                                             'reladp'
