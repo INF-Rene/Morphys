@@ -206,6 +206,7 @@ for i = 1:height(abfs)
         Summary(index).Channel            = chs ;
         Summary(index).scalefactor        = abf.channel(abf.channel.number == chs).out.scalefactor ;
         Summary(index).holdingcurrent     = abf.channel(abf.channel.number == chs).out.holdingI ;
+        Summary(index).holdingvoltage     = abf.channel(abf.channel.number == chs).out.holdingV ;
         Summary(index).NrofSweeps         = NrofSweeps ;
         Summary(index).PDur               = second(sweep(1).epoch(step).timespan)*1000 ;
         Summary(index).FrstP              = sweep(1).currinj ;

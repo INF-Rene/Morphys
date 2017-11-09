@@ -316,11 +316,12 @@ classdef Abffile < Sharedpaths & Setupsettings
             fprintf('Adding epochs...\n')
             obj = obj.makeepochs;
             
-            % Get holding current
+            % Get holding current or voltage
             for i=1:obj.nrofchannels
                 if ~isempty(obj.getchannel(i).getin('signal','secondary'))
-                    holdI = obj.getchannel(i).getout.getholdingcurrent(obj.getchannel(i).getin('signal','secondary'));
-                    obj.channels(i).analogouts = obj.getchannel(i).getout.set('holdingI',holdI);                  
+                    [holdI, holdV] = obj.getchannel(i).getout.getholdingIorV(obj.getchannel(i));
+                    obj.channels(i).analogouts = obj.getchannel(i).getout.set('holdingI',holdI);
+                    obj.channels(i).analogouts = obj.getchannel(i).getout.set('holdingV',holdV);
                 end      
             end     
         end
