@@ -40,6 +40,7 @@ for i = 1:height(abfs)
         end
         for j = 1:NrofSweeps
             sweep(j).vmbase = sweep(j).epoch(step-1).steadystate ;
+            sweep(j).jitter = sweep(j).epoch(step-1).jitter ;
             sweep(j).currinj = sweep(j).epoch(step).stepdiff ;
             sweep(j).vmresponse = sweep(j).epoch(step).vstep ;
             sweep(j).ap = sweep(j).epoch(step).ap ;
@@ -123,12 +124,10 @@ for i = 1:height(abfs)
   
         if TrSweepCrit==1
             TSbasetothresh = ([sweep(TrainSweep).ap.thresh]-sweep(TrainSweep).vmbase) ;
-            TSpeaktoahp = ([sweep(TrainSweep).ap.ahp_time]-[sweep(TrainSweep).ap.peak_time]);
-            tmp = TSpeaktoahp<5; %only take the fast AHPs for analysis
-            TSpeaktoahp = TSpeaktoahp(tmp); 
+            TSpeaktoahp = ([sweep(TrainSweep).ap.ahp_time]-[sweep(TrainSweep).ap.peak_time]); 
             AmpsTSthresh = [sweep(TrainSweep).ap.amp] ;
             AHPsTS = [sweep(TrainSweep).ap.relahp] ;
-            AHPsTS = AHPsTS(tmp);
+            AHPslowTS = [sweep(TrainSweep).ap.relahp_slow] ;
             ISIsTS = [sweep(TrainSweep).ap(2:end).isi] ;
             FreqTrSwp = mean([sweep(TrainSweep).ap(4:end).freq]) ;
             NrOfAPsTrSwp = length(sweep(TrainSweep).ap) ; 
@@ -217,6 +216,7 @@ for i = 1:height(abfs)
         Summary(index).CurrAbvRheo        = CurrAbvRheo ;
         Summary(index).vmbaseM            = nanmean(vmbase) ;
         Summary(index).vmbaseSD           = nanstd(vmbase) ;
+        Summary(index).Jitter             = nanmean([sweep.jitter]) ;
         Summary(index).InputR             = Rin ;% in MOhm...
         Summary(index).FreqMax            = max(Freqs) ;
         Summary(index).NrOfAPsMax         = max(NrofAPs) ; 
@@ -235,7 +235,8 @@ for i = 1:height(abfs)
         Summary(index).AmpFAPthresh       = sweep(frstspikeswp).ap(1).amp ;
         Summary(index).FAPpeaktoahp       = sweep(frstspikeswp).ap(1).ahp_time - sweep(frstspikeswp).ap(1).peak_time ;
         Summary(index).HalfWFrstAP        = sweep(frstspikeswp).ap(1).halfwidth ; 
-        Summary(index).AHPFrstAP          = sweep(frstspikeswp).ap(1).relahp ; 
+        Summary(index).AHPFrstAP          = sweep(frstspikeswp).ap(1).relahp ;
+        Summary(index).AHPslowFrstAP      = sweep(frstspikeswp).ap(1).relahp_slow ;
         Summary(index).UpStrkFrstAP       = sweep(frstspikeswp).ap(1).maxdvdt ;
         Summary(index).DwnStrkFrstAP      = sweep(frstspikeswp).ap(1).mindvdt ;
         Summary(index).UpDwnStrkRatio     = abs(sweep(frstspikeswp).ap(1).maxdvdt) / abs(sweep(frstspikeswp).ap(1).mindvdt) ;
@@ -244,12 +245,14 @@ for i = 1:height(abfs)
         Summary(index).TSbasetothreshSD   = std(TSbasetothresh) ; 
         Summary(index).AmpTSthreshM       = mean(AmpsTSthresh) ; 
         Summary(index).AmpTSthreshSD      = std(AmpsTSthresh) ; 
-        Summary(index).TSpeaktoahpM       = mean(TSpeaktoahp) ; 
-        Summary(index).TSpeaktoahpSD      = std(TSpeaktoahp) ; 
-        Summary(index).HalfWTrSwpM        = mean(HWsTS) ; 
-        Summary(index).HalfWTrSwpSD       = std(HWsTS) ; 
-        Summary(index).AHPTrSwpM          = mean(AHPsTS) ; 
-        Summary(index).AHPTrSwpSD         = std(AHPsTS) ;
+        Summary(index).TSpeaktoahpM       = nanmean(TSpeaktoahp(TSpeaktoahp~=0)) ; 
+        Summary(index).TSpeaktoahpSD      = nanstd(TSpeaktoahp(TSpeaktoahp~=0)) ; 
+        Summary(index).HalfWTrSwpM        = nanmean(HWsTS(HWsTS~=0)) ; 
+        Summary(index).HalfWTrSwpSD       = nanstd(HWsTS(HWsTS~=0)) ; 
+        Summary(index).AHPTrSwpM          = nanmean(AHPsTS(AHPsTS~=0)) ; 
+        Summary(index).AHPTrSwpSD         = nanstd(AHPsTS(AHPsTS~=0)) ;
+        Summary(index).AHPslowTrSwpM      = nanmean(AHPslowTS(AHPslowTS~=0)) ; 
+        Summary(index).AHPslowTrSwpSD     = nanstd(AHPslowTS(AHPslowTS~=0)) ;        
         Summary(index).ISITrSwpM          = mean(ISIsTS(ISIsTS~=0)) ;
         Summary(index).ISITrSwpSD         = std(ISIsTS(ISIsTS~=0)) ;
         Summary(index).ISITrSwpCV         = (std(ISIsTS(ISIsTS~=0)) / mean(ISIsTS(ISIsTS~=0))) ; %coefficient of variation

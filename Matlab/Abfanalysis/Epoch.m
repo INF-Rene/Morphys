@@ -31,10 +31,14 @@ classdef Epoch < Sharedmethods & Trace
                                 'stepdiff'
                                 'vstep'
                                 'tau'
+                                'gof'
                                 'steadystate'
                                 'steadystate_diff'
                                 'sag' 
                                 'rinput'
+                                'amplitude'
+                                'jitter'
+                                'meansignal'
                                 };
     end
     
@@ -45,6 +49,8 @@ classdef Epoch < Sharedmethods & Trace
         maxfrequency        % maximum frequency of chirp (chirps always starts at 0!).
         pulsewidth          % Width of train pulses          %RWS
         pulseperiod         % Period (start to start interval) of train pulses          %RWS
+        meansignal          % average of raw data %DBH
+        jitter              % std of raw data, can be used as measure of jitter if epoch=step with amplitude=0 %DBH
         initlevel           % starting point of ramp. (Determined by previous epoch) ##NOTE!! not sure where and if to update with scaling factor...    
         extfilename  = '';  % name of text file with noise waveform
         extfilescale = [];  % scaling of text file
@@ -110,6 +116,8 @@ classdef Epoch < Sharedmethods & Trace
             obj.maxfrequency = epochtab.maxfrequency;
             obj.pulsewidth   = epochtab.pulsewidth; %RWS
             obj.pulseperiod  = epochtab.pulseperiod;   %RWS
+            obj.jitter       = nanstd(obj.Data); %DBH
+            obj.meansignal   = nanmean(obj.Data); %DBH
             if nargin == 2, obj.initlevel = initlevel; end
             
             if ~isempty(obj.typestr)
