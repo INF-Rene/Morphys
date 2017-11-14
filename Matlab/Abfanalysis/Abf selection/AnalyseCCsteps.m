@@ -3,22 +3,22 @@
 close all, clear all
 
 %% Set path to load and save data
-%basedir = 'D:\Morphys\Data\Labbooks\NAG\MetadataABF' ;
-basedir = 'C:\Users\DBHeyer\Documents\PhD\Human Database\Morphys\Data\Labbooks\MBV\MetadataCSVs' ;
-savename = 'DataSummaryMBV.mat' ;
+basedir = 'D:\Morphys\Data\Labbooks\NAG\MetadataABF2' ;
+%basedir = 'C:\Users\DBHeyer\Documents\PhD\Human Database\Morphys\Data\Labbooks\MBV\MetadataCSVs' ;
+savename = 'DataSummaryNAG3.mat' ;
 
 %% import CSV files
 %requires specific folder- and filenames in location basedir!
-% abfs = readtable(fullfile(basedir, 'Abffiles','Abffiles.txt')) ;
-% channels = readtable(fullfile(basedir, 'Channels','Channels.txt')) ;
-% ins = readtable(fullfile(basedir, 'Analogins','Analogins.txt')) ;
-% outs = readtable(fullfile(basedir, 'Analogouts','Analogouts.txt')) ;
-% sweeps = readtable(fullfile(basedir, 'Sweeps','Sweeps.txt')) ;
-% epochs = readtable(fullfile(basedir, 'Epochs','Epochs.txt')) ;
-% aps = readtable(fullfile(basedir, 'Actionpotentials','Actionpotentials.txt')) ;
+abfs = readtable(fullfile(basedir, 'Abffiles','Abffiles.txt')) ;
+channels = readtable(fullfile(basedir, 'Channels','Channels.txt')) ;
+ins = readtable(fullfile(basedir, 'Analogins','Analogins.txt')) ;
+outs = readtable(fullfile(basedir, 'Analogouts','Analogouts.txt')) ;
+sweeps = readtable(fullfile(basedir, 'Sweeps','Sweeps.txt')) ;
+epochs = readtable(fullfile(basedir, 'Epochs','Epochs.txt')) ;
+aps = readtable(fullfile(basedir, 'Actionpotentials','Actionpotentials.txt')) ;
 
 % for data Thijs:
-load(fullfile(basedir,'selectedtables.mat'))
+%load(fullfile(basedir,'selectedtables.mat'))
 %% Loop through abfs
 index = 1 ;
 for i = 1:height(abfs)
@@ -137,6 +137,7 @@ for i = 1:height(abfs)
             TSpeaktoahp = NaN;
             AmpsTSthresh = NaN;
             AHPsTS = NaN;
+            AHPslowTS = NaN;
             ISIsTS = NaN;
             FreqTrSwp = NaN;
             NrOfAPsTrSwp = NaN;

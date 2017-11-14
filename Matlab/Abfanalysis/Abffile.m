@@ -295,7 +295,9 @@ classdef Abffile < Sharedpaths & Setupsettings
                             if ~isempty(obj.getchannel(ii).getin('signal','secondary'))
                                 sf = obj.getchannel(ii).getout.getscalefactor(obj.getchannel(ii).getin('signal','secondary'));
                                 obj.channels(ii).analogouts = obj.getchannel(ii).getout.set('scalefactor',sf);
+                                if ~isempty(obj.getchannel(ii).getout.analogwaveformtable)
                                 obj.channels(ii).analogouts.analogwaveformtable = obj.getchannel(ii).getout.analogwaveformtable.set('scalefactor',sf);
+                                end
                             end
                         end
                     end
