@@ -16,12 +16,12 @@ classdef Sharedpaths
     
 %###################################################### PROPERTIES ##########################################################
     properties (Hidden = false)
-        userid              = ''; % pulled from global variable 'USERNAME'. 
+        userid              = 'MBV'; % pulled from global variable 'USERNAME'. 
     end
     
     properties (Hidden = true)
         listofuserids       = {'AKS','DBH','DRU','GTS','IKS','JDZ','JOR','JSR','MBV','NAG','RBP','RWS','SHT','THK','TKN'};
-        dir_base            = 'C:\Users\Thijs\Documents';
+        dir_base            = 'C:\Users\DBHeyer\Documents\PhD\Human Database';
         dir_ephys           = fullfile('Morphys','Data','Electrophysiology');
         dir_abfs            = fullfile('Morphys','Data','Electrophysiology','Abffiles');
         dir_setupsettings   = fullfile('Morphys','Data','Electrophysiology','SetupSettings');

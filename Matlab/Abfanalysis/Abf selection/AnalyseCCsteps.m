@@ -4,21 +4,20 @@ close all, clear all
 
 %% Set path to load and save data
 %basedir = 'D:\Morphys\Data\Labbooks\NAG\MetadataABF' ;
-basedir = 'C:\Users\DBHeyer\Documents\PhD\Human Database\Morphys\Data\Labbooks\MBV\MetadataCSVs' ;
-savename = 'DataSummaryMBV.mat' ;
+basedir = 'C:\Users\DBHeyer\Documents\PhD\Human Database\Natalia\Selection\onrap10' ;
+savename = 'DataSummary10.mat' ;
 
 %% import CSV files
 %requires specific folder- and filenames in location basedir!
-% abfs = readtable(fullfile(basedir, 'Abffiles','Abffiles.txt')) ;
-% channels = readtable(fullfile(basedir, 'Channels','Channels.txt')) ;
-% ins = readtable(fullfile(basedir, 'Analogins','Analogins.txt')) ;
-% outs = readtable(fullfile(basedir, 'Analogouts','Analogouts.txt')) ;
-% sweeps = readtable(fullfile(basedir, 'Sweeps','Sweeps.txt')) ;
-% epochs = readtable(fullfile(basedir, 'Epochs','Epochs.txt')) ;
-% aps = readtable(fullfile(basedir, 'Actionpotentials','Actionpotentials.txt')) ;
+abfs = readtable(fullfile(basedir, 'Abffiles','Abffiles.txt')) ;
+channels = readtable(fullfile(basedir, 'Channels','Channels.txt')) ;
+ins = readtable(fullfile(basedir, 'Analogins','Analogins.txt')) ;
+outs = readtable(fullfile(basedir, 'Analogouts','Analogout.txt')) ;
+sweeps = readtable(fullfile(basedir, 'Sweeps','Sweeps.txt')) ;
+epochs = readtable(fullfile(basedir, 'Epochs','Epochs.txt')) ;
+aps = readtable(fullfile(basedir, 'Actionpotentials','Actionpotentials.txt')) ;
 
-% for data Thijs:
-load(fullfile(basedir,'selectedtables.mat'))
+
 %% Loop through abfs
 index = 1 ;
 for i = 1:height(abfs)
@@ -30,7 +29,7 @@ for i = 1:height(abfs)
     if ccabf == 1 && length(chs) == 1 
         fprintf('Retrieving analysis parameters from CC-step file %1.0f \n', index);
         %% Analyze
-        sweep = abf.channel(abf.channel.number == chs).in(strcmp({abf.channel(abf.channel.number == chs).in.signal},'primary')).sweep ;
+        sweep = abf.channel([abf.channel.number] == chs).in(strcmp({abf.channel([abf.channel.number] == chs).in.signal},'primary')).sweep ;
         NrofSweeps = length(sweep) ;  
         % find current injection epoch and assign aps to sweep
         for step = 1:length(sweep(1).epoch)
@@ -137,6 +136,7 @@ for i = 1:height(abfs)
             TSpeaktoahp = NaN;
             AmpsTSthresh = NaN;
             AHPsTS = NaN;
+            AHPslowTS = NaN;
             ISIsTS = NaN;
             FreqTrSwp = NaN;
             NrOfAPsTrSwp = NaN;
@@ -203,9 +203,9 @@ for i = 1:height(abfs)
         Summary(index).UserID             = abf.userid ;
         Summary(index).guid               = abf.guid ;
         Summary(index).Channel            = chs ;
-        Summary(index).scalefactor        = abf.channel(abf.channel.number == chs).out.scalefactor ;
-        Summary(index).holdingcurrent     = abf.channel(abf.channel.number == chs).out.holdingI ;
-        Summary(index).holdingvoltage     = abf.channel(abf.channel.number == chs).out.holdingV ;
+        Summary(index).scalefactor        = abf.channel([abf.channel.number] == chs).out.scalefactor ;
+        Summary(index).holdingcurrent     = abf.channel([abf.channel.number] == chs).out.holdingI ;
+        Summary(index).holdingvoltage     = abf.channel([abf.channel.number] == chs).out.holdingV ;
         Summary(index).NrofSweeps         = NrofSweeps ;
         Summary(index).PDur               = second(sweep(1).epoch(step).timespan)*1000 ;
         Summary(index).FrstP              = sweep(1).currinj ;
