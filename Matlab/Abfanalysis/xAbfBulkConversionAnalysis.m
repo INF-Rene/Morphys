@@ -31,8 +31,8 @@ end
 
 % set paths
 dir_abfs          = 'C:\Users\DBHeyer\Documents\PhD\Human Database\Natalia\Selection\abfs';
-dir_mats_converts = 'C:\Users\DBHeyer\Documents\PhD\Human Database\Natalia\Selection\onrap10\converted';
-dir_mats_analysed = 'C:\Users\DBHeyer\Documents\PhD\Human Database\Natalia\Selection\onrap10\analyzed';
+dir_mats_converts = 'C:\Users\DBHeyer\Documents\PhD\Human Database\Natalia\Selection\onrap30\converted';
+dir_mats_analysed = 'C:\Users\DBHeyer\Documents\PhD\Human Database\Natalia\Selection\onrap30\analyzed';
 
 % leave protocols
 protocols2skip4analysis = { 'eCode_1_BridgeBalance'
@@ -46,14 +46,20 @@ protocols2skip4analysis = { 'eCode_1_BridgeBalance'
                          };
 
 %% check info file for meaningful channels
-files = dir(dir_abfs) ;
-files = struct2table(files) ;
-files = files(files.isdir==0,:) ;
-files = table2struct(files) ;
+% files = dir(dir_abfs) ;
+% files = struct2table(files) ;
+% files = files(files.isdir==0,:) ;
+% files = table2struct(files) ;
 
+files = table2struct(readtable(fullfile(dir_abfs,'NAGselectOverview.csv'))) ;
+ 
 %% setup settings
 ss = load('C:\Users\DBHeyer\Documents\PhD\Human Database\Morphys\Data\Electrophysiology\SetupSettings\Setupsettings_INF.mat');
 ss = ss.obj;
+
+% for abfs from AKS
+ss2 = Setupsettings ;
+ss2 = ss2.addchannel('number',1,'dacnum',0,'primary',2) ;
 
 %% load abffile objects and analyse
 parfor i=1:size(files,1)
@@ -66,9 +72,18 @@ parfor i=1:size(files,1)
   
     try
         fprintf('\n#%05d: converting %s\n',i,fnabf)
-        a = Abffile(fullfile(dir_abfs,fnabf),ss);
+        if myrow.aks == 0
+            a = Abffile(fullfile(dir_abfs,fnabf),ss);
+        elseif myrow.aks == 1
+            a = Abffile(fullfile(dir_abfs,fnabf),ss2);
+        end
+        % keep only amplifier channels listed in the info file
+        maxchannelset  = 1:4;
+        channels2ditch = maxchannelset(~ismember(maxchannelset, myrow.channel));
+        for ii=1:numel(channels2ditch)
+            a = a.removechannel('number',channels2ditch(ii));
+        end  
         
-
         % save it
         a.saveme(dir_mats_converts,fnmat)        
         

@@ -16,7 +16,7 @@ classdef Sharedpaths
     
 %###################################################### PROPERTIES ##########################################################
     properties (Hidden = false)
-        userid              = 'MBV'; % pulled from global variable 'USERNAME'. 
+        userid              = 'DBH'; % pulled from global variable 'USERNAME'. 
     end
     
     properties (Hidden = true)
@@ -42,7 +42,7 @@ classdef Sharedpaths
         function obj = Sharedpaths(username)
                         
             % set user id
-            obj.setglobalusername('MBV')
+            obj.setglobalusername('DBH')
 %             Commented to allow parfor loop to execute
 %             if nargin == 1 && ~isempty(username)
 %                 obj.userid = username;

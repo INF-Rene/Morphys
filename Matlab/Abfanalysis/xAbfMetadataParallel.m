@@ -21,8 +21,8 @@ if isempty(id),
 end
 
 % set paths
-dir_mats_analysed = 'C:\Users\DBHeyer\Documents\PhD\Human Database\Natalia\Selection\onrap10\analyzed';% where the mat files of Abffile objects are stored
-dir_batch_base    = 'C:\Users\DBHeyer\Documents\PhD\Human Database\Natalia\Selection\onrap10';
+dir_mats_analysed = 'C:\Users\DBHeyer\Documents\PhD\Human Database\Natalia\Selection\onrap30\analyzed';% where the mat files of Abffile objects are stored
+dir_batch_base    = 'C:\Users\DBHeyer\Documents\PhD\Human Database\Natalia\Selection\onrap30';
 
 % get list of filenames and make all paths
 fileinfo  = dir(fullfile(dir_mats_analysed,'*.mat'));

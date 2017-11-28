@@ -4,8 +4,8 @@ close all, clear all
 
 %% Set path to load and save data
 %basedir = 'D:\Morphys\Data\Labbooks\NAG\MetadataABF' ;
-basedir = 'C:\Users\DBHeyer\Documents\PhD\Human Database\Natalia\Selection\onrap10' ;
-savename = 'DataSummary10.mat' ;
+basedir = 'C:\Users\DBHeyer\Documents\PhD\Human Database\Natalia\Selection\onrap30' ;
+savename = 'DataSummary30.mat' ;
 
 %% import CSV files
 %requires specific folder- and filenames in location basedir!

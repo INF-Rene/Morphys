@@ -264,8 +264,9 @@ classdef Abffile < Sharedpaths & Setupsettings
                 
                 % Ignore DACs in stringSection that are already defined by protocol section. These MUST be inactive atf
                 % files and therefore not interesting.
-                outchannels = outchannels(~ismember(outchannels,obj.getanalogoutputnrs_current));
-                
+                if ~strcmp('eCode',tmpoutinfo.stimfilename{1}(1:5))
+                    outchannels = outchannels(~ismember(outchannels,obj.getanalogoutputnrs_current));
+                end 
                 % Ignore DACs in stringSection that are not assigned in setup
                 outchannels = outchannels(ismember(outchannels,obj.getanalogoutputnrs));
 
@@ -291,6 +292,9 @@ classdef Abffile < Sharedpaths & Setupsettings
                     % add to Analogout object to relevant channel.
                     for ii=1:obj.nrofchannels
                         if infostruct.number == obj.getchannel(ii).get('dacnum')
+                            if ~isempty(obj.getchannel(ii).getout)
+                                obj.channels(ii) = obj.getchannel(ii).removeout ;
+                            end     
                             obj.channels(ii)  = obj.getchannel(ii).addout(infostruct);
                             if ~isempty(obj.getchannel(ii).getin('signal','secondary'))
                                 sf = obj.getchannel(ii).getout.getscalefactor(obj.getchannel(ii).getin('signal','secondary'));
