@@ -30,9 +30,9 @@ if isempty(USERNAME)
 end
 
 % set paths
-dir_abfs          = 'D:\Test abfbatch';
-dir_mats_converts = 'D:\Test abfbatch\Converted';
-dir_mats_analysed = 'D:\Test abfbatch\Analyzed';
+dir_abfs          = 'C:\Users\DBHeyer\Documents\PhD\Human Database\YairData\Edata';
+dir_mats_converts = 'C:\Users\DBHeyer\Documents\PhD\Human Database\YairData\Eresults\onrap10\Converted';
+dir_mats_analysed = 'C:\Users\DBHeyer\Documents\PhD\Human Database\YairData\Eresults\onrap10\Analyzed';
 
 % leave protocols
 protocols2skip4analysis = { 'eCode_1_BridgeBalance'
@@ -46,42 +46,35 @@ protocols2skip4analysis = { 'eCode_1_BridgeBalance'
                          };
 
 %% check info file for meaningful channels
-dir_info = 'C:\Users\Thijs\Documents\Morphys\Data\Labbooks\MBV\Preps';
-fn_info  = 'Labbook_2017_09_14.xlsx';
-
-% load table and keep only relevant columns
-tt = readtable(fullfile(dir_info,fn_info),'Sheet','Channel');
-tt(:,~ismember(tt.Properties.VariableNames,{'ABF_name','ampChannel'}))=[];
-
-% make list of channels to keep for every recfile
-[C,IA,IC] = unique(tt.ABF_name);
-fn2chnnl  = cat(2,C,arrayfun(@(x) tt.ampChannel(IC==x),1:numel(C),'UniformOutput',false)');
+files = dir(dir_abfs) ;
+files = struct2table(files) ;
+files = files(files.isdir==0,:) ;
+files = table2struct(files) ;
 
 %% setup settings
-ss = load('C:\Users\Thijs\Documents\Morphys\Data\Electrophysiology\SetupSettings\Setupsettings_MBV.mat');
-ss = ss.obj;
+ss = Setupsettings ;
+ss = ss.addchannel('number',1,'dacnum',1,'primary',1) ;
 
 %% load abffile objects and analyse
-parfor i=1:size(fn2chnnl,1)
+parfor i=1:size(files,1)
     
     % load the Abf xfile object, analyse and save
-    myrow = fn2chnnl(i,:);
-    fn    = myrow{1};
-    fnabf = [fn '.abf'];
-    fnmat = [fn '.mat'];
+    myrow = files(i);
+    fn    = myrow.name;
+
     try
-        fprintf('\n#%05d: converting %s\n',i,fnabf)
-        a = Abffile(fullfile(dir_abfs,fnabf),ss);
+        fprintf('\n#%05d: converting %s\n',i,fn)
+        a = Abffile(fullfile(dir_abfs,fn),ss);
         
         % keep only amplifier channels listed in the info file
-        maxchannelset  = 1:4;
-        channels2ditch = maxchannelset(~ismember(maxchannelset, myrow{2}));
-        for ii=1:numel(channels2ditch)
-            a = a.removechannel('number',channels2ditch(ii));
-        end        
-        
+%         maxchannelset  = 1:4;
+%         channels2ditch = maxchannelset(~ismember(maxchannelset, myrow{2}));
+%         for ii=1:numel(channels2ditch)
+%             a = a.removechannel('number',channels2ditch(ii));
+%         end        
+%         
         % save it
-        a.saveme(dir_mats_converts,fnmat)        
+        a.saveme(dir_mats_converts,fn)        
         
         % attempt analysis
         if ~ismember(a.proname,protocols2skip4analysis)
@@ -89,7 +82,7 @@ parfor i=1:size(fn2chnnl,1)
                 fprintf('\n#%05d: analysing %s\n',i,fn)
                 % analyse and save
                 a = a.analyseabf;
-                a.saveme(dir_mats_analysed,fnmat);
+                a.saveme(dir_mats_analysed,fn);
             catch err
                 fprintf('#%05d, %s $$$ ANALYSIS FAIL $$$: %s\n',i,fn,err.message);
             end

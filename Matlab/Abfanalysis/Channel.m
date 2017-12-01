@@ -252,7 +252,7 @@ classdef Channel < Sharedmethods
                 for i = 1:obj.nrofanalogins
                     % replace old IN object in list with updated one. If epochinfosource is 'pClampProFile', a lag will be
                     % added to protocol. 
-                    addlag = strcmp(obj.getout.epochinfosource,'pClampProFile');
+                    addlag = strcmp(obj.getout.epochinfosource,'NoThanks');
                     obj.analogins(i) = obj.getin(i).makeepochs(obj.getout.analogwaveformtable, addlag);                        
                 end
                 obj.updatephase = 2;

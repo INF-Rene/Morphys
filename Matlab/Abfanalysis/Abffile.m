@@ -89,12 +89,12 @@ classdef Abffile < Sharedpaths & Setupsettings
                 error('Only string input accepted.')
             else
                 [fileDir,~,ext] = fileparts(path2file);
-                if isempty(ext), 
-                    path2file = [path2file '.abf']; % add ".abf" if required
-                elseif ~strcmp(ext,'.abf'),         % if extension doesn't match, error
-                    error('Only ''.abf'' files supported, provided ''%s''',ext)
+                if isempty(ext) 
+                    path2file = [path2file '.mat']; % add ".mat" if required
+                elseif ~strcmp(ext,'.mat')         % if extension doesn't match, error
+                    error('Only ''.mat'' files supported, provided ''%s''',ext)
                 end
-                if ~exist(path2file,'file'),        % if path doesn't exist, error
+                if ~exist(path2file,'file')        % if path doesn't exist, error
                     error('Cannot find specified file: \n%s',path2file), 
                 end    
             end
@@ -103,51 +103,60 @@ classdef Abffile < Sharedpaths & Setupsettings
             obj.fileconversiondate = char(datetime(datestr(now()),'Format',obj.datetimefmt));     
 
             % load ABFfile (more loading options from abload_pro could be added here...)
-            [dataMtx,si,h] = abfload_pro(path2file);
+            %[dataMtx,si,h] = abfload_pro(path2file);
             % assignin('base','h',h)
+            load(path2file)
+            
 
             % Add file info
             fileinfo         = dir(path2file);
             obj.filename     = fileinfo.name;
             obj.filedirectory= fileDir;
-            obj.filetype     = 'Axon Binary File';
-            obj.fileversion  = h.fFileSignature;   
+            obj.filetype     = 'Mat File';
+            obj.fileversion  = 'abf';   
             obj.filesize     = fileinfo.bytes;
             
             % create a savename
             obj.savename = sprintf('Abf_%s_%s.mat',obj.filename(1:end-4),obj.guid);
             
             % Get dates and durations
-            obj.filesystemdate= fileinfo.date;
-            obj.fileduration  = duration(0,0,0,diff(h.recTime*1e3),'Format',obj.durationfmt);
-            obj.filetimestart = datetime(datevec(num2str(h.uFileStartDate),'yyyymmdd') + datevec(duration(0,0,0,h.uFileStartTimeMS)),'Format',obj.datetimefmt);
+            obj.filesystemdate= datetime(datevec([abf.recording_name(1:4) abf.recording_name(6:7) abf.recording_name(9:10)],'yyyymmdd'));
+            obj.fileduration  = duration(0,0,0,(length(abf.data)/abf.sampleFrequency*1000)*size(abf.data,2),'Format',obj.durationfmt);
+            obj.filetimestart = datetime(fileinfo.date);
             obj.filetimeend   = obj.filetimestart+obj.fileduration;
+            
+            timestruct = struct ;
+            timestruct.filestart = obj.filetimestart ;
+            timestruct.swpdur = duration(0,0,0,length(abf.data)/abf.sampleFrequency*1000,'Format',obj.durationfmt);
 
             % Check nr. of datapoints (moved here from abfload_pro). Still not quite sure why this check is nesessary and why/how it sometimes
             % fails... ABF files with failed check (so where obj.dataptscheck=0) seem perfectly fine and can be analysed without apparent issues.
-            if rem(h.dataPts,h.nADCNumChannels)>0 || rem(h.dataPtsPerChan,h.lActualEpisodes)>0, obj.dataptscheck = 0;
-            else obj.dataptscheck = 1;
-            end  
+%             if rem(h.dataPts,h.nADCNumChannels)>0 || rem(h.dataPtsPerChan,h.lActualEpisodes)>0, obj.dataptscheck = 0;
+%             else obj.dataptscheck = 1;
+%             end  
 
             % General protocol info
-            path_and_file    = obj.extractstringsectioninfo(h.stringSection, 1);
-            obj.proname      = path_and_file{2};
-            
-            % HACK ALERT!!! This is just for 2017-08-16 session, do not analyse bridge balance abfs!!!
-            if ismember(obj.proname,{'eCode_1_BridgeBalance','BridgeBalance','BB','BB2'})
-                error('Bridge balance error!')
+            %path_and_file    = obj.extractstringsectioninfo(h.stringSection, 1);
+            if isfield(abf, 'protocol')
+                obj.proname      = abf.protocol ;
+            else
+                obj.proname      = 'NaN' ;
             end
+            % HACK ALERT!!! This is just for 2017-08-16 session, do not analyse bridge balance abfs!!!
+%             if ismember(obj.proname,{'eCode_1_BridgeBalance','BridgeBalance','BB','BB2'})
+%                 error('Bridge balance error!')
+%             end
             
-            obj.prodirectory     = path_and_file{1};
-            obj.operationmode    = h.nOperationMode;
-            obj.operationmodestr = h.nOperationModeStr;
-            if ~any(obj.operationmode == obj.implrecmode), 
+            obj.prodirectory     = 'NaN';
+            obj.operationmode    = 5;
+            obj.operationmodestr = 'Waveform fixed-length mode';
+            if ~any(obj.operationmode == obj.implrecmode) 
                 error('ABFfile operation mode unknown. Only Episodic and Gapfree recordings please.')
             end
             
-            obj.sampleint     = si; % sample interval is in microseconds (= abfload default)
-            obj.samplefreq    = 1/(obj.sampleint*1e-6); 
-            obj.stopwatchtime = duration(0,0,h.uStopwatchTime);
+            obj.sampleint     = (1/abf.sampleFrequency)*1000000 ; % sample interval is in microseconds (= abfload default)
+            obj.samplefreq    = abf.sampleFrequency; 
+            obj.stopwatchtime = nan;
 
             % Data dimensions
             % Data dimensions of the data matrix outputted by abfload_pro.m can vary. If recording only one channel or sweep, 
@@ -155,14 +164,14 @@ classdef Abffile < Sharedpaths & Setupsettings
             % matrix of 3 dimensions. 
             
             % Data dimensions
-            obj.datasize     = size (dataMtx);
-            obj.datadimcount = ndims(dataMtx);
+            obj.datasize     = size(abf.data);
+            obj.datadimcount = ndims(abf.data);
             
             % Find out number of input channels and sweeps:
-            nrofanalogins_init = numel(h.ADCSec);           % initial number of analogins
+            nrofanalogins_init = 1;           % initial number of analogins
             switch obj.operationmode
                 case 3, obj.nrofsweeps = 1;                 % initial number of sweeps = 1 in case of Gapfree
-                case 5, obj.nrofsweeps = h.lActualEpisodes; % initial number of sweeps
+                case 5, obj.nrofsweeps = size(abf.data,2); % initial number of sweeps
             end            
 
             % Analog inputs
@@ -172,27 +181,32 @@ classdef Abffile < Sharedpaths & Setupsettings
             for i=1:nrofanalogins_init
                 infostruct = struct;
                 % get the Analogin number (so that is the number of the Analog input of th digidata)
-                infostruct.number = h.ADCSec(i).nADCNum;
+                infostruct.number = 1;
                 for ii=1:obj.nrofchannels
                     if ismember(infostruct.number, obj.getchannel(ii).getanaloginputnrs)
                         
                         % make a struct with necessary info to make an Analogin object
                         infostruct.signal                = obj.getchannel(ii).getsignalfromanaloginnr(infostruct.number);
-                        infostruct.adcusername           = h.recChNames{i};
-                        infostruct.units                 = h.recChUnits{i};
-                        infostruct.samplefreq            = 1/(h.si*1e-6); 
-                        infostruct.telegraphenabled      = h.ADCSec(i).nTelegraphEnable;
-                        infostruct.telegraphinstrument   = h.ADCSec(i).nTelegraphInstrument;
-                        infostruct.gain                  = h.ADCSec(i).fTelegraphAdditGain;
-                        infostruct.lowpassfilter         = h.ADCSec(i).fTelegraphFilter;
-                        infostruct.instrumentscalefactor = h.ADCSec(i).fInstrumentScaleFactor;
-                        infostruct.h = h; % only reuired for making sweeps now, for adddates. Remove soon;
+                      if isfield(abf, 'channel')  
+                        infostruct.adcusername           = abf.channel;
+                      else
+                        infostruct.adcusername           = 1;  
+                      end  
+                        infostruct.units                 = 'mV';
+                        infostruct.samplefreq            = abf.sampleFrequency; 
+                        infostruct.telegraphenabled      = nan ;
+                        infostruct.telegraphinstrument   = nan ;
+                        infostruct.gain                  = nan ;
+                        infostruct.lowpassfilter         = nan ;
+                        infostruct.instrumentscalefactor = nan ;
+                        infostruct.timestruct = timestruct ; % only reuired for making sweeps now, for adddates. Remove soon;
                         
                         % Select channel data and make 2D array (samples x sweeps)
-                        if     obj.nrofsweeps     == 1, analogindata = dataMtx(:,i); obj.datadimorderstr = 'samples x analogins';
-                        elseif nrofanalogins_init == 1, analogindata = dataMtx(:,:); obj.datadimorderstr = 'samples x sweeps';
-                        else   analogindata = squeeze(dataMtx(:,i,:)); % squeeze to 2D
-                               obj.datadimorderstr = 'samples x analogins x sweeps';
+                        if     obj.nrofsweeps     == 1, analogindata = abf.data(:,i); obj.datadimorderstr = 'samples x analogins';
+                        elseif nrofanalogins_init == 1, analogindata = abf.data(:,:); obj.datadimorderstr = 'samples x sweeps';
+                        else
+                            analogindata = squeeze(abf.data(:,i,:)); % squeeze to 2D
+                            obj.datadimorderstr = 'samples x analogins x sweeps';
                         end
                         
                         % add Analogin object to channel in list
@@ -202,7 +216,7 @@ classdef Abffile < Sharedpaths & Setupsettings
             end 
             % since data has now been passed on, we can delete the data matrix. Use obj.getdata to retrieve data from
             % downstream channels/analogins/sweeps.
-            clear dataMtx          
+            abf.data = [] ;         
                         
             % Digital-to-Analog (DAC) Channels
             %   Abffiles can have multiple of these channels, which can either be defined in "h.EpochSec" or, in case a 
@@ -217,13 +231,13 @@ classdef Abffile < Sharedpaths & Setupsettings
             %   only DAC channels defined in the provided Setupsettings object will be taken into account.
             fprintf('Adding analog outputs...\n')
 
-            if isfield(h,'EpochSec'), 
-                dacnumberset       = unique([h.EpochSec.nDACNum]);
-                
-                for i=dacnumberset
+%             if isfield(h,'EpochSec') 
+%                 dacnumberset       = unique([h.EpochSec.nDACNum]);
+%                 
+%                 for i=dacnumberset
                     infostruct  = struct;                                                       % start empty
-                    epochstruct = h.EpochSec([h.EpochSec.nDACNum] == i);                        % make table of epoch information for this OUT channel
-                    infostruct.number       = epochstruct(1).nDACNum;                           % collect OUT nr
+%                    epochstruct = h.EpochSec([h.EpochSec.nDACNum] == i);                        % make table of epoch information for this OUT channel
+                    infostruct.number       = 1;                           % collect OUT nr
                     infostruct.name         = '';
                     infostruct.units        = '';
                     infostruct.path2pro     = obj.prodirectory;
@@ -231,18 +245,25 @@ classdef Abffile < Sharedpaths & Setupsettings
                     infostruct.path2stim    = '';
                     infostruct.stimfilename = '';
                     
-                    epochstruct = rmfield(epochstruct,'nDACNum');                               % remove DAC number from table (now redundant)
-                    epochstruct = obj.standardiseepochstruct(epochstruct,obj.sampleint*1e-3);   % standardise epochStruct
-                    t = struct2table(epochstruct);
+%                    epochstruct = rmfield(epochstruct,'nDACNum');                               % remove DAC number from table (now redundant)
+%                    epochstruct = obj.standardiseepochstruct(epochstruct,obj.sampleint*1e-3);   % standardise epochStruct
+%                    t = struct2table(epochstruct);
                     
                     % now an ugly fix for cases where epochstruct has only 1 epoch. In these cases, struct2table converts
                     % cells into char, which leads to errors later. Next measures are to keep idxstr,timespan and typestr the 
                     % same type throughout.
-                    if isscalar(epochstruct)
-                        if ischar(t.idxstr),   t.idxstr   = {t.idxstr}; end
-                        if ischar(t.timespan), t.timespan = {t.timespan}; end
-                        if ischar(t.typestr),  t.typestr  = {t.typestr}; end
-                    end
+%                     if isscalar(epochstruct)
+%                         if ischar(t.idxstr),   t.idxstr   = {t.idxstr}; end
+%                         if ischar(t.timespan), t.timespan = {t.timespan}; end
+%                         if ischar(t.typestr),  t.typestr  = {t.typestr}; end
+%                     end
+  
+                    load('C:\Users\DBHeyer\Documents\PhD\Human Database\YairData\analogwave4yair.mat')
+                    t.timespan{1} = num2str(abf.pulse_onset);
+                    t.timespan{2} = num2str(abf.pulse_duration);
+                    t.timespan{3} = num2str((length(obj.getchannel.getin.getdata)/obj.samplefreq*1000)-abf.pulse_offset);
+                    t.firstlevel(2) = abf.first_pulse;
+                    t.deltalevel(2) = abf.pulse_delta;
                     
                     infostruct.analogwaveformtable = Analogwaveformtab(t);                      % convert to analog waveform tab object
                     infostruct.analogwaveformtable.samplefreq = obj.samplefreq;                 % assign sampleFrequency of this file to analogWaveformTab.
@@ -254,58 +275,58 @@ classdef Abffile < Sharedpaths & Setupsettings
                             obj.channels(ii) = obj.getchannel(ii).addout(infostruct);
                         end
                     end
-                end
-            end
+%                 end
+%             end
 
             % Analogouts defined in string section to employ external stimulus files (atf files, listed in h.stringSection)
-            tmpoutinfo = obj.extractstringsectioninfo(h.stringSection,2); 
-            if ~isempty(tmpoutinfo)                
-                outchannels = tmpoutinfo{:,'number'}';
-                
-                % Ignore DACs in stringSection that are already defined by protocol section. These MUST be inactive atf
-                % files and therefore not interesting.
-                if ~strcmp('eCode',tmpoutinfo.stimfilename{1}(1:5))
-                    outchannels = outchannels(~ismember(outchannels,obj.getanalogoutputnrs_current));
-                end
-                
-                % Ignore DACs in stringSection that are not assigned in setup
-                outchannels = outchannels(ismember(outchannels,obj.getanalogoutputnrs));
-
-                for i=outchannels
-                    infostruct = table2struct(tmpoutinfo(tmpoutinfo{:,'number'}==i,:));
-                    infostruct.path2pro    = obj.prodirectory;
-                    infostruct.profilename = obj.proname;
-                    
-                    % check if the atf file has an existing Analogwaveformtab object associated with it
-                    if exist(fullfile(obj.path2analogwaveforms,[infostruct.stimfilename '.mat']),'file')==2
-                        infostruct.analogwaveformtable = load(fullfile(obj.path2analogwaveforms,infostruct.stimfilename)); 
-                        infostruct.analogwaveformtable = infostruct.analogwaveformtable.obj;
-                        if ~isempty(infostruct.analogwaveformtable)
-                            % assign sampleFrequency and number of sweeps in this file to analogWaveformTab.
-                            infostruct.analogwaveformtable.samplefreq = obj.samplefreq; 
-                            infostruct.analogwaveformtable.nrofsweeps = obj.nrofsweeps;    
-                        end
-                    else % if not, skip.
-                        infostruct.analogwaveformtable = [];
-                        warning('%s, OUT #%d: Stimulus file "%s" not found among Analog Waveform collection.',obj.filename,i,infostruct.stimfilename)
-                    end
-                    
-                    % add to Analogout object to relevant channel.
-                    for ii=1:obj.nrofchannels
-                        if infostruct.number == obj.getchannel(ii).get('dacnum')
-                            if ~isempty(obj.getchannel(ii).getout)
-                                obj.channels(ii) = obj.getchannel(ii).removeout ;
-                            end
-                            obj.channels(ii) = obj.getchannel(ii).addout(infostruct);
-                            if ~isempty(obj.getchannel(ii).getin('signal','secondary'))
-                                sf = obj.getchannel(ii).getout.getscalefactor(obj.getchannel(ii).getin('signal','secondary'));
-                                obj.channels(ii).analogouts = obj.getchannel(ii).getout.set('scalefactor',sf);
-                                obj.channels(ii).analogouts.analogwaveformtable = obj.getchannel(ii).getout.analogwaveformtable.set('scalefactor',sf);
-                            end
-                        end
-                    end
-                end
-            end
+%             tmpoutinfo = obj.extractstringsectioninfo(h.stringSection,2); 
+%             if ~isempty(tmpoutinfo)                
+%                 outchannels = tmpoutinfo{:,'number'}';
+%                 
+%                 % Ignore DACs in stringSection that are already defined by protocol section. These MUST be inactive atf
+%                 % files and therefore not interesting.
+%                 if ~strcmp('eCode',tmpoutinfo.stimfilename{1}(1:5))
+%                     outchannels = outchannels(~ismember(outchannels,obj.getanalogoutputnrs_current));
+%                 end
+%                 
+%                 % Ignore DACs in stringSection that are not assigned in setup
+%                 outchannels = outchannels(ismember(outchannels,obj.getanalogoutputnrs));
+% 
+%                 for i=outchannels
+%                     infostruct = table2struct(tmpoutinfo(tmpoutinfo{:,'number'}==i,:));
+%                     infostruct.path2pro    = obj.prodirectory;
+%                     infostruct.profilename = obj.proname;
+%                     
+%                     % check if the atf file has an existing Analogwaveformtab object associated with it
+%                     if exist(fullfile(obj.path2analogwaveforms,[infostruct.stimfilename '.mat']),'file')==2
+%                         infostruct.analogwaveformtable = load(fullfile(obj.path2analogwaveforms,infostruct.stimfilename)); 
+%                         infostruct.analogwaveformtable = infostruct.analogwaveformtable.obj;
+%                         if ~isempty(infostruct.analogwaveformtable)
+%                             % assign sampleFrequency and number of sweeps in this file to analogWaveformTab.
+%                             infostruct.analogwaveformtable.samplefreq = obj.samplefreq; 
+%                             infostruct.analogwaveformtable.nrofsweeps = obj.nrofsweeps;    
+%                         end
+%                     else % if not, skip.
+%                         infostruct.analogwaveformtable = [];
+%                         warning('%s, OUT #%d: Stimulus file "%s" not found among Analog Waveform collection.',obj.filename,i,infostruct.stimfilename)
+%                     end
+%                     
+%                     % add to Analogout object to relevant channel.
+%                     for ii=1:obj.nrofchannels
+%                         if infostruct.number == obj.getchannel(ii).get('dacnum')
+%                             if ~isempty(obj.getchannel(ii).getout)
+%                                 obj.channels(ii) = obj.getchannel(ii).removeout ;
+%                             end
+%                             obj.channels(ii) = obj.getchannel(ii).addout(infostruct);
+%                             if ~isempty(obj.getchannel(ii).getin('signal','secondary'))
+%                                 sf = obj.getchannel(ii).getout.getscalefactor(obj.getchannel(ii).getin('signal','secondary'));
+%                                 obj.channels(ii).analogouts = obj.getchannel(ii).getout.set('scalefactor',sf);
+%                                 obj.channels(ii).analogouts.analogwaveformtable = obj.getchannel(ii).getout.analogwaveformtable.set('scalefactor',sf);
+%                             end
+%                         end
+%                     end
+%                 end
+%             end
             
             % Ditch Channels with no Analoginputs and update guid and filename fields
             %for i=1:obj.nrofchannels  %Bugfix RWS 21-09-2017

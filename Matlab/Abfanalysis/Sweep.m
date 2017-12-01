@@ -95,20 +95,20 @@ classdef Sweep < Sharedmethods & Trace
             end
         end
         
-        function obj = adddates(obj,h)
+        function obj = adddates(obj,timestruct)
             % function to update Sweep properties with info stored in header info ('h')
-            if obj.number == 0, error('Please set the number property of Sweep. The original index of sweep (sweep number) is required to calculate datetime start.'); end
-            fileDatetimeStart = datetime(datevec(num2str(h.uFileStartDate),'yyyymmdd') + datevec(duration(0,0,0,h.uFileStartTimeMS)),'Format',obj.datetimefmt);
-            switch h.nOperationMode
-                case 5, % Episodic stimulation mode
-                    obj.timespan      = duration(0,0,0,h.sweepLengthInPts*h.si*1e-3,'Format',obj.durationfmt); % duration of sweeps in episodic recording mode
-                    obj.datetimestart = fileDatetimeStart + milliseconds(h.sweepStartInPts(obj.number)*h.si*1e-3);
+             if obj.number == 0, error('Please set the number property of Sweep. The original index of sweep (sweep number) is required to calculate datetime start.'); end
+%             fileDatetimeStart = datetime(datevec(num2str(h.uFileStartDate),'yyyymmdd') + datevec(duration(0,0,0,h.uFileStartTimeMS)),'Format',obj.datetimefmt);
+%             switch h.nOperationMode
+%                 case 5, % Episodic stimulation mode
+                    obj.timespan      = timestruct.swpdur; % duration of sweeps in episodic recording mode
+                    obj.datetimestart = timestruct.filestart + (obj.timespan*(obj.number-1));
                     obj.datetimeend   = obj.datetimestart+obj.timespan; % end time
-                case 3, % Gap-free mode
-                    obj.timespan      = duration(0,0,0,h.lActualAcqLength*h.si*1e-3,'Format',obj.durationfmt); % in gap free mode, duration of 'sweep' is equal to entire length of recording
-                    obj.datetimestart = fileDatetimeStart; % start time
-                    obj.datetimeend   = obj.datetimestart+obj.timespan; % end time
-            end
+%                 case 3, % Gap-free mode
+%                     obj.timespan      = duration(0,0,0,h.lActualAcqLength*h.si*1e-3,'Format',obj.durationfmt); % in gap free mode, duration of 'sweep' is equal to entire length of recording
+%                     obj.datetimestart = fileDatetimeStart; % start time
+%                     obj.datetimeend   = obj.datetimestart+obj.timespan; % end time
+            %end
             %obj.TimeInfo.StartDate = fileDatetimeStart;
             %obj.TimeInfo.Format    = obj.datetimefmt;
         end
@@ -318,8 +318,8 @@ classdef Sweep < Sharedmethods & Trace
             end
             
             % add lagging epoch
-            unallocatedtime = round(milliseconds(obj.timespan) - sum(swptab.timespan),3); % so thats to microsecond resolution...
-            unallocatedtime = duration(0,0,0,unallocatedtime);
+            unallocatedtime = 0; % so thats to microsecond resolution...
+           
             if milliseconds(unallocatedtime)>0
                 t = template;
                 t.timespan = milliseconds(unallocatedtime);

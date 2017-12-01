@@ -62,7 +62,7 @@ classdef Analogin < Sharedmethods
             obj.guid_channel = guid_channel;
             if isstruct(infostruct)
                 flds = fieldnames(infostruct);
-                flds = flds(~ismember(flds,{'h'}));
+                flds = flds(~ismember(flds,{'timestruct'}));
                 for i=1:numel(flds)
                     obj = obj.set(flds{i},infostruct.(flds{i}));
                 end
@@ -76,7 +76,7 @@ classdef Analogin < Sharedmethods
             
             % Populate sweepList with Sweep objects
             for i=1:obj.nrofsweeps
-                obj = obj.addsweep(i,infostruct.h,data(:,i));
+                obj = obj.addsweep(i,infostruct.timestruct,data(:,i));
             end
             
         end
@@ -98,7 +98,7 @@ classdef Analogin < Sharedmethods
              disp(idmessage)
         end
         
-        function obj = addsweep(obj,idx,h,swpdata)
+        function obj = addsweep(obj,idx,timestruct,swpdata)
             % Instantiates one Sweep object using info in the initialisation struct and appends
             % this to the Analogin objects sweepList.
             % --------------------
@@ -107,7 +107,7 @@ classdef Analogin < Sharedmethods
             s = Sweep('number',idx,'guid_IN',obj.guid);
             s = s.adddata(swpdata,obj.units);
             s = s.addtime(obj.samplefreq);
-            s = s.adddates(h);
+            s = s.adddates(timestruct);
             if isempty(obj.sweeps), obj.sweeps        = s;
             else                    obj.sweeps(end+1) = s;
             end
