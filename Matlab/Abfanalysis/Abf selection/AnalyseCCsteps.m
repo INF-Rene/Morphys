@@ -3,9 +3,9 @@
 close all, clear all
 
 %% Set path to load and save data
-basedir = 'D:\Morphys\Data\Labbooks\NAG\MetadataABF2' ;
+basedir = 'D:\IQ paper\Data\Metadata' ;
 %basedir = 'C:\Users\DBHeyer\Documents\PhD\Human Database\Morphys\Data\Labbooks\MBV\MetadataCSVs' ;
-savename = 'DataSummaryNAG3.mat' ;
+savename = 'DataSummary' ;
 
 %% import CSV files
 %requires specific folder- and filenames in location basedir!
@@ -56,23 +56,6 @@ for i = 1:height(abfs)
                 break
             end
         end
-        % find trainsweep 
-        TrainCurr = sweep(frstspikeswp).epoch(step).stepdiff +50 ;
-        for j = 1:NrofSweeps
-            tmp(j) = abs(sweep(j).epoch(step).stepdiff - TrainCurr) ;
-        end
-
-        [TrSwp TrSwp] = min(tmp) ;
-        CurrAbvRheo=NaN;
-        for TrainSweep = TrSwp:NrofSweeps      
-            if length(sweep(TrainSweep).ap) > 3           
-                CurrAbvRheo = sweep(TrainSweep).epoch(step).stepdiff - (TrainCurr-50) ;
-                TrSweepCrit=1;
-                break
-            elseif TrainSweep==NrofSweeps
-                TrSweepCrit=0;
-            end  
-        end
 
         % calculate variables
         vmbase = [sweep.vmbase] ;
@@ -115,13 +98,73 @@ for i = 1:height(abfs)
             NrofRBAPsM = 0 ;
         end
         
-        for l = 1:length(sweep(TrainSweep).ap)           
-            if ~isempty(sweep(TrainSweep).ap(l,1).halfwidth)
-                HWsTS(l,1) = [sweep(TrainSweep).ap(l,1).halfwidth] ;  
-            end       
-        end
 
-  
+
+        % find trainsweep 
+        % Traincurr=rheobase+50 :
+        TrainCurr = sweep(frstspikeswp).epoch(step).stepdiff +50 ;
+        for j = 1:NrofSweeps
+            tmp(j) = abs(sweep(j).epoch(step).stepdiff - TrainCurr) ;
+        end
+        
+        [TrSwp TrSwp] = min(tmp) ;
+        CurrAbvRheo=NaN;
+        for TrainSweep = TrSwp:NrofSweeps          
+            if length(sweep(TrainSweep).ap) > 3
+                isis = [sweep(TrainSweep).ap(2:end).isi];
+                stutterAP = [0 0 0 isis(3:end) > 3*isis(2:end-1)];
+                stutterISI= [0 0 isis(3:end) > 3*isis(2:end-1)];
+               if length(sweep(TrainSweep).ap(~stutterAP)) > 3
+                CurrAbvRheo = sweep(TrainSweep).epoch(step).stepdiff - (TrainCurr-50) ;
+                TrSweepCrit=1;
+                break
+               end
+            elseif TrainSweep==NrofSweeps
+                TrSweepCrit=0;
+            end  
+        end
+        
+ 
+
+        
+
+
+
+        
+% Traincurr= sweep with AP freq (AP4:APend) closest to 15 Hz (and reasonable number of spikes):  
+%         TrSwp = find(abs(15-Freqs)<5);
+%         TrainSweep=[];
+%         if ~isempty(TrSwp)
+%             for j = 1:length(TrSwp)
+%                 nrofaps(j) = sweep(TrSwp(j)).nrofaps;
+%             end
+%             [~,tmp] = max(nrofaps);
+%             TrainSweep=TrSwp(tmp);
+%         elseif ~isempty(Freqs)
+%             [~,TrainSweep] = min(abs(15-Freqs));
+%         end
+%         if isempty(TrainSweep)
+%             TrainSweep = NrofSweeps;
+%         end
+%         
+%         CurrAbvRheo=NaN;
+%         if length(sweep(TrainSweep).ap)>=4
+%             TrSweepCrit=1;
+%             CurrAbvRheo = sweep(TrainSweep).epoch(step).stepdiff - (sweep(frstspikeswp).epoch(step).stepdiff) ;
+%         else
+%             TrSweepCrit=0;
+%         end
+        
+        if ~isempty(sweep(TrainSweep).ap)
+            for l = 1:length(sweep(TrainSweep).ap)           
+                if ~isempty(sweep(TrainSweep).ap(l,1).halfwidth)
+                    HWsTS(l,1) = [sweep(TrainSweep).ap(l,1).halfwidth] ;  
+                end       
+            end
+        else
+            HWsTS=NaN;
+        end
+        
         if TrSweepCrit==1
             TSbasetothresh = ([sweep(TrainSweep).ap.thresh]-sweep(TrainSweep).vmbase) ;
             TSpeaktoahp = ([sweep(TrainSweep).ap.ahp_time]-[sweep(TrainSweep).ap.peak_time]); 
@@ -171,11 +214,20 @@ for i = 1:height(abfs)
         end
 
         % bursting & adaptation index
-        if length(ISIsTS) > 2
-            ISIRatio1toAll = mean(ISIsTS(2:end)) / mean(ISIsTS(1)) ;
-            N = length(ISIsTS)-1 ;
+        if TrSweepCrit==1
+            isis=ISIsTS(~stutterISI); %exclude stuttering ISIs since that can mess with adaptation analysis
+            amps=AmpsTSthresh(~stutterAP);
+            hws=HWsTS(~stutterAP);
+        else
+            isis=ISIsTS;
+            amps=AmpsTSthresh;
+            hws=HWsTS;
+        end
+        if length(isis) > 2
+            ISIRatio1toAll = mean(isis(2:end)) / mean(isis(1)) ;
+            N = length(isis)-1 ;
             for n = 1:N
-                ISIchanges(n,1) = (ISIsTS(n+1)-ISIsTS(n)) / (ISIsTS(n+1)+ISIsTS(n));
+                ISIchanges(n,1) = (isis(n+1)-isis(n)) / (isis(n+1)+isis(n));
             end
             AdaptIdx = (1/N)*sum(ISIchanges) ;        
         else
@@ -184,11 +236,14 @@ for i = 1:height(abfs)
         end
         
         % Amplitude accomodation
-        if length(AmpsTSthresh) > 2           
-            N = length(AmpsTSthresh)-1 ;
+        if TrSweepCrit==1
+
+        end
+        if length(amps) > 2           
+            N = length(amps)-1 ;
             for n = 1:N
-                Ampchanges(n,1) = (AmpsTSthresh(n+1)-AmpsTSthresh(n)) / (AmpsTSthresh(n+1)+AmpsTSthresh(n));
-                HWchanges(n,1) = (HWsTS(n+1)-HWsTS(n)) / (HWsTS(n+1)+HWsTS(n));
+                Ampchanges(n,1) = (amps(n+1)-amps(n)) / (amps(n+1)+amps(n));
+                HWchanges(n,1) = (hws(n+1)-hws(n)) / (hws(n+1)+hws(n));
             end
             AmpAccom = (1/N)*sum(Ampchanges) ;  
             HWAccom = (1/N)*sum(HWchanges) ;
