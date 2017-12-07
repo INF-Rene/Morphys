@@ -51,7 +51,7 @@ protocols2skip4analysis = { 'eCode_1_BridgeBalance'
 % files = files(files.isdir==0,:) ;
 % files = table2struct(files) ;
 
-files = table2struct(readtable(fullfile(dir_abfs,'NAGselectOverview.csv'))) ;
+files = table2struct(readtable(fullfile(dir_abfs,'NAGselectOverview2.csv'),'Delimiter',',')) ;
  
 %% setup settings
 ss = load('C:\Users\DBHeyer\Documents\PhD\Human Database\Morphys\Data\Electrophysiology\SetupSettings\Setupsettings_INF.mat');
@@ -69,37 +69,39 @@ parfor i=1:size(files,1)
     fn    = myrow.name(1:end-4);
     fnabf = [fn '.abf'];
     fnmat = [fn '.mat'];
-  
-    try
-        fprintf('\n#%05d: converting %s\n',i,fnabf)
-        if myrow.aks == 0
-            a = Abffile(fullfile(dir_abfs,fnabf),ss);
-        elseif myrow.aks == 1
-            a = Abffile(fullfile(dir_abfs,fnabf),ss2);
-        end
-        % keep only amplifier channels listed in the info file
-        maxchannelset  = 1:4;
-        channels2ditch = maxchannelset(~ismember(maxchannelset, myrow.channel));
-        for ii=1:numel(channels2ditch)
-            a = a.removechannel('number',channels2ditch(ii));
-        end  
-        
-        % save it
-        a.saveme(dir_mats_converts,fnmat)        
-        
-        % attempt analysis
-        if ~ismember(a.proname,protocols2skip4analysis)
-            try
-                fprintf('\n#%05d: analysing %s\n',i,fn)
-                % analyse and save
-                a = a.analyseabf;
-                a.saveme(dir_mats_analysed,fnmat);
-            catch err
-                fprintf('#%05d, %s $$$ ANALYSIS FAIL $$$: %s\n',i,fn,err.message);
+    
+    if myrow.newabf == 1
+        try
+            fprintf('\n#%05d: converting %s\n',i,fnabf)
+            if myrow.aks == 0
+                a = Abffile(fullfile(dir_abfs,fnabf),ss);
+            elseif myrow.aks == 1
+                a = Abffile(fullfile(dir_abfs,fnabf),ss2);
             end
+            % keep only amplifier channels listed in the info file
+            maxchannelset  = 1:4;
+            channels2ditch = maxchannelset(~ismember(maxchannelset, myrow.channel));
+            for ii=1:numel(channels2ditch)
+                a = a.removechannel('number',channels2ditch(ii));
+            end  
+
+            % save it
+            a.saveme(dir_mats_converts,fnmat)        
+
+            % attempt analysis
+            if ~ismember(a.proname,protocols2skip4analysis)
+                try
+                    fprintf('\n#%05d: analysing %s\n',i,fn)
+                    % analyse and save
+                    a = a.analyseabf;
+                    a.saveme(dir_mats_analysed,fnmat);
+                catch err
+                    fprintf('#%05d, %s $$$ ANALYSIS FAIL $$$: %s\n',i,fn,err.message);
+                end
+            end
+        catch err
+            fprintf('#%05d, %s *** CONVERSION FAIL ***: %s\n',i,fn,err.message);
         end
-    catch err
-        fprintf('#%05d, %s *** CONVERSION FAIL ***: %s\n',i,fn,err.message);
     end
     
 end
