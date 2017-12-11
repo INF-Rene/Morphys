@@ -120,9 +120,11 @@ classdef Abffile < Sharedpaths & Setupsettings
             obj.savename = sprintf('Abf_%s_%s.mat',obj.filename(1:end-4),obj.guid);
             
             % Get dates and durations
-            obj.filesystemdate= datetime(datevec([abf.recording_name(1:4) abf.recording_name(6:7) abf.recording_name(9:10)],'yyyymmdd'));
+            %obj.filesystemdate= datetime(datevec([abf.recording_name(1:4) abf.recording_name(6:7) abf.recording_name(9:10)],'yyyymmdd'));
+            obj.filesystemdate= fileinfo.date ;
             obj.fileduration  = duration(0,0,0,(length(abf.data)/abf.sampleFrequency*1000)*size(abf.data,2),'Format',obj.durationfmt);
-            obj.filetimestart = datetime(fileinfo.date);
+            %obj.filetimestart = datetime(fileinfo.date,'Format',obj.datetimefmt);
+            obj.filetimestart = datetime(datevec([abf.recording_name(1:4) abf.recording_name(6:7) abf.recording_name(9:10)],'yyyymmdd'),'Format',obj.datetimefmt);
             obj.filetimeend   = obj.filetimestart+obj.fileduration;
             
             timestruct = struct ;
@@ -147,7 +149,7 @@ classdef Abffile < Sharedpaths & Setupsettings
 %                 error('Bridge balance error!')
 %             end
             
-            obj.prodirectory     = 'NaN';
+            obj.prodirectory     = obj.filedirectory;
             obj.operationmode    = 5;
             obj.operationmodestr = 'Waveform fixed-length mode';
             if ~any(obj.operationmode == obj.implrecmode) 
@@ -156,7 +158,7 @@ classdef Abffile < Sharedpaths & Setupsettings
             
             obj.sampleint     = (1/abf.sampleFrequency)*1000000 ; % sample interval is in microseconds (= abfload default)
             obj.samplefreq    = abf.sampleFrequency; 
-            obj.stopwatchtime = nan;
+            obj.stopwatchtime = obj.fileduration;
 
             % Data dimensions
             % Data dimensions of the data matrix outputted by abfload_pro.m can vary. If recording only one channel or sweep, 

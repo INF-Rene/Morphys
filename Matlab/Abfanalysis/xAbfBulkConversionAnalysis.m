@@ -54,7 +54,7 @@ files = table2struct(files) ;
 %% setup settings
 ss = Setupsettings ;
 ss = ss.addchannel('number',1,'dacnum',1,'primary',1) ;
-
+ss.setupsettingsname = 'custom' ;
 %% load abffile objects and analyse
 parfor i=1:size(files,1)
     
