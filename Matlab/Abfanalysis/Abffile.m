@@ -188,12 +188,8 @@ classdef Abffile < Sharedpaths & Setupsettings
                     if ismember(infostruct.number, obj.getchannel(ii).getanaloginputnrs)
                         
                         % make a struct with necessary info to make an Analogin object
-                        infostruct.signal                = obj.getchannel(ii).getsignalfromanaloginnr(infostruct.number);
-                      if isfield(abf, 'channel')  
-                        infostruct.adcusername           = abf.channel;
-                      else
-                        infostruct.adcusername           = 1;  
-                      end  
+                        infostruct.signal                = obj.getchannel(ii).getsignalfromanaloginnr(infostruct.number);        
+                        infostruct.adcusername           = 'IN 1';              
                         infostruct.units                 = 'mV';
                         infostruct.samplefreq            = abf.sampleFrequency; 
                         infostruct.telegraphenabled      = nan ;
@@ -240,12 +236,12 @@ classdef Abffile < Sharedpaths & Setupsettings
                     infostruct  = struct;                                                       % start empty
 %                    epochstruct = h.EpochSec([h.EpochSec.nDACNum] == i);                        % make table of epoch information for this OUT channel
                     infostruct.number       = 1;                           % collect OUT nr
-                    infostruct.name         = '';
-                    infostruct.units        = '';
+                    infostruct.name         = 'Cmd 0';
+                    infostruct.units        = 'pA';
                     infostruct.path2pro     = obj.prodirectory;
                     infostruct.profilename  = obj.proname;
-                    infostruct.path2stim    = '';
-                    infostruct.stimfilename = '';
+                    infostruct.path2stim    = 'none';
+                    infostruct.stimfilename = 'none';
                     
 %                    epochstruct = rmfield(epochstruct,'nDACNum');                               % remove DAC number from table (now redundant)
 %                    epochstruct = obj.standardiseepochstruct(epochstruct,obj.sampleint*1e-3);   % standardise epochStruct

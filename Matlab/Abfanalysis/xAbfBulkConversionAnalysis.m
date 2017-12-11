@@ -31,8 +31,8 @@ end
 
 % set paths
 dir_abfs          = 'C:\Users\DBHeyer\Documents\PhD\Human Database\YairData\Edata';
-dir_mats_converts = 'C:\Users\DBHeyer\Documents\PhD\Human Database\YairData\Eresults\onrap10\Converted';
-dir_mats_analysed = 'C:\Users\DBHeyer\Documents\PhD\Human Database\YairData\Eresults\onrap10\Analyzed';
+dir_mats_converts = 'C:\Users\DBHeyer\Documents\PhD\Human Database\YairData\Eresults\onrap30\Converted';
+dir_mats_analysed = 'C:\Users\DBHeyer\Documents\PhD\Human Database\YairData\Eresults\onrap30\Analyzed';
 
 % leave protocols
 protocols2skip4analysis = { 'eCode_1_BridgeBalance'
