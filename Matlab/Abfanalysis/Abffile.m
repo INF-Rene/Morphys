@@ -325,7 +325,7 @@ classdef Abffile < Sharedpaths & Setupsettings
             
             % Get holding current or voltage
             for i=1:obj.nrofchannels
-                if ~isempty(obj.getchannel(i).getin('signal','secondary'))
+                if ~isempty(obj.getchannel(i).getin('signal','secondary')) && ~isempty(obj.getchannel(i).getout) && ~isempty(obj.getchannel(i).getout.analogwaveformtable) 
                     [holdI, holdV] = obj.getchannel(i).getout.getholdingIorV(obj.getchannel(i));
                     obj.channels(i).analogouts = obj.getchannel(i).getout.set('holdingI',holdI);
                     obj.channels(i).analogouts = obj.getchannel(i).getout.set('holdingV',holdV);
@@ -395,10 +395,106 @@ classdef Abffile < Sharedpaths & Setupsettings
             % See also SELECTITEM
             if nargin == 1, return; end
             for i = 1:numel(obj)
-                for ii = 1:numel(obj(i).nrofchannels)
+                for ii = 1:obj(i).nrofchannels
                     for iii=1:obj(i).getchannel(ii).nrofanalogins
                         % replace analogin with one filtered based on varargin
                         obj(i).channels(ii).analogins(iii) = obj(i).getchannel(ii).getin(iii).selectsweep(varargin{:});
+                    end
+                end
+                obj(i).nrofsweeps=numel(obj(i).getchannel(ii).getin(iii).getsweep);
+            end
+        end
+        
+        function obj = selectin(obj,varargin)
+            % make an ABFFILE object including only specified SWEEP(s).
+            % Note, using the 'end' keyword as in 1:4:end does not work for this function. 
+            % --------------------
+            % See also SELECTITEM
+            if nargin == 1, return; end
+            for i = 1:numel(obj)
+                for ii = 1:obj(i).nrofchannels
+                        % replace channel with one filtered based on varargin
+                        obj(i).channels(ii) = obj(i).getchannel(ii).selectin(varargin{:});
+                end
+            end
+        end
+        
+        function obj = selectepoch(obj,varargin)
+            % make an ABFFILE object including only specified epoch(s).
+            % Note, using the 'end' keyword as in 1:4:end does not work for this function. 
+            % --------------------
+            % See also SELECTITEM
+            if nargin == 1, return; end
+            for i = 1:numel(obj)
+                for ii = 1:obj(i).nrofchannels
+                    for iii=1:obj(i).getchannel(ii).nrofanalogins
+                        for iiii=1:obj(i).nrofsweeps
+                            % replace sweep with one filtered based on varargin
+                            obj(i).channels(ii).analogins(iii).sweeps(iiii) = obj(i).getchannel(ii).getin(iii).getsweep(iiii).selectepoch(varargin{:});
+                        end
+                    end
+                end
+            end
+        end
+        
+        function aplist = apsweeps(obj)
+            % Returns a list with the amount of AP's detected in each sweep of the
+            % primary signal of each channel
+            % 
+            % --------------------
+            % See also SELECTITEM
+            if ~isscalar(obj), error('Object must be scalar.'); end
+            
+            % method dependent on whether abf is already analyzed
+            if obj.updatephase < 3
+                obj=obj.selectin('signal', 'primary');
+                aplist=zeros(obj.nrofchannels, obj.nrofsweeps);
+                for i = 1:obj.nrofchannels
+                    for ii=1:obj.nrofsweeps
+                        %find nr of APs in every sweep
+                        swp=obj.getchannel(i).getin(1).getsweep(ii).findaps;
+                        swp=swp.updateapstats;
+                        aplist(i, ii) = swp.nrofaps;
+                    end
+                end
+            else
+                obj=obj.selectin('signal', 'primary');
+                aplist=zeros(obj.nrofchannels, obj.nrofsweeps);
+                for i = 1:obj.nrofchannels
+                    for ii=1:obj.nrofsweeps
+                        aplist(i, ii) = obj.getchannel(i).getin(1).getsweep(ii).nrofaps;
+                    end
+                end
+            end
+        end
+        function firstapsweep = firstapsweep(obj)
+            % Return the first sweep in which an AP is found in any
+            % channel
+            % 
+            % --------------------
+            % See also SELECTITEM
+            if ~isscalar(obj), error('Object must be scalar.'); end
+            firstapsweep=[];
+            % method dependent on whether abf is already analyzed
+            if obj.updatephase < 3
+                obj=obj.selectin('signal', 'primary');
+                for i = 1:obj.nrofchannels
+                    for ii=1:obj.getchannel(i).nrofanalogins
+                        for iii=1:obj.nrofsweeps
+                            %find nr of APs in every sweep
+                            swp=obj.getchannel(i).getin(ii).getsweep(iii).findaps;
+                            swp=swp.updateapstats;
+                            if swp.nrofaps > 0, firstapsweep=iii; return, end
+                        end
+                    end
+                end
+            else
+                obj=obj.selectin('signal', 'primary');
+                for i = 1:obj.nrofchannels
+                    for ii=1:obj.getchannel(i).nrofanalogins
+                        for iii=1:obj.nrofsweeps
+                            if obj.getchannel(i).getin(ii).getsweep(iii).nrofaps > 0, firstapsweep=iii; return, end
+                        end
                     end
                 end
             end
