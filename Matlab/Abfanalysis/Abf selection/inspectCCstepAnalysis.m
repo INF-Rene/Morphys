@@ -8,23 +8,23 @@ filelist=filelist(1,:)';
 filelist=cellfun(@(x) strsplit(x, '.'), filelist, 'UniformOutput', false);
 filelist=cellfun(@(x) x{1}, filelist, 'UniformOutput', false);
 filelist=strcat(filelist, '.mat');
-filelist=strcat('D:\Morphys\Data\Electrophysiology\Abffiles\NAG\abf\Analyzed\',filelist);
+filelist=strcat('C:\Users\DBHeyer\Documents\PhD\Human Database\hippocampus\Steps\analyzed\',filelist);
 
-for i=157:numel(filelist)
+for i=1:numel(filelist)
    fprintf('Open file %1.0f out of %1.0f \n', i, numel(filelist))
    load(filelist{i});
    
    close all
-   figure ('position', [0 0 1920 1000])
+   figure ('position', [15 45 1500 720])
    subplot(2,3,1);
    zeroswp=-Summary(i).FrstP/Summary(i).DeltaP+1;
    obj.getchannel.getin('signal', 'primary').getsweep(1:zeroswp-1).plotanalysis
    title('Passive properties')
    
    subplot(2,3,2);
-   swp100=(-Summary(i).FrstP-100)/Summary(i).DeltaP+1;
+   swp100=round((-Summary(i).FrstP-100)/Summary(i).DeltaP+1);
    obj.getchannel.getin('signal', 'primary').getsweep(swp100:zeroswp-1).plotanalysis
-   xlim([obj.getchannel.getin('signal', 'primary').getsweep(Summary(i).TrainSwp).getepoch(3).Time(1)-50 obj.getchannel.getin('signal', 'primary').getsweep(Summary(i).TrainSwp).getepoch(3).Time(1)+100])
+   xlim([obj.getchannel.getin('signal', 'primary').getsweep(Summary(i).TrainSwp).getepoch(2).Time(1)-50 obj.getchannel.getin('signal', 'primary').getsweep(Summary(i).TrainSwp).getepoch(2).Time(1)+100])
    title('Tau')
    
    subplot(2,3,3);
@@ -59,7 +59,7 @@ for i=157:numel(filelist)
    title('MaxFreqSweep')
    
    filename=strsplit(filelist{i}, {'.', '\'});
-   saveas(gcf, ['D:\Connectivity analysis\AnalysisRene\Clustering Morphys\CCStepAnalysisSnapshots\MatlabFigs\', filename{end-1}, '.fig'])
-   print(['D:\Connectivity analysis\AnalysisRene\Clustering Morphys\CCStepAnalysisSnapshots\' filename{end-1} '.jpg'],  '-djpeg', '-r300');
+   saveas(gcf, ['C:\Users\DBHeyer\Documents\PhD\Human Database\hippocampus\Steps\figures\', filename{end-1}, '.fig'])
+   print(['C:\Users\DBHeyer\Documents\PhD\Human Database\hippocampus\Steps\figures\' filename{end-1} '.jpg'],  '-djpeg', '-r300');
       
 end

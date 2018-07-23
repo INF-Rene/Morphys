@@ -30,9 +30,12 @@ if isempty(USERNAME)
 end
 
 % set paths
-dir_abfs          = 'C:\Users\DBHeyer\Documents\PhD\Human Database\Natalia\Selection\abfs';
-dir_mats_converts = 'C:\Users\DBHeyer\Documents\PhD\Human Database\Natalia\Selection\onrap30\converted';
-dir_mats_analysed = 'C:\Users\DBHeyer\Documents\PhD\Human Database\Natalia\Selection\onrap30\analyzed';
+% dir_abfs          = 'C:\Users\DBHeyer\Documents\PhD\Human Database\Natalia\Selection\abfs';
+% dir_mats_converts = 'C:\Users\DBHeyer\Documents\PhD\Human Database\Natalia\Selection\onrap30\converted';
+% dir_mats_analysed = 'C:\Users\DBHeyer\Documents\PhD\Human Database\Natalia\Selection\onrap30\analyzed';
+dir_abfs          = 'C:\Users\DBHeyer\Documents\PhD\Human Database\hippocampus\Steps\abfs';
+dir_mats_converts = 'C:\Users\DBHeyer\Documents\PhD\Human Database\hippocampus\Steps\converted';
+dir_mats_analysed = 'C:\Users\DBHeyer\Documents\PhD\Human Database\hippocampus\Steps\analyzed';
 
 % leave protocols
 protocols2skip4analysis = { 'eCode_1_BridgeBalance'
@@ -51,31 +54,36 @@ protocols2skip4analysis = { 'eCode_1_BridgeBalance'
 % files = files(files.isdir==0,:) ;
 % files = table2struct(files) ;
 
-files = table2struct(readtable(fullfile(dir_abfs,'NAGselectOverview2.csv'),'Delimiter',',')) ;
- 
+% files = table2struct(readtable(fullfile(dir_abfs,'NAGselectOverview2.csv'),'Delimiter',',')) ;
+files = table2struct(readtable(fullfile('C:\Users\DBHeyer\Documents\PhD\Human Database\hippocampus','HippoCellInfo.csv'),'Delimiter',',')) ;
+
 %% setup settings
 ss = load('C:\Users\DBHeyer\Documents\PhD\Human Database\Morphys\Data\Electrophysiology\SetupSettings\Setupsettings_INF.mat');
 ss = ss.obj;
 
 % for abfs from AKS
-ss2 = Setupsettings ;
-ss2 = ss2.addchannel('number',1,'dacnum',0,'primary',2) ;
-
+% ss2 = Setupsettings ;
+% ss2 = ss2.addchannel('number',1,'dacnum',0,'primary',2) ;
+ss2 = load('C:\Users\DBHeyer\Documents\PhD\Human Database\Morphys\Data\Electrophysiology\SetupSettings\Setupsettings_MBV.mat');
+ss2 = ss2.obj;
 %% load abffile objects and analyse
 parfor i=1:size(files,1)
     
     % load the Abf xfile object, analyse and save
     myrow = files(i);
-    fn    = myrow.name(1:end-4);
+   % fn    = myrow.name(1:end-4);
+    fn    = myrow.abfname;   
     fnabf = [fn '.abf'];
     fnmat = [fn '.mat'];
     
-    if myrow.newabf == 1
+   % if myrow.newabf == 1
         try
             fprintf('\n#%05d: converting %s\n',i,fnabf)
-            if myrow.aks == 0
+            %if myrow.aks == 0
+            if myrow.setups == 1    
                 a = Abffile(fullfile(dir_abfs,fnabf),ss);
-            elseif myrow.aks == 1
+            %elseif myrow.aks == 1
+            elseif myrow.setups == 2    
                 a = Abffile(fullfile(dir_abfs,fnabf),ss2);
             end
             % keep only amplifier channels listed in the info file
@@ -102,6 +110,6 @@ parfor i=1:size(files,1)
         catch err
             fprintf('#%05d, %s *** CONVERSION FAIL ***: %s\n',i,fn,err.message);
         end
-    end
+    %end
     
 end
