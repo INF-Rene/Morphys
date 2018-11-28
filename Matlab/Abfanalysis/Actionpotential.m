@@ -4,13 +4,13 @@ classdef Actionpotential < Sharedmethods
     
     %   ---------------------------------------------------------------------------------------------------------------------
     %   Author:       Thijs Verhoog (thijs.verhoog@gmail.com)
-    %   Created:      2017-08-18       
+    %   Created:      2017-08-18
     %   Modifications (Date/Name/Description):
     %   ---------------------------------------------------------------------------------------------------------------------
     
-%###################################################### PROPERTIES ##########################################################    
+    %###################################################### PROPERTIES ##########################################################
     properties (Access = public)
-        parent_guid         % guid of parent sweep OR epoch. depends on where ap was created. 
+        parent_guid         % guid of parent sweep OR epoch. depends on where ap was created.
         ts                  % timeseries
         start_time          = nan;% time of AP start (ms)
         end_time            = nan;% time of AP end (ms)
@@ -40,15 +40,15 @@ classdef Actionpotential < Sharedmethods
         onsetrapvm          = nan;% vm in centre of onset rapidity fit window
         isi                 = nan;% inter-spike-interval (ms)
         freq                = nan;% instantaneous firing frequency (Hz)
-        number              = nan;% number of AP in set        
+        number              = nan;% number of AP in set
     end
     
-%####################################################### METHODS ############################################################
+    %####################################################### METHODS ############################################################
     methods
         % ----------------------------------------- CLASS CONSTRUCTOR -------------------------------------------------------
         function obj = Actionpotential(varargin)
             obj = obj@Sharedmethods;
-            if nargin == 0, return % returns empty AP object   
+            if nargin == 0, return % returns empty AP object
             elseif mod(numel(varargin),2)~=0
                 error('Uneven number of name/value pairs.')
             elseif ~all(cellfun(@ischar,varargin(1:2:end)))
@@ -61,7 +61,7 @@ classdef Actionpotential < Sharedmethods
         end
         
         function e = eventme(obj, feature)
-            % transform Actionpotential object into tsdata.event type object, ready to be added as an event to any timeseries 
+            % transform Actionpotential object into tsdata.event type object, ready to be added as an event to any timeseries
             % object (e.g. Sweep or Epoch).
             %
             % See also TSDATA.EVENT, ACTIONPOTENTIAL, SWEEP, EPOCH
@@ -100,30 +100,30 @@ classdef Actionpotential < Sharedmethods
             %
             % See also TIMESERIES
             data = obj.ts.Time;
-        end        
+        end
         
         function dvdt = getdvdt(obj,n)
-            % make nth derivative of AP waveform. 
-            % Based on matlab function 'diff'. obj.getDvdt(n) returns nth difference, so n=2 would give second order 
+            % make nth derivative of AP waveform.
+            % Based on matlab function 'diff'. obj.getDvdt(n) returns nth difference, so n=2 would give second order
             % differential for example. When n not provided, returns 1st derivative. Note length(dvdt) = length(data)-n
             %
             % See also DIFF
             
-            if nargin==1, n=1; end 
+            if nargin==1, n=1; end
             if isscalar(obj)
                 dvdt = diff(obj.getdata, n)./diff(obj.gettime);
             else
                 dvdt = arrayfun(@(x) obj(x).getdvdt(n),1:numel(obj),'UniformOutput',false);
                 dvdt = reshape(dvdt,size(obj));
             end
-        end  
+        end
         
         function obj = getdvdtts(obj,n)
             % get n-th order derivative of ap and store as its timeseries
-            % Based on matlab function 'diff'. obj.getDvdt(n) returns nth difference, so n=2 would give second order 
-            % differential for example. When n not provided, returns 1st derivative. Note length(dvdt) = length(data)-n  
+            % Based on matlab function 'diff'. obj.getDvdt(n) returns nth difference, so n=2 would give second order
+            % differential for example. When n not provided, returns 1st derivative. Note length(dvdt) = length(data)-n
             %
-            % See also GETDVDT, DIFF       
+            % See also GETDVDT, DIFF
             
             if nargin==1, n=1; end
             if isscalar(obj)
@@ -142,23 +142,23 @@ classdef Actionpotential < Sharedmethods
         end
         
         function pp = phaseplane(obj)
-            % make phase plane data of an action potential. 
+            % make phase plane data of an action potential.
             % If numel(obj)>1, returns cell array.
             %
             % See also GETDATA, GETDVDT.
             
-            if isscalar(obj), 
+            if isscalar(obj),
                 d  = obj.getdata;
-                pp = cat(2,d(1:end-1),obj.getdvdt); 
+                pp = cat(2,d(1:end-1),obj.getdvdt);
             else
                 pp = arrayfun(@(x) obj(x).phaseplane,1:numel(obj),'UniformOutput',false);
             end
         end
         
         function plot(obj,varargin)
-            % plot action potential(s). 
-            % Supports name/value input arguments for plotting. One extra option is to choose 'superimpose' as extra input 
-            % argument with peak, thresh, ahp, or adp as corresponding value. In that case, APs are plotted on top of each 
+            % plot action potential(s).
+            % Supports name/value input arguments for plotting. One extra option is to choose 'superimpose' as extra input
+            % argument with peak, thresh, ahp, or adp as corresponding value. In that case, APs are plotted on top of each
             % other, aligned to choice.
             %
             % See also ACTIONPOTENTIAL
@@ -178,16 +178,16 @@ classdef Actionpotential < Sharedmethods
                 elseif ~all(cellfun(@ischar,varargin(1:2:end)))
                     error('All property names must be strings')
                 elseif strcmp('superimpose',varargin{end})
-                    error('please provide an AP feature to align APs. Choose one of following: start, peak, thresh, ahp, or adp'); 
+                    error('please provide an AP feature to align APs. Choose one of following: start, peak, thresh, ahp, or adp');
                 else
                     [found,sidx]=ismember('superimpose',varargin(1:2:end));
                 end
-
+                
                 if found, % then superimpose APs
-                    feature = varargin{sidx*2}; 
+                    feature = varargin{sidx*2};
                     % check feature validity:
                     if ~ismember(feature,{'start','peak','thresh','ahp','adp'})
-                        error('please provide a valid AP feature to align APs. Choose one of following: start, peak, thresh, ahp, or adp'); 
+                        error('please provide a valid AP feature to align APs. Choose one of following: start, peak, thresh, ahp, or adp');
                     end
                     featuretime = sprintf('%s_time',feature);
                     varargin([sidx*2-1,sidx*2]) = []; % remove superimpose name/value pair from varargin (rest is for plot.m)
@@ -222,7 +222,7 @@ classdef Actionpotential < Sharedmethods
                 plot(pp(:,1),pp(:,2),varargin{:})
             else
                 hold on
-                    arrayfun(@(x) obj(x).phaseplot(varargin{:}),1:numel(obj),'UniformOutput',false);
+                arrayfun(@(x) obj(x).phaseplot(varargin{:}),1:numel(obj),'UniformOutput',false);
                 hold off
             end
         end
@@ -238,78 +238,128 @@ classdef Actionpotential < Sharedmethods
             dvdtap = obj.getdvdtts;
             
             subplot(2,2,[1 2])
-                % plot ap waveform
-                
-                if ~isempty(obj.peak_time)   && ~isnan(obj.peak_time),   obj.ts = obj.ts.addevent('peak',obj.peak_time); end
-                if ~isempty(obj.thresh_time) && ~isnan(obj.thresh_time), obj.ts = obj.ts.addevent('threshold',obj.thresh_time); end
-                if ~isempty(obj.ahp_time)    && ~isnan(obj.ahp_time),    obj.ts = obj.ts.addevent('ahp',obj.ahp_time); end
-                obj.ts.Name = 'AP waveform';
-                yyaxis left;  obj.plot('linewidth',2)
-                
-                % threshold line
-                try 
-                    line(xlim,[obj.thresh obj.thresh],'linewidth',2,'lineStyle',':','color','k')
-                catch
-                end
-                % peak time line
-                try
-                    line([obj.peak_time obj.peak_time],[obj.thresh obj.peak],'linewidth',2,'lineStyle',':','color','k')
-                catch
-                end
-                % ahp time line
-                try
-                    line([obj.ahp_time  obj.ahp_time] ,[obj.ahp obj.thresh] ,'linewidth',2,'lineStyle',':','color','k')
-                catch
-                end
-                % halfwidth line
-                try
-                    line([obj.halfwidth_strt_time  obj.halfwidth_end_time]  ,[1 1]*obj.amp*0.5+obj.thresh,'linewidth',2,'lineStyle',':','color','k')
-                catch 
-                end
-
-                % plot derivative
-                dvdtap.ts.Name = 'AP derivative';
-                if ~isempty(dvdtap.maxdvdt_time) && ~isnan(dvdtap.maxdvdt_time), dvdtap.ts = dvdtap.ts.addevent('maxdvdt',dvdtap.maxdvdt_time); end
-                if ~isempty(dvdtap.mindvdt_time) && ~isnan(dvdtap.mindvdt_time), dvdtap.ts = dvdtap.ts.addevent('mindvdt',dvdtap.mindvdt_time); end
-                yyaxis right; dvdtap.ts.plot('color','r')
-
-                % labelling
-                xlabel(sprintf('Time (%s since trace onset)',obj.ts.TimeInfo.Units))
-                title(sprintf('Action potential analysis (#%d)',obj.number))
-                grid on
+            % plot ap waveform
+            
+            if ~isempty(obj.peak_time)   && ~isnan(obj.peak_time),   obj.ts = obj.ts.addevent('peak',obj.peak_time); end
+            if ~isempty(obj.thresh_time) && ~isnan(obj.thresh_time), obj.ts = obj.ts.addevent('threshold',obj.thresh_time); end
+            if ~isempty(obj.ahp_time)    && ~isnan(obj.ahp_time),    obj.ts = obj.ts.addevent('ahp',obj.ahp_time); end
+            obj.ts.Name = 'AP waveform';
+            yyaxis left;  obj.plot('linewidth',2)
+            
+            % threshold line
+            try
+                line(xlim,[obj.thresh obj.thresh],'linewidth',2,'lineStyle',':','color','k')
+            catch
+            end
+            % peak time line
+            try
+                line([obj.peak_time obj.peak_time],[obj.thresh obj.peak],'linewidth',2,'lineStyle',':','color','k')
+            catch
+            end
+            % ahp time line
+            try
+                line([obj.ahp_time  obj.ahp_time] ,[obj.ahp obj.thresh] ,'linewidth',2,'lineStyle',':','color','k')
+            catch
+            end
+            % halfwidth line
+            try
+                line([obj.halfwidth_strt_time  obj.halfwidth_end_time]  ,[1 1]*obj.amp*0.5+obj.thresh,'linewidth',2,'lineStyle',':','color','k')
+            catch
+            end
+            
+            % plot derivative
+            dvdtap.ts.Name = 'AP derivative';
+            if ~isempty(dvdtap.maxdvdt_time) && ~isnan(dvdtap.maxdvdt_time), dvdtap.ts = dvdtap.ts.addevent('maxdvdt',dvdtap.maxdvdt_time); end
+            if ~isempty(dvdtap.mindvdt_time) && ~isnan(dvdtap.mindvdt_time), dvdtap.ts = dvdtap.ts.addevent('mindvdt',dvdtap.mindvdt_time); end
+            yyaxis right; dvdtap.ts.plot('color','r')
+            
+            % labelling
+            xlabel(sprintf('Time (%s since trace onset)',obj.ts.TimeInfo.Units))
+            title(sprintf('Action potential analysis (#%d)',obj.number))
+            grid on
             
             try
                 subplot(2,2,3)
-                    obj.phaseplot
-                    line(xlim,[0 0],'lineStyle','--','color',[0.8 0.8 0.8])
-                    line([0 0],ylim,'lineStyle','--','color',[0.8 0.8 0.8])
-                    ylabel('AP derivative (mV/ms)')
-                    xlabel('AP waveform (mV)')
-                    title ('AP phase plot')
-                    rectangle('position',[obj.onsetrapvm-5, obj.apThreshRapidity-30, 10, 60],'EdgeColor','r')
+                obj.phaseplot
+                line(xlim,[0 0],'lineStyle','--','color',[0.8 0.8 0.8])
+                line([0 0],ylim,'lineStyle','--','color',[0.8 0.8 0.8])
+                ylabel('AP derivative (mV/ms)')
+                xlabel('AP waveform (mV)')
+                title ('AP phase plot')
+                rectangle('position',[obj.onsetrapvm-5, obj.apThreshRapidity-30, 10, 60],'EdgeColor','r')
             catch
             end
             try
                 subplot(2,2,4)
-                    obj.phaseplot('o-')
-                    xlim([obj.onsetrapvm-5 obj.onsetrapvm+5])
-                    ylim([obj.apThreshRapidity-30 obj.apThreshRapidity+30])
-                    line(xlim,[0 0],'lineStyle','--','color',[0.8 0.8 0.8])
-                    line([0 0],ylim,'lineStyle','--','color',[0.8 0.8 0.8])  
-                    ylabel('AP derivative (mV/ms)')
-                    xlabel('AP waveform (mV)')
-                    title('AP phase plot zoom-in')
-            
+                obj.phaseplot('o-')
+                xlim([obj.onsetrapvm-5 obj.onsetrapvm+5])
+                ylim([obj.apThreshRapidity-30 obj.apThreshRapidity+30])
+                line(xlim,[0 0],'lineStyle','--','color',[0.8 0.8 0.8])
+                line([0 0],ylim,'lineStyle','--','color',[0.8 0.8 0.8])
+                ylabel('AP derivative (mV/ms)')
+                xlabel('AP waveform (mV)')
+                title('AP phase plot zoom-in')
                 
-                    % add fitting
-                    line(xlim,[obj.apThreshRapidity obj.apThreshRapidity],'lineStyle','--','color','r')
-                    fitx = [obj.onsetrapvm-1 obj.onsetrapvm+1];
-                    fity = polyval(obj.onsetrapfit,fitx);
-                    line(fitx,fity,'linewidth',2,'color','r')
+                
+                % add fitting
+                line(xlim,[obj.apThreshRapidity obj.apThreshRapidity],'lineStyle','--','color','r')
+                fitx = [obj.onsetrapvm-1 obj.onsetrapvm+1];
+                fity = polyval(obj.onsetrapfit,fitx);
+                line(fitx,fity,'linewidth',2,'color','r')
             catch
             end
         end
-
+        
+        function plotanalysis2(obj)
+            % plot ACTIONPOTENTIAL with derivative overlay and analysis details
+            % See also ACTIONPOTENTIAL, TIMESERIES, TSDATA.EVENT, GETDVDTTS.
+            if ~isscalar(obj), error('Object must be scalar'); end
+            
+            % store copy for derivative
+            dvdtap = obj.getdvdtts;
+            % plot ap waveform
+            
+            if ~isempty(obj.peak_time)   && ~isnan(obj.peak_time),   obj.ts = obj.ts.addevent('peak',obj.peak_time); end
+            if ~isempty(obj.thresh_time) && ~isnan(obj.thresh_time), obj.ts = obj.ts.addevent('threshold',obj.thresh_time); end
+            if ~isempty(obj.ahp_time)    && ~isnan(obj.ahp_time),    obj.ts = obj.ts.addevent('ahp',obj.ahp_time); end
+            obj.ts.Name = 'AP waveform';
+            yyaxis left;  obj.plot('linewidth',2)
+            
+            % threshold line
+            try
+                line(xlim,[obj.thresh obj.thresh],'linewidth',2,'lineStyle',':','color','k')
+            catch
+            end
+            % peak time line
+            try
+                line([obj.peak_time obj.peak_time],[obj.thresh obj.peak],'linewidth',2,'lineStyle',':','color','k')
+            catch
+            end
+            % ahp time line
+            try
+                line([obj.ahp_time  obj.ahp_time] ,[obj.ahp obj.thresh] ,'linewidth',2,'lineStyle',':','color','k')
+            catch
+            end
+            % halfwidth line
+            try
+                line([obj.halfwidth_strt_time  obj.halfwidth_end_time]  ,[1 1]*obj.amp*0.5+obj.thresh,'linewidth',2,'lineStyle',':','color','k')
+                text(obj.halfwidth_end_time,obj.amp*0.5+obj.thresh,['  HW ' num2str(obj.halfwidth) ' ms'], 'FontSize',10)
+            catch
+            end
+            
+            % plot derivative
+            dvdtap.ts.Name = 'AP derivative';
+            if ~isempty(dvdtap.maxdvdt_time) && ~isnan(dvdtap.maxdvdt_time), dvdtap.ts = dvdtap.ts.addevent('maxdvdt',dvdtap.maxdvdt_time); end
+            if ~isempty(dvdtap.mindvdt_time) && ~isnan(dvdtap.mindvdt_time), dvdtap.ts = dvdtap.ts.addevent('mindvdt',dvdtap.mindvdt_time); end
+            yyaxis right; dvdtap.ts.plot('color','r')
+            
+            % labelling
+            xlabel(sprintf('Time (%s since trace onset)',obj.ts.TimeInfo.Units))
+            title(sprintf('Action potential analysis (#%d)',obj.number))
+            grid on
+            
+            
+        end
     end
     
 end

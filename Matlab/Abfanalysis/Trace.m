@@ -620,16 +620,40 @@ classdef Trace < timeseries
                         dv   = dvts.resample(dvts.TimeInfo.Start:obj.upsample:dvts.TimeInfo.End,'linear').getdata;
 
                         % find rapidity threshold crossing and make a fitting window.
-                        strtidx = max([1, length(dv) - find(flipud(dv)<obj.apThreshRapidity,1) - obj.onsetrapfitwin + 1]);
-                        endidx  = min([strtidx + obj.onsetrapfitwin + 1, length(vm)]);
+%                         strtidx = max([1, length(dv) - find(flipud(dv)<obj.apThreshRapidity,1) - obj.onsetrapfitwin + 1]);
+%                         endidx  = min([strtidx + obj.onsetrapfitwin + 1, length(vm)]);
+
+                        % temporary hack for IQ paper analysis
+                        % startidx at crossing of threshold 15 mV/ms
+                        strtidx = max([1, length(dv) - find(flipud(dv)<15,1)+ 1]);
+%                         % endidx at 3 mV above the voltage at which
+%                         % threshold was crossed
+%                         endidx = find(vm > vm(strtidx)+3, 1);                  
+                        
 
                         % linear fit
-                        x = vm(strtidx:endidx);
-                        y = dv(strtidx:endidx);
-                        vmcentre = min(x)+0.5*range(x);
-                        onsetrapfit = polyfit(x, y, 1); % straight fit through points enclosed in window
-                        obj = obj.updateap(i,'onsetrapidity',onsetrapfit(1),'onsetrapfit',onsetrapfit,'onsetrapvm',vmcentre); % update AP 
-                        
+%                         x = vm(strtidx:endidx);
+%                         y = dv(strtidx:endidx);
+%                         if numel(vm)>= endidx
+%                             x = vm([strtidx, endidx]);
+%                             y = dv([strtidx, endidx]);
+%                             vmcentre = min(x)+0.5*range(x);
+%                             onsetrapfit = polyfit(x, y, 1); % straight fit through points enclosed in window
+%                             obj = obj.updateap(i,'onsetrapidity',onsetrapfit(1),'onsetrapfit',onsetrapfit,'onsetrapvm',vmcentre); % update AP 
+%                         else
+%                             warning('not enough space to fit onsetrapidity window before reaching maxDVDT')
+%                             obj = obj.updateap(i,'onsetrapidity',NaN,'onsetrapvm',NaN);
+%                         end
+                         % instead of linear fit, just look at the maximum
+                         % slope of the phase plot from threshold
+                        x = vm(strtidx:end);
+                        y = dv(strtidx:end);
+                        dvvm=diff(dv)./diff(vm);
+                        [onsetrap, index]=max(dvvm);
+                        if onsetrap > 150
+                            onsetrap=NaN;
+                        end
+                        obj = obj.updateap(i,'onsetrapidity',onsetrap,'onsetrapvm',vm(index));
                     end
                 else
                     cnt = cnt+1;

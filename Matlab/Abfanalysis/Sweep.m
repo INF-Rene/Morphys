@@ -306,6 +306,7 @@ classdef Sweep < Sharedmethods & Trace
                         'pulseperiod',  0;
                         'pulsewidth',   0;
                         'maxfrequency', 0;
+                        'deltascaled',  0;
                         };
             template = struct2table(cell2struct(template(:,2),template(:,1)));
 

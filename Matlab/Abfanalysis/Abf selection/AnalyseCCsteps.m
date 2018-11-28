@@ -3,16 +3,16 @@
 close all, clear all
 
 %% Set path to load and save data
-basedir = 'D:\IQ paper\Data\Metadata' ;
+basedir = 'D:\Morphys\Data\Labbooks\RWS\ConnectivityRene' ;
 %basedir = 'C:\Users\DBHeyer\Documents\PhD\Human Database\Morphys\Data\Labbooks\MBV\MetadataCSVs' ;
-savename = 'DataSummary' ;
+savename = 'CellSummary_ConnectivityRene';
 
 %% import CSV files
 %requires specific folder- and filenames in location basedir!
 abfs = readtable(fullfile(basedir, 'Abffiles','Abffiles.txt')) ;
 channels = readtable(fullfile(basedir, 'Channels','Channels.txt')) ;
 ins = readtable(fullfile(basedir, 'Analogins','Analogins.txt')) ;
-outs = readtable(fullfile(basedir, 'Analogouts','Analogouts.txt')) ;
+outs = readtable(fullfile(basedir, 'Analogouts','Analogout.txt')) ;
 sweeps = readtable(fullfile(basedir, 'Sweeps','Sweeps.txt')) ;
 epochs = readtable(fullfile(basedir, 'Epochs','Epochs.txt')) ;
 aps = readtable(fullfile(basedir, 'Actionpotentials','Actionpotentials.txt')) ;
@@ -50,13 +50,18 @@ for i = 1:height(abfs)
                 end
             end
         end
+        
+        
         % find rheobase sweep
+        apcrit=0;
         for frstspikeswp = 1:NrofSweeps
             if sweep(frstspikeswp).epoch(step).nrofaps > 0 && sweep(frstspikeswp).epoch(step).stepdiff > 0
+                apcrit=1;
                 break
             end
         end
 
+        if apcrit==1
         % calculate variables
         vmbase = [sweep.vmbase] ;
         Freqs=[];
@@ -191,11 +196,15 @@ for i = 1:height(abfs)
         f_R=fittype('R*x+b');
         tmp=length(find(currInjections_R~=0 & ~isnan(voltageResponses)));
         if tmp > 1         
-            [fitR]=fit(currInjections_R(currInjections_R~=0 & ~isnan(voltageResponses)),voltageResponses(voltageResponses~=0 & ~isnan(voltageResponses)),f_R, 'StartPoint', [0 0]); 
+            [fitR]=fit(currInjections_R(currInjections_R~=0 & voltageResponses~=0 & ~isnan(voltageResponses)),voltageResponses(currInjections_R~=0 & voltageResponses~=0 & ~isnan(voltageResponses)),f_R, 'StartPoint', [0 0]); 
             Rin=fitR.R*1e3; % In mOhm
-        elseif tmp ==1  % If there is only one point, use baseline at Ci=0 to determine input resistance:
-            [fitR]=fit([currInjections_R(currInjections_R~=0 & ~isnan(voltageResponses)); 0],[voltageResponses(voltageResponses~=0 & ~isnan(voltageResponses)); sweep([sweep.currinj] == currInjections_R(currInjections_R~=0)).vmbase],f_R, 'StartPoint', [0 0]); 
-            Rin=fitR.R*1e3; % In mOhm            
+        elseif tmp ==1  % If there is only one point, use baseline Vm to determine input resistance:
+            if ~isnan(sweep([sweep.currinj] == currInjections_R(currInjections_R~=0 & ~isnan(voltageResponses))).vmbase)
+                [fitR]=fit([currInjections_R(currInjections_R~=0 & voltageResponses~=0 & ~isnan(voltageResponses)); 0],[voltageResponses(currInjections_R~=0 & voltageResponses~=0 & ~isnan(voltageResponses)); sweep([sweep.currinj] == currInjections_R(currInjections_R~=0 & ~isnan(voltageResponses))).vmbase],f_R, 'StartPoint', [0 0]); 
+                Rin=fitR.R*1e3; % In mOhm    
+            else
+                Rin=NaN;
+            end
         else
             Rin=NaN;
         end
@@ -317,6 +326,7 @@ for i = 1:height(abfs)
         Summary(index).HWAccomTS          = HWAccom ;
         Summary(index).ISIRatio1toAll     = ISIRatio1toAll ;
 
+        end
         %clear variables assigned in "sweep" For loop
         clearvars -except abf Summary i basedir savename abfs aps channels ins outs epochs sweeps index
         index = index + 1 ;

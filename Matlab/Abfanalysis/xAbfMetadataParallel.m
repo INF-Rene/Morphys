@@ -1,4 +1,4 @@
-%% bulk data extraction from Abffile objects
+ %% bulk data extraction from Abffile objects
 % When nr. of files is too large to be practical in one Abfbatch object, this function comes in handy. It chucks the list
 % of files into smaller batches of files, keeping the total number of MBs per batch roughy constant. Then creates ABFBATCH 
 % objects for them using parallel for looping (parfor) to obtain the metadata tables. Parfor allows you to use more of your 
@@ -21,11 +21,12 @@ if isempty(id),
 end
 
 % set paths
-dir_mats_analysed = 'G:\My Matfiles Analysed2';% where the mat files of Abffile objects are stored
-dir_batch_base    = 'G:\My Metadata2';
+dir_mats_analysed = 'D:\Morphys\Data\Electrophysiology\Abffiles\RWS\abf\Analyzed';% where the mat files of Abffile objects are stored
+dir_batch_base    = 'D:\Morphys\Data\Labbooks\RWS\ConnectivityRene';
 
 % get list of filenames and make all paths
 fileinfo  = dir(fullfile(dir_mats_analysed,'*.mat'));
+fileinfo = fileinfo(datetime({fileinfo.date}) > datetime(2018, 03, 01)); %select only files that were analysed after a certain date
 filelist  = {fileinfo.name};
 pathnames = arrayfun(@(x) fullfile(dir_mats_analysed,filelist{x}),1:numel(filelist),'UniformOutput',false)';
 
@@ -38,7 +39,7 @@ batchlists = arrayfun(@(x) pathnames(indexes==x),batchnrs+1,'UniformOutput',fals
 indexesbatched = zeros(numel(batchlists),1);
 
 %% load abfs into batches first.  
-parfor i=1:numel(batchlists)   
+for i=1:numel(batchlists)   
     
     % make the Abfbatch object and store
     fprintf('\nBatching loop nr %d, %d files in total:\n\n',i,numel(batchlists{i}))
@@ -66,6 +67,7 @@ parfor i=1:numel(batchlists)
         fprintf('done.\n')
     catch
         fprintf('FAILED.\n')
+        fprintf('err.message')
     end
     try
         fprintf('Saving Analogin table...')

@@ -100,6 +100,26 @@ classdef Analogout < Sharedmethods
                     sf = 1;
                 case {'eCode_2_Resonance'}  % resonance...
                     sf = 1; 
+                case {'LSFINEST'}
+                    epo1dur = fix((sum(obj.analogwaveformtable.tab(1:3,:).timespan)/1000)*obj.analogwaveformtable.samplefreq);
+                    epo2dur = fix((sum(obj.analogwaveformtable.tab(1:4,:).timespan)/1000)*obj.analogwaveformtable.samplefreq);
+                    epo1 = INobj.getsweep(1).Data(1:epo1dur);
+                    epo2 = INobj.getsweep(1).Data(epo1dur:epo2dur);
+                    if strcmp(INobj.units, 'nA')
+                        sf = (nanmedian(epo2)-nanmedian(epo1))*10;
+                    else
+                        sf = (nanmedian(epo2)-nanmedian(epo1))/100;
+                    end
+                case {'LSCOARSE'}
+                    epo1dur = fix((sum(obj.analogwaveformtable.tab(1:3,:).timespan)/1000)*obj.analogwaveformtable.samplefreq);
+                    epo2dur = fix((sum(obj.analogwaveformtable.tab(1:4,:).timespan)/1000)*obj.analogwaveformtable.samplefreq);
+                    epo1 = INobj.getsweep(1).Data(1:epo1dur);
+                    epo2 = INobj.getsweep(1).Data(epo1dur:epo2dur);
+                    if strcmp(INobj.units, 'nA')
+                        sf = (nanmedian(epo2)-nanmedian(epo1))/-150*1000;
+                    else
+                        sf = (nanmedian(epo2)-nanmedian(epo1))/-150;
+                    end
                 otherwise
                     sf = 1;
             end

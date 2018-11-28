@@ -212,53 +212,57 @@ classdef Abffile < Sharedpaths & Setupsettings
             %   pClamp, regardless of whether the analog out was enabled or not, and regardless of whether the stimfile was 
             %   actually used. If EpochSec AND stringsection both define an analog OUT (so share same dacnum), then EpochSec 
             %   takes precedence, since epoch section only includes enabled channels where the waveform epoch table was used
-            %   as output. 
+            %   as output. (Update RWS 21-11-2018): Tested this and turns out not to be true: if a stimulusfile is used on a
+            %   file that previously had an EpochSec, than the EpochSec information stays in the file. Therefore changed
+            %   precedence to stimfile.
             %   NOTE: To prevent DAC channels that do have a stimulus file but where DAC was disabled still initialise, 
             %   only DAC channels defined in the provided Setupsettings object will be taken into account.
             fprintf('Adding analog outputs...\n')
-
-            if isfield(h,'EpochSec'), 
+            tmpoutinfo = obj.extractstringsectioninfo(h.stringSection,2); 
+            if isfield(h,'EpochSec') 
                 dacnumberset       = unique([h.EpochSec.nDACNum]);
                 
                 for i=dacnumberset
-                    infostruct  = struct;                                                       % start empty
-                    epochstruct = h.EpochSec([h.EpochSec.nDACNum] == i);                        % make table of epoch information for this OUT channel
-                    infostruct.number       = epochstruct(1).nDACNum;                           % collect OUT nr
-                    infostruct.name         = '';
-                    infostruct.units        = '';
-                    infostruct.path2pro     = obj.prodirectory;
-                    infostruct.profilename  = obj.proname;
-                    infostruct.path2stim    = '';
-                    infostruct.stimfilename = '';
-                    
-                    epochstruct = rmfield(epochstruct,'nDACNum');                               % remove DAC number from table (now redundant)
-                    epochstruct = obj.standardiseepochstruct(epochstruct,obj.sampleint*1e-3);   % standardise epochStruct
-                    t = struct2table(epochstruct);
-                    
-                    % now an ugly fix for cases where epochstruct has only 1 epoch. In these cases, struct2table converts
-                    % cells into char, which leads to errors later. Next measures are to keep idxstr,timespan and typestr the 
-                    % same type throughout.
-                    if isscalar(epochstruct)
-                        if ischar(t.idxstr),   t.idxstr   = {t.idxstr}; end
-                        if ischar(t.timespan), t.timespan = {t.timespan}; end
-                        if ischar(t.typestr),  t.typestr  = {t.typestr}; end
-                    end
-                    
-                    infostruct.analogwaveformtable = Analogwaveformtab(t);                      % convert to analog waveform tab object
-                    infostruct.analogwaveformtable.samplefreq = obj.samplefreq;                 % assign sampleFrequency of this file to analogWaveformTab.
-                    infostruct.analogwaveformtable.nrofsweeps = obj.nrofsweeps;                 % assign number of sweeps in this file to analogWaveformTab.
-                    
-                    % add to Analogout object to relevant channel.
-                    for ii=1:obj.nrofchannels
-                        if infostruct.number == obj.getchannel(ii).get('dacnum')
-                            obj.channels(ii) = obj.getchannel(ii).addout(infostruct);
+                    if ~ismember(i, tmpoutinfo.number) %precedence of stimfile over epochsec
+                        infostruct  = struct;                                                       % start empty
+                        epochstruct = h.EpochSec([h.EpochSec.nDACNum] == i);                        % make table of epoch information for this OUT channel
+                        infostruct.number       = epochstruct(1).nDACNum;                           % collect OUT nr
+                        infostruct.name         = '';
+                        infostruct.units        = '';
+                        infostruct.path2pro     = obj.prodirectory;
+                        infostruct.profilename  = obj.proname;
+                        infostruct.path2stim    = '';
+                        infostruct.stimfilename = '';
+                        
+                        epochstruct = rmfield(epochstruct,'nDACNum');                               % remove DAC number from table (now redundant)
+                        epochstruct = obj.standardiseepochstruct(epochstruct,obj.sampleint*1e-3);   % standardise epochStruct
+                        t = struct2table(epochstruct);
+                        
+                        % now an ugly fix for cases where epochstruct has only 1 epoch. In these cases, struct2table converts
+                        % cells into char, which leads to errors later. Next measures are to keep idxstr,timespan and typestr the
+                        % same type throughout.
+                        if isscalar(epochstruct)
+                            if ischar(t.idxstr),   t.idxstr   = {t.idxstr}; end
+                            if ischar(t.timespan), t.timespan = {t.timespan}; end
+                            if ischar(t.typestr),  t.typestr  = {t.typestr}; end
+                        end
+                        
+                        infostruct.analogwaveformtable = Analogwaveformtab(t);                      % convert to analog waveform tab object
+                        infostruct.analogwaveformtable.samplefreq = obj.samplefreq;                 % assign sampleFrequency of this file to analogWaveformTab.
+                        infostruct.analogwaveformtable.nrofsweeps = obj.nrofsweeps;                 % assign number of sweeps in this file to analogWaveformTab.
+                        
+                        % add to Analogout object to relevant channel.
+                        for ii=1:obj.nrofchannels
+                            if infostruct.number == obj.getchannel(ii).get('dacnum')
+                                obj.channels(ii) = obj.getchannel(ii).addout(infostruct);
+                            end
                         end
                     end
                 end
             end
 
             % Analogouts defined in string section to employ external stimulus files (atf files, listed in h.stringSection)
-            tmpoutinfo = obj.extractstringsectioninfo(h.stringSection,2); 
+            
             if ~isempty(tmpoutinfo)                
                 outchannels = tmpoutinfo{:,'number'}';
                 
@@ -648,10 +652,16 @@ classdef Abffile < Sharedpaths & Setupsettings
                             io = strsplit(stringsection(pathsidxfull(i,2)+1:end),' ');
                         end
                         io = io(cellfun(@(x) ~isempty(x),io));                                % remove empties
+                        if ismember('RawOutput', io)
+                            n=find(strcmp(io, 'RawOutput'));
+                            io(n+1:end+1)=io(n:end);
+                            io{n+1}='2';
+                        end
                         io = reshape(io,default_section_nrs,size(io,2)/default_section_nrs)'; % reshape into discrete sections
                         iotable = [iotable; cell2table(cat(2,io,repmat({''},size(io,1),2),...
                             arrayfun(@(x) strjoin(io(x,1:2)),1:size(io,1),'UniformOutput',false)'),... % add IO names (e.g. Cmd 1)
                             'VariableNames',{'IOtype','number','units','path2stim','stimfilename','name'})];
+                        iotable.name=strrep(iotable.name, 'RawOutput 4', 'RawOutput');
 
                         % split StimFile into path and file and add to IOtable
                         if i+1<=numel(pathsidxstr)

@@ -16,12 +16,12 @@ classdef Sharedpaths
     
 %###################################################### PROPERTIES ##########################################################
     properties (Hidden = false)
-        userid              = ''; % pulled from global variable 'USERNAME'. 
+        userid              = 'RWS'; % pulled from global variable 'USERNAME'. 
     end
     
     properties (Hidden = true)
         listofuserids       = {'AKS','DBH','DRU','GTS','IKS','JDZ','JOR','JSR','MBV','NAG','RBP','RWS','SHT','THK','TKN'};
-        dir_base            = 'C:\Users\Thijs\Documents';
+        dir_base            = 'D:\';
         dir_ephys           = fullfile('Morphys','Data','Electrophysiology');
         dir_abfs            = fullfile('Morphys','Data','Electrophysiology','Abffiles');
         dir_setupsettings   = fullfile('Morphys','Data','Electrophysiology','SetupSettings');
@@ -42,7 +42,7 @@ classdef Sharedpaths
         function obj = Sharedpaths(username)
                         
             % set user id
-            obj.setglobalusername('MBV')
+            obj.setglobalusername('RWS')
 %             Commented to allow parfor loop to execute
 %             if nargin == 1 && ~isempty(username)
 %                 obj.userid = username;

@@ -17,7 +17,7 @@ classdef Analogwaveformtab < Sharedmethods
         nrofsweeps  = [];    % default number of sweeps for this protocol
         tab         = table; % table with epoch specification (analogous to pClamp Analog Waveform tab)
         scalefactor = 1;     % scalefactor
-        units       = 'pA'   % important!! default is current clamp protocols!       
+        units       = 'pA'   % important!! default is current clamp protocols!
     end
 
 %####################################################### METHODS ############################################################
@@ -64,23 +64,52 @@ classdef Analogwaveformtab < Sharedmethods
             end
             swptab = obj.tab;
             firstlevel = swptab.firstlevel*obj.scalefactor;
-            deltalevel = swptab.deltalevel*obj.scalefactor;
-            swptab.firstlevel = firstlevel + deltalevel*(idx-1);
-            
-            epdur = cellfun(@(x) eval(x),swptab.timespan,'UniformOutput',false);
-            if all(cellfun('length',epdur)==1)
-                swptab.timespan = cell2mat(epdur) + swptab.deltaduration *(idx-1);
+            if iscell(swptab.deltalevel)     
+                deltalevel = cellfun(@(x) eval(x),swptab.deltalevel,'UniformOutput',false);
             else
-                swptab.tmp = zeros(height(swptab),1);
-                for i=1:height(swptab)
-                    if numel(epdur{i})==1, swptab{i,'tmp'} = cell2mat(epdur(i)) + swptab{i,'deltaduration'} *(idx-1);
+                deltalevel=num2cell(swptab.deltalevel);
+            end
+            if isfield(swptab, 'deltascaled') && swptab.deltascaled==1 %is the delta also scaled or only the firstlevel?
+                deltascale=obj.scalefactor;
+            else
+                deltascale=1;
+                swptab.deltascaled(:)=0;
+            end
+            if all(cellfun('length',deltalevel)==1)
+                swptab.firstlevel = firstlevel + cell2mat(deltalevel)*(idx-1)*deltascale;
+            else
+                for i=1:numel(deltalevel)
+                    if numel(deltalevel{i})==1
+                        swptab.firstlevel(i) = firstlevel(i) + deltalevel{i}*(idx-1)*deltascale;
                     else
-                        swptab{i,'tmp'} = epdur{i}(idx);
+                        swptab.firstlevel(i) = firstlevel(i) + sum(deltalevel{i}(1:idx-1))*deltascale;
                     end
                 end
-                swptab.timespan = []; % ditch old
-                swptab.Properties.VariableNames{'tmp'} = 'timespan'; % replace with new
             end
+            
+            
+            
+            if iscell(swptab.timespan)
+                epdur = cellfun(@(x) eval(x),swptab.timespan,'UniformOutput',false);
+                swptab.timespan = cell2mat(epdur) + swptab.deltaduration *(idx-1);
+                if all(cellfun('length',epdur)==1)
+                    swptab.timespan = cell2mat(epdur) + swptab.deltaduration *(idx-1);
+                else
+                    swptab.tmp = zeros(height(swptab),1);
+                    for i=1:height(swptab)
+                        if numel(epdur{i})==1, swptab{i,'tmp'} = cell2mat(epdur(i)) + swptab{i,'deltaduration'} *(idx-1);
+                        else
+                            swptab{i,'tmp'} = epdur{i}(idx);
+                        end
+                    end
+                    swptab.timespan = []; % ditch old
+                    swptab.Properties.VariableNames{'tmp'} = 'timespan'; % replace with new
+                end
+            else
+                epdur=swptab.timespan;
+                swptab.timespan = epdur + swptab.deltaduration *(idx-1);
+            end
+            
             
             % remove obsolete 
             swptab.deltalevel    = [];

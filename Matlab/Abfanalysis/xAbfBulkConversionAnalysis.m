@@ -30,9 +30,9 @@ if isempty(USERNAME)
 end
 
 % set paths
-dir_abfs          = 'D:\Test abfbatch';
-dir_mats_converts = 'D:\Test abfbatch\Converted';
-dir_mats_analysed = 'D:\Test abfbatch\Analyzed';
+dir_abfs          = 'D:\Morphys\Data\Electrophysiology\Abffiles\MBV\abf';
+dir_mats_converts = 'D:\Morphys\Data\Electrophysiology\Abffiles\MBV\abf\Converted';
+dir_mats_analysed = 'D:\Morphys\Data\Electrophysiology\Abffiles\MBV\abf\Analyzed';
 
 % leave protocols
 protocols2skip4analysis = { 'eCode_1_BridgeBalance'
@@ -46,8 +46,8 @@ protocols2skip4analysis = { 'eCode_1_BridgeBalance'
                          };
 
 %% check info file for meaningful channels
-dir_info = 'C:\Users\Thijs\Documents\Morphys\Data\Labbooks\MBV\Preps';
-fn_info  = 'Labbook_2017_09_14.xlsx';
+dir_info = 'D:\Morphys\Data\Labbooks\MBV\Preps';
+fn_info  = 'Labbook_2017_10_02.xlsx';
 
 % load table and keep only relevant columns
 tt = readtable(fullfile(dir_info,fn_info),'Sheet','Channel');
@@ -58,14 +58,32 @@ tt(:,~ismember(tt.Properties.VariableNames,{'ABF_name','ampChannel'}))=[];
 fn2chnnl  = cat(2,C,arrayfun(@(x) tt.ampChannel(IC==x),1:numel(C),'UniformOutput',false)');
 
 %% setup settings
-ss = load('C:\Users\Thijs\Documents\Morphys\Data\Electrophysiology\SetupSettings\Setupsettings_MBV.mat');
+ss = load('D:\Morphys\Data\Electrophysiology\SetupSettings\Setupsettings_MBV.mat');
 ss = ss.obj;
 
 %% load abffile objects and analyse
-parfor i=1:size(fn2chnnl,1)
+conversion_results={};
+analysis_results={};
+
+reanalyze=0;
+if reanalyze==0
+    F = dir(dir_mats_analysed);
+    F={F.name};
+    F=cellfun(@(x) strsplit(x, '.'), F, 'UniformOutput', false);
+    F=cellfun(@(x) x{1}, F, 'UniformOutput', false)';
+    ttname=fn2chnnl;
+    ttname=cellfun(@(x) strsplit(x, '.'), ttname(:,1), 'UniformOutput', false);
+    ttname=cellfun(@(x) x{1}, ttname, 'UniformOutput', false);
+    todo=find(~ismember(ttname,F));
+else
+    todo=1:numel(fn2chnnl);
+end
+
+
+parfor i=1
     
     % load the Abf xfile object, analyse and save
-    myrow = fn2chnnl(i,:);
+    myrow = fn2chnnl(todo(i),1:2);
     fn    = myrow{1};
     fnabf = [fn '.abf'];
     fnmat = [fn '.mat'];
@@ -81,7 +99,8 @@ parfor i=1:size(fn2chnnl,1)
         end        
         
         % save it
-        a.saveme(dir_mats_converts,fnmat)        
+        a.saveme(dir_mats_converts,fnmat)
+
         
         % attempt analysis
         if ~ismember(a.proname,protocols2skip4analysis)
@@ -90,8 +109,10 @@ parfor i=1:size(fn2chnnl,1)
                 % analyse and save
                 a = a.analyseabf;
                 a.saveme(dir_mats_analysed,fnmat);
+
             catch err
                 fprintf('#%05d, %s $$$ ANALYSIS FAIL $$$: %s\n',i,fn,err.message);
+
             end
         end
     catch err

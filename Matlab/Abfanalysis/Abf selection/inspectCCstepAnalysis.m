@@ -1,18 +1,20 @@
 
 % load all analyzed ccstep files and create analysis overviews for
 % inspection
-load('D:\Morphys\Data\Labbooks\NAG\MetadataABF2\DataSummaryNAG3.mat')
+load('D:\Human inhibition\Cell classification\AllenClusterMethod\superclusterdata.mat')
+files={SuperCellSummary.File};
+files=ChangeFilenameExts(files, 'mat');
+users={SuperCellSummary.UserID};
 
-filelist=squeeze(struct2cell(Summary));
-filelist=filelist(1,:)';
-filelist=cellfun(@(x) strsplit(x, '.'), filelist, 'UniformOutput', false);
-filelist=cellfun(@(x) x{1}, filelist, 'UniformOutput', false);
-filelist=strcat(filelist, '.mat');
-filelist=strcat('D:\Morphys\Data\Electrophysiology\Abffiles\NAG\abf\Analyzed\',filelist);
-
-for i=247:numel(filelist)
-   fprintf('Open file %1.0f out of %1.0f \n', i, numel(filelist))
-   load(filelist{i});
+for i=1:numel(files)
+   fprintf('Open file %1.0f out of %1.0f \n', i, numel(files))
+    if strcmp(users{i}, 'NGA') || contains(files{i}, '2017_08_30')
+        load(['D:\Morphys\Data\Electrophysiology\Abffiles\NAG\abf\Analyzed\' files{i}]);
+    elseif strcmp(users{i}, 'RWS')
+        load(['D:\Morphys\Data\Electrophysiology\Abffiles\RWS\abf\Analyzed\' files{i}]);
+    else
+        error('User not found');
+    end
    
    close all
    figure ('position', [0 0 1920 1000])
@@ -58,8 +60,8 @@ for i=247:numel(filelist)
    end
    title('MaxFreqSweep')
    
-   filename=strsplit(filelist{i}, {'.', '\'});
-   saveas(gcf, ['D:\Connectivity analysis\AnalysisRene\Clustering Morphys\CCStepAnalysisSnapshots2\MatlabFigs\', filename{end-1}, '.fig'])
-   print(['D:\Connectivity analysis\AnalysisRene\Clustering Morphys\CCStepAnalysisSnapshots2\' filename{end-1} '.jpg'],  '-djpeg', '-r300');
+   filename=strsplit(files{i}, {'.', '\'});
+   saveas(gcf, ['D:\Human inhibition\Cell classification\ReneCCstepSnapshots\MatlabFigs\', filename{end-1}, '.fig'])
+   print(['D:\Human inhibition\Cell classification\ReneCCstepSnapshots\' filename{end-1} '.jpg'],  '-djpeg', '-r300');
       
 end

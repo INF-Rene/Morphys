@@ -8,7 +8,7 @@ function protocolset = xMakeAnalogwaveformtabs(destinationpath)
     %   ---------------------------------------------------------------------------------------------------------------------
     
     %% get eCode info from excel doc
-    path_in  = 'C:\Users\Thijs\Documents\Morphys\Data\Electrophysiology\Protocols\AnalogWaveforms\MBV\eCodeEpochList.xlsx';
+    path_in  = 'D:\Morphys\Data\Electrophysiology\Protocols\AnalogWaveforms\RWS\AllenEpochList.xlsx';
     if nargin == 0, destinationpath=''; end 
     %% load it and create struct
     ecodetable   = readtable(path_in);
