@@ -90,7 +90,8 @@ if missing(1)==0
     ylabel 'Vm (mV)';
     title('Passive properties')
 end
-if missing(2)==0
+if missing(2)==0 && ~any([a2.getchannel.getin('signal', 'primary').getsweep.getepoch('Name', 'Epoch D').nrofaps]>0), missing(2)=1; end
+if missing(2)==0 
     %First AP
     subplot('position', [0.275 0.55 0.2 0.35 ])
     FrstSpikeSwp=find([a2.getchannel.getin('signal', 'primary').getsweep.getepoch('Name', 'Epoch D').nrofaps]>0,1);
@@ -157,7 +158,7 @@ if missing(2)==0
         hold on
         if numel(steps)>1, scatter(steps(2)./steps(1)*100,adapt([2])), end
         ylabel('Adaptation index')
-        ylim([0 max(adapt)*1.1])
+        ylim([-inf max(adapt)*1.1])
     end
     title('Bursting & Adaptation')
     
@@ -301,6 +302,8 @@ if all(missing==0) && a2.nrofsweeps>1
                     CurrAbvRheo = sweep(TrainSweep).getepoch(step).stepdiff - (TrainCurr-50) ;
                     TrSweepCrit=1;
                     break
+                elseif TrainSweep==NrofSweeps
+                    TrSweepCrit=0;
                 end
             elseif TrainSweep==NrofSweeps
                 TrSweepCrit=0;
