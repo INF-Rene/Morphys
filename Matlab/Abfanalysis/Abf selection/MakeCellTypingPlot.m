@@ -1,29 +1,48 @@
 
 % load all analyzed ccstep files and create analysis overviews for
 % inspection
-load('D:\Human inhibition\Cell classification\AllenClusterMethod\superclusterdata.mat')
-files={SuperCellSummary.File};
-files=ChangeFilenameExts(files, 'mat');
-users={SuperCellSummary.UserID};
+% load('D:\Human inhibition\Cell classification\AllenClusterMethod\superclusterdata.mat')
+% files={SuperCellSummary.File};
+% files=ChangeFilenameExts(files, 'mat');
+% users={SuperCellSummary.UserID};
 destinpath='D:\Human inhibition\Cell classification\AllenClusterMethod\Snaps\';
+%files={'2018_02_07_0000.abf';'2018_02_07_0001.abf';'2018_02_07_0004.abf';'2018_02_07_0005.abf'};
+%files=fullfile('D:\ConnectivityABF\Batch 2\2018-02-07', files);
+files={'2015_11_04_0095.abf';'2016_03_16_0007.abf';'2016_06_22_0002.abf';'2016_06_22_0001.abf';'2016_09_14_0060.abf';...
+    '2016_10_05_0003.abf';'2016_10_05_0001.abf';'2016_10_05_0108.abf';'2016_10_05_0104.abf';...
+    '2017_01_25_0003.abf';'2017_01_25_0004.abf';'2017_02_01_0002.abf';'2017_08_30_0001.abf';...
+    '2017_11_01_0055.abf'};
+files=fullfile('D:\Morphys\Data\Electrophysiology\Abffiles\NAG\abf\', files);
+users={'NGA', 'NGA', 'NGA', 'NGA', 'NGA', 'NGA', 'NGA', 'NGA', 'NGA', 'NGA', 'NGA', 'NGA', 'NGA', 'NGA', 'NGA', 'NGA'};
+ss=load('D:\Morphys\Data\Electrophysiology\SetupSettings\Setupsettings_INF.mat');
+ss=ss.obj;
 
-for i=1:numel(files)
+for i=14:numel(files)
     fprintf('Open file %1.0f out of %1.0f \n', i, numel(files))
-    if strcmp(users{i}, 'NGA') || contains(files{i}, '2017_08_30')
-        a=load(['D:\Morphys\Data\Electrophysiology\Abffiles\NAG\abf\Analyzed\' files{i}]);
-        a=a.obj;
-    elseif strcmp(users{i}, 'RWS')
-        a=load(['D:\Morphys\Data\Electrophysiology\Abffiles\RWS\abf\Analyzed\' files{i}]);
-        a=a.obj;
-    else
-        error('User not found');
+%     if strcmp(users{i}, 'NGA') || contains(files{i}, '2017_08_30')
+%         a=load(['D:\Morphys\Data\Electrophysiology\Abffiles\NAG\abf\Analyzed\' files{i}]);
+%         a=a.obj;
+%     elseif strcmp(users{i}, 'RWS')
+%         a=load(['D:\Morphys\Data\Electrophysiology\Abffiles\RWS\abf\Analyzed\' files{i}]);
+%         a=a.obj;
+%     else
+%         error('User not found');
+%     end
+    a = Abffile(files{i}, ss);
+    if strcmp(a.getchannel.getin('signal', 'primary').units, 'pA')==1
+        error('File has wrong units. If it is a current clamp recording, you can adjust the units in clampfit')
     end
     
-    steps=[a.getchannel.getin('signal','primary').getsweep.getepoch('idxstr','B').amplitude];
-    frstap=find([a.getchannel.getin('signal','primary').getsweep(steps>0).getepoch('idxstr','B').nrofaps]>0,1)+find(steps==0);
-    rheo=a.getchannel.getin('signal','primary').getsweep(frstap).getepoch('idxstr','B').amplitude;
-    epstart=a.getchannel.getin('signal','primary').getsweep(1).getepoch('idxstr','B').TimeInfo.Start;
-    epend=a.getchannel.getin('signal','primary').getsweep(1).getepoch('idxstr','B').TimeInfo.End;
+    a = a.analyseabf;
+    
+    delta=[a.getchannel.getin('signal','primary').getsweep(2).getepoch.amplitude]-[a.getchannel.getin('signal','primary').getsweep(1).getepoch.amplitude];
+    idxstr=a.getchannel.getin('signal','primary').getsweep(2).getepoch(delta>0).idxstr;
+    
+    steps=[a.getchannel.getin('signal','primary').getsweep.getepoch('idxstr',idxstr).amplitude];
+    frstap=find([a.getchannel.getin('signal','primary').getsweep(steps>0).getepoch('idxstr',idxstr).nrofaps]>0,1)+find(steps>=0, 1);
+    rheo=a.getchannel.getin('signal','primary').getsweep(frstap).getepoch('idxstr',idxstr).amplitude;
+    epstart=a.getchannel.getin('signal','primary').getsweep(1).getepoch('idxstr',idxstr).TimeInfo.Start;
+    epend=a.getchannel.getin('signal','primary').getsweep(1).getepoch('idxstr',idxstr).TimeInfo.End;
     
     close all
     figure ('position', [0 0 1920 1000])
@@ -37,7 +56,7 @@ for i=1:numel(files)
     
     %First AP
     subplot('position', [0.28 0.6 0.2 0.35 ])
-    ap=a.getchannel.getin('signal', 'primary').getsweep(frstap).getepoch('Name', 'Epoch B').getap(1);
+    ap=a.getchannel.getin('signal', 'primary').getsweep(frstap).getepoch('idxstr',idxstr).getap(1);
     ap.plotanalysis2;
     xlim([ap.start_time-1 ap.start_time+8])
     title('First AP')
@@ -47,8 +66,8 @@ for i=1:numel(files)
     freqs=NaN(1,a.nrofsweeps);
     nrofAPs=NaN(1,a.nrofsweeps);
     for j=frstap:a.nrofsweeps
-        freqs(j)=nanmean([a.getchannel.getin('signal', 'primary').getsweep(j).getepoch('Name', 'Epoch B').getap(4:end).freq]);
-        nrofAPs(j)=a.getchannel.getin('signal', 'primary').getsweep(j).getepoch('Name', 'Epoch B').nrofaps;
+        freqs(j)=nanmean([a.getchannel.getin('signal', 'primary').getsweep(j).getepoch('idxstr',idxstr).getap(4:end).freq]);
+        nrofAPs(j)=a.getchannel.getin('signal', 'primary').getsweep(j).getepoch('idxstr',idxstr).nrofaps;
     end
     yyaxis left;
     plot(steps./steps(frstap)*100,freqs, '--o')
@@ -67,7 +86,7 @@ for i=1:numel(files)
     brst=NaN(1,numel(tmp));
     adapt=NaN(1,numel(tmp));
     for j=1:numel(tmp)
-        isis=[a.getchannel.getin.getsweep(steps==tmp(j)).getepoch('Name', 'Epoch B').getap.isi];
+        isis=[a.getchannel.getin.getsweep(steps==tmp(j)).getepoch('idxstr',idxstr).getap.isi];
         isis=isis(~isnan(isis));
         if numel(isis)>2
             brst(j)=nanmean(isis(2:end))/isis(1);
@@ -83,7 +102,7 @@ for i=1:numel(files)
     yyaxis right;
     plot(tmp./tmp(1)*100,adapt, '--o')
     ylabel('Adaptation index')
-    ylim([0 max(adapt)*1.1])
+    ylim(sort([0 max(adapt)*1.1]))
     title('Bursting & Adaptation')
     
     

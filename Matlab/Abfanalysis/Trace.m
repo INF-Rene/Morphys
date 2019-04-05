@@ -248,23 +248,38 @@ classdef Trace < timeseries
         %% ---------------------------------------- AP ANALYSIS METHODS -----------------------------------------------------
         function obj = analyseaps(obj)
             % find APs and all currently available features
-            for i = 1:numel(obj)    
+            for i = 1:numel(obj)   
+                %fprintf('Finding APs...\n')
                 obj(i) = obj(i).findaps;
+                %fprintf('Getting thresholds...\n')
                 obj(i) = obj(i).getthresh;     % get initial estimate to determine maxdvdt a.o.
-                obj(i) = obj(i).getmaxdvdt;               
+                %fprintf('maxdvdts...\n')
+                obj(i) = obj(i).getmaxdvdt;   
+                %fprintf('Threshold2...\n')
                 obj(i) = obj(i).getthresh2;    % get final estimate based on Allen institute method
+                %fprintf('Relative amps...\n')
                 obj(i) = obj(i).getrelamp;
+                %fprintf('HWs...\n')
                 obj(i) = obj(i).gethalfwidth;
+                %fprintf('Fast AHPs...\n')
                 obj(i) = obj(i).getahp;
+                %fprintf('Slow AHPs...\n')
                 obj(i) = obj(i).getslowahp;
+                %fprintf('Relative AHP...\n')
                 obj(i) = obj(i).getrelahp;
+                %fprintf('mindvdt...\n')
                 obj(i) = obj(i).getmindvdt;
                 %obj(i) = obj(i).getadp;
                 %obj(i) = obj(i).getreladp;
+                %fprintf('Onsetrapidity...\n')
                 obj(i) = obj(i).getonsrapidity;
+                %fprintf('startend...\n')
                 obj(i) = obj(i).getapstartend;
+                %fprintf('apnrs...\n')
                 obj(i) = obj(i).findapnr;
+                %fprintf('isifreqaps...\n')
                 obj(i) = obj(i).isifreqaps;
+                %fprintf('adding AP TS...\n')
                 obj(i) = obj(i).addapts;                    
             end
         end
@@ -336,15 +351,17 @@ classdef Trace < timeseries
                      strt = obj.TimeInfo.Start;                                                                 % find start point.
                 else strt = obj.getap(i-1).peak_time;
                 end
-                isi       = obj.getsampleusingtime(strt,obj.getap(i).peak_time);                                % get timeseries of trace before AP peak
+                isi       = obj.getsampleusingtime(strt,obj.getap(i).maxdvdt_time);                                % get timeseries of trace before AP peak
                 isidvdt   = isi.getdvdtts.medianfilter(obj.dvdtmedfilt);                                        % get derivative. Perform a modest median filter to selectively filter out capacative transients
                 strtidx   = find(isidvdt.Data==max(isidvdt),1);                                                 % choose max dvdt of rising phase of current AP
                 
-                if i == 1                                                                                       % calculate threshold index.
+                if i == 1   || obj.getap(i).peak_time-obj.getap(i-1).peak_time > 1500   %added 1500 ms condition for endurance analysis                                                                         % calculate threshold index.
                 threshidx = strtidx - find(flipud(isidvdt.Data(1:strtidx)) < 0.05*obj.getap(i).maxdvdt,1)+1;    % for first AP (with usually high max dv/dt)           
                 else
                 threshidx = strtidx - find(flipud(isidvdt.Data(1:strtidx)) < 0.05*Mmaxdvdt,1)+1;                % average max dv/dt for other APs
                 end
+
+                threshidx = strtidx - find(flipud(isidvdt.Data(1:strtidx)) < 0.05*obj.getap(i).maxdvdt,1)+1;
                 
                 if ~isempty(threshidx)
                     obj   = obj.updateap(i,'thresh',isi.Data(threshidx),'thresh_time',isi.Time(threshidx));     % update AP

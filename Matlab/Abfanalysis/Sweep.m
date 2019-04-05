@@ -19,12 +19,14 @@ classdef Sweep < Sharedmethods & Trace
     properties (Access = public)
         number        = 0;  % number of sweep
         guid_in             % guid of parent Analogin
+        guid_stimset
         nrofepochs    = 0;  % number of elements in the epoch list
         sweeplagpnts  = 0;  % the annoying pClamp lag in points (=1/64th of trace length; occurs only when using analog waveform tab, not when using stimulus files)
         sweeplagtime  = duration(0,0,0,0,'Format','hh:mm:ss.SSSSSSS'); % lag in milliseconds, as duration object;
         epochs              % list of Epoch objects. Only populated if the setup configuration info has been added to the parent ABFFile/AnalogIN objects (link between analog OUT and analog IN is required) 
         updatedconfig = 0;  % indication of whether configuration info has been added. 0 = no, 1 = yes;
-        
+        labbooknum
+        nrinset
     end
     
 %% ##################################################### METHODS ############################################################
@@ -95,6 +97,44 @@ classdef Sweep < Sharedmethods & Trace
             end
         end
         
+        function obj= addNWBepochs(obj, epochtable)
+            
+            scalefactor=obj.labbooknum.StimScaleFactor;
+            scalefactor=unique(scalefactor(~isnan(scalefactor)));
+            if ~isscalar(scalefactor), error('Multiple scalefactors found for this sweep'); end
+            if ~isempty(scalefactor)
+                epochtable.firstlevel=epochtable.firstlevel.*scalefactor;
+            end
+            
+            if any(any(epochtable.deltas(:,:)))>0
+                epochtable.duration=epochtable.duration+epochtable.deltas(:,1)*(obj.nrinset-1);
+                epochtable.firstlevel=epochtable.firstlevel+epochtable.deltas(:,2)*(obj.nrinset-1);
+                epochtable.pulseperiod=epochtable.pulseperiod+1000./epochtable.deltas(:,3)*(obj.nrinset-1);
+                epochtable.pulsewidth=epochtable.pulsewidth+epochtable.deltas(:,4)*(obj.nrinset-1);
+            end
+            
+            
+            for i=1:height(epochtable)
+                epochtab=table2struct(epochtable(i,:));
+                epochtab.strttime=sum(epochtable.duration(1:i-1));
+                epochtab.endtime=epochtab.strttime+epochtable.duration(i);
+                
+                %epoch time info
+                epochtab.datetimestart = obj.datetimestart + duration(0,0,0,epochtab.strttime,'Format',obj.durationfmt);  
+                epochtab.timespan      = duration(0,0,0,epochtab.duration,'Format',obj.durationfmt);
+                epochtab.datetimeend   = epochtab.datetimestart + epochtab.timespan;   
+                
+                %get the data
+                epochts=obj.getsampleusingtime(epochtab.strttime,epochtab.endtime);
+                epochtab.data=epochts.Data;
+                epochtab.units=obj.DataInfo.Units;
+                
+                %add the epoch to the sweep
+                obj=obj.addepoch(epochtab);
+            end
+            
+        end
+        
         function obj = adddates(obj,h)
             % function to update Sweep properties with info stored in header info ('h')
             if obj.number == 0, error('Please set the number property of Sweep. The original index of sweep (sweep number) is required to calculate datetime start.'); end
@@ -122,11 +162,15 @@ classdef Sweep < Sharedmethods & Trace
             epochtab.samplefreq = obj.samplefreq;   % add sampling frequency (actually redundant, since epoch.TimeInfo.Increment has similar information...)
             
             switch lower(epochtab.typestr)
-                case {'step','chirp','noisepp','noisespiking','truenoise'},
+                case {'step','chirp','noisepp','noisespiking','truenoise'}
                             if isempty(obj.epochs), obj.epochs        = Epoch(epochtab);
                             else                    obj.epochs(end+1) = Epoch(epochtab);
                             end
-                case {'ramp', 'train'},                 %RWS
+                case lower({'Square pulse','Ramp','Noise','Sin','Saw tooth','Pulse train','PSC','Load custom wave','Combine', 'MIES testpulse'}) %NWB epoch types
+                            if isempty(obj.epochs), obj.epochs        = Epoch(epochtab);
+                            else                    obj.epochs(end+1) = Epoch(epochtab);
+                            end
+                case {'ramp', 'train'}                 %RWS
                             if isempty(obj.epochs), obj.epochs        = Epoch(epochtab,obj.getstartendepochwave(obj.nrofepochs,'end'));
                             else                    obj.epochs(end+1) = Epoch(epochtab,obj.getstartendepochwave(obj.nrofepochs,'end'));
                             end
@@ -184,9 +228,11 @@ classdef Sweep < Sharedmethods & Trace
             if nargin<2, epochsaswell=1; end
             fprintf('\t\t\tanalysing sweeps\n')
             obj = obj.analyseaps;
-            obj = obj.aps2epochs;
-            obj = obj.epochsteps;
-            if epochsaswell, obj = obj.analyseepochs(0); end
+            if obj(1).nrofepochs>0
+                obj = obj.aps2epochs;
+                obj = obj.epochsteps;
+                if epochsaswell, obj = obj.analyseepochs(0); end
+            end
         end
         
         function obj = analyseepochs(obj,apsaswell)
@@ -361,10 +407,10 @@ classdef Sweep < Sharedmethods & Trace
             % NOTE when asking a sweep to plot itself, it will always plot its entire timeseries, regardless of wether
             % certain epochs have been removed from list...
             hold on
-                for i=1:numel(obj)
-                    plot@timeseries(obj(i),varargin{:})
-                    grid on
-                end
+            for i=1:numel(obj)
+                plot@timeseries(obj(i),varargin{:})
+                grid on
+            end
             hold off
             % some formatting...
             title('Time Series Plot')
@@ -372,6 +418,7 @@ classdef Sweep < Sharedmethods & Trace
             timeinfo = [obj.TimeInfo]; timevals = unique({timeinfo.Units});
             if numel(unitvals)==1, ylabel(unitvals{:}); end
             if numel(timevals)==1, xlabel(timevals{:}); end
+
         end   
         
         function plotanalysis(obj)

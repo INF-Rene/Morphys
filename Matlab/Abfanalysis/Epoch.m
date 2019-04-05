@@ -267,7 +267,7 @@ classdef Epoch < Sharedmethods & Trace
             % get a default steadystate value and window, using steadystatewin. Intended for step epochs 
             % NOTE: for more flexible selection of epoch sections, use the timeseries method 'getsampleusingtime'.
             for i = 1:numel(obj)
-                if ~strcmpi(obj(i).typestr,'step'), 
+                if ~strcmpi(obj(i).typestr,'step') &  ~strcmpi(obj(i).typestr,'square pulse')  & ~strcmpi(obj(i).typestr,'MIES testpulse')
                     warning('the getsteadystate method was intended for use with step epochs and was not tested for other epoch types. Be careful when interpreting results')
                 end
                 winstart = obj(i).TimeInfo.Start + range([obj(i).TimeInfo.End,obj(i).TimeInfo.Start])*(100-obj(i).steadystatewin)/100;
@@ -307,7 +307,7 @@ classdef Epoch < Sharedmethods & Trace
             %  Further modified by Thijs
             
             if isscalar(obj)
-                if ~strcmpi(obj.typestr,'step'), 
+                if ~strcmpi(obj.typestr,'step') &  ~strcmpi(obj.typestr,'square pulse')  & ~strcmpi(obj.typestr,'MIES testpulse')
                     warning('the gettau method was intended for use with step epochs and was not tested for other epoch types. Be careful when interpreting results')
                 end
 

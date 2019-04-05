@@ -66,17 +66,18 @@ close all
 figure ('position', [0 0 1920 1000])
 
 %table with PatchSeqInfo on top
-
-T=cellinfo(1,ismember(cellinfo.Properties.VariableNames, {'CellName', 'MorphologyPresent_Yes_no', 'TransciptomicType','H_score',...
-    'ResolutionIndex','NormMarkerSum__0_40_', 'Cluster'}));
-TString = evalc('disp(T)');
-TString = strrep(TString,'<strong>','\bf');
-TString = strrep(TString,'</strong>','\rm');
-TString = strrep(TString,'_','\_');
-TString = TString(1:end-2);
-FixedWidth = get(0,'FixedWidthFontName');
-annotation(gcf,'Textbox','String',TString,'Interpreter','Tex','FontName',FixedWidth,'Units','Normalized','Position',[0.04 0.975 0.90 0.02 ],...
-    'FitBoxToText', 'on', 'Margin', 1);
+if exist('cellinfo', 'var') && ~isempty(cellinfo)
+    T=cellinfo(1,ismember(cellinfo.Properties.VariableNames, {'CellName', 'MorphologyPresent_Yes_no', 'TransciptomicType','H_score',...
+        'ResolutionIndex','NormMarkerSum__0_40_', 'Cluster'}));
+    TString = evalc('disp(T)');
+    TString = strrep(TString,'<strong>','\bf');
+    TString = strrep(TString,'</strong>','\rm');
+    TString = strrep(TString,'_','\_');
+    TString = TString(1:end-2);
+    FixedWidth = get(0,'FixedWidthFontName');
+    annotation(gcf,'Textbox','String',TString,'Interpreter','Tex','FontName',FixedWidth,'Units','Normalized','Position',[0.04 0.975 0.90 0.02 ],...
+        'FitBoxToText', 'on', 'Margin', 1);
+end
 %text(0,0, TString)
 
 

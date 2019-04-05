@@ -166,7 +166,7 @@ classdef Abfbatch < Sharedmethods & Sharedpaths
             end
             
             % give it a name
-            obj.savename = sprintf('Batch_%s_%s.mat',sprintf('%d-%0.2d-%0.2d',year(obj.created),month(obj.created),day(obj.created)),obj.guid);
+            obj.savename = sprintf('Batch_%s_%s.mat',sprintf('%d-%0.2d-%0.2d',year(datetime(obj.created)),month(datetime(obj.created)),day(datetime(obj.created))),obj.guid);
         end
         
         % ------------------------------------------ HELPER METHODS ---------------------------------------------------------
