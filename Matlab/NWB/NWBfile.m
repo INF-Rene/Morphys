@@ -120,7 +120,7 @@ classdef NWBfile < Sharedpaths & Sharedmethods
             obj.filesystemdate= fileinfo.date;
             tmp=h5read(fn, '/file_create_date');
             obj.filecreatedate= datetime(tmp{1}, 'InputFormat', 'yyyy-MM-dd''T''HH:mm:ss''Z''' ) + duration(1, 0, 0);
-            firstLBentry = find(LBN.SweepNum==0,1, 'last'); %because sweeps are often re-recorded when new cells are patched
+            firstLBentry = find(LBN.SweepNum==1,1, 'last'); %because sweeps are often re-recorded when new cells are patched
             obj.filetimestart = LBN.TimeStamp(firstLBentry);
             obj.filetimeend = LBN.TimeStamp(find(~isnat(LBN.TimeStamp),1, 'last'));
             obj.fileduration  = duration(obj.filetimeend-obj.filetimestart,'Format',obj.durationfmt);
