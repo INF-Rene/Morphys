@@ -126,7 +126,7 @@ classdef Trace < timeseries
             %
             % see also ACTIONPOTENTIAL.
             for i = 1:numel(obj)
-                obj(i).nrofaps = numel(obj(i).aps);
+                obj(i).nrofaps = numel(obj(i).aps); 
                 if obj(i).nrofaps>0
                     [~,idx] = sort([obj(i).getap.peak_time]); 
                     obj(i).aps = obj(i).aps(idx); % sort APs by peak time 
@@ -252,6 +252,9 @@ classdef Trace < timeseries
                 %fprintf('Finding APs...\n')
                 obj(i) = obj(i).findaps;
                 %fprintf('Getting thresholds...\n')
+                if obj(i).dynamicresampling==1
+                    obj(i)=obj(i).dynamicresample;
+                end
                 obj(i) = obj(i).getthresh;     % get initial estimate to determine maxdvdt a.o.
                 %fprintf('maxdvdts...\n')
                 obj(i) = obj(i).getmaxdvdt;   
@@ -295,6 +298,23 @@ classdef Trace < timeseries
             for i=1:numel(pks)
                 obj = obj.addap('peak',pks(i),'peak_time',(locs(i)-1)*1e3/obj.samplefreq+obj.TimeInfo.Start);
             end
+        end
+        
+        function obj = dynamicresample(obj)
+            % resample everything in the trace except the AP onset phase
+            if ~isscalar(obj), error('Object must be scalar'); end
+            
+            timevec=obj.TimeInfo.Start:1e3/obj.passresamplingfreq:obj.TimeInfo.End;
+            
+            for i=1:obj.nrofaps
+                add2timevec=obj.getap(i).peak_time+obj.apsamplingstart:1e3/obj.samplefreq:obj.getap(i).peak_time+obj.apsamplingend;
+                timevec=[timevec, add2timevec];
+            end
+            timevec=unique(timevec);
+            a=obj.resample(timevec);
+
+            obj=obj.resample(timevec);
+           
         end
      
         function obj = getthresh(obj)

@@ -86,9 +86,11 @@ classdef Stimset < Sharedmethods
                 sampleint=scaling(3);
                 if strcmp(obj.units{2}, 'ms'), sampleint=sampleint./1000;end
                 obj.samplefreq=1/sampleint;
-                obj.stimwaves{1}=h5read(fn, [obj.stimdatalocs{1} '/data']);
+                stimdata=h5read(fn, [obj.stimdatalocs{1} '/data']);
+                stimtime=0:1e3/obj.samplefreq:1e3/obj.samplefreq*(numel(stimdata)-1);
+                obj.stimwaves{1}=resample(timeseries(stimdata,stimtime), 0:1e3/obj.stimwavesampling:1e3/obj.samplefreq*(numel(stimdata)-1));
                 
-                epochtable = obj.makeepochtable(obj.stimwaves{1});
+                epochtable = obj.makeepochtable;
                 %read scalefactors belonging to sweeps
                 if any(any(epochtable.deltas>0))
                     stimwavemode=2; %for every sweep the stimwave will be read from file and saved
@@ -108,17 +110,30 @@ classdef Stimset < Sharedmethods
                         stimwavemode=2;
                     end
                     %starttime= h5read(fn, [obj.datalocs{i} '/starting_time']);
-                    
                     if stimwavemode==2 && i>1
-                        obj.stimwaves{i}=h5read(fn, [obj.stimdatalocs{i} '/data']);
+                        stimdata=h5read(fn, [obj.stimdatalocs{i} '/data']);
                     end
-                    
+
                     starttime = nanmin(sweepLB.TimeStamp);
                     endtime = nanmax(sweepLB.TimeStamp);
                     nrinset = sweepLB.SetSweepCount(~isnan(sweepLB.SetSweepCount))+1;
                     sweep2add = Sweep('number', obj.sweepnrs(i), 'nrinset', nrinset, 'samplefreq', obj.samplefreq,...
                      'datetimestart', starttime,'datetimeend', endtime, ...
                     'labbooknum', sweepLB,'guid_stimset', obj.guid);
+                
+                    % remove fake data at end
+                    removesmpl=[];
+                    if data(end)==0
+                        removesmpl=find(data~=0,1, 'last')+1;
+                        data(removesmpl:end)=[];
+                        stimdata(removesmpl:end)=[];                    
+                    end
+                    
+                    if stimwavemode==2 && i>1
+                        stimtime=0:1e3/obj.samplefreq:1e3/obj.samplefreq*(numel(stimdata)-1);
+                        obj.stimwaves{i}=resample(timeseries(stimdata,stimtime), 0:1e3/obj.stimwavesampling:1e3/obj.samplefreq*(numel(stimdata)-1));              
+                    end
+                        
                 
                     sweep2add=sweep2add.adddata(data, obj.units{1});
                     sweep2add=sweep2add.addtime(obj.samplefreq);
@@ -138,7 +153,7 @@ classdef Stimset < Sharedmethods
 
         end        
   
-        function epochtable = makeepochtable(obj,stimwave)
+        function epochtable = makeepochtable(obj)
             fn=fullfile(obj.filedirectory, obj.filename);
             typedata=h5read(fn, ['/general/stimsets/' obj.name{1} '_SegWvType']);
             typelabels=h5readatt(fn, ['/general/stimsets/' obj.name{1} '_SegWvType'], 'IGORWaveDimensionLabels');
@@ -171,8 +186,7 @@ classdef Stimset < Sharedmethods
                 for i=1:height(epochtable)
                     if epochtable.firstlevel(i)>0
                         midepochtime=sum(epochtable.duration(1:i-1))+0.5*epochtable.duration(i);
-                        sample=obj.samplefreq*midepochtime/1000;
-                        epochtable.firstlevel(i)=stimwave(round(sample));
+                        epochtable.firstlevel(i)=obj.stimwaves{1}.getsampleusingtime(midepochtime).Data(1);
                     end
                 end
             end
@@ -245,17 +259,18 @@ classdef Stimset < Sharedmethods
                 title(strrep(obj.name{1},'_',' '))
                 ax_handles(2) = subplot('Position', [0.1 0.05 0.85 0.18]);
                 if numel(obj(i).stimwaves)==1
-                    plot(obj(i).getsweep(1).Time, obj(i).stimwaves{1},varargin{:})
+                    obj(i).stimwaves{1}.plot(varargin{:})
                     grid on
                 else
                     hold on
                     for j=1:numel(obj(i).stimwaves)
-                        plot(obj(i).getsweep(j).Time, obj(i).stimwaves{j},varargin{:})
+                        obj(i).stimwaves{j}.plot(varargin{:})                        
                         grid on
                     end
                     hold off
                     ylabel(obj(i).stimunits{1});
                 end
+                xlim([xlim(ax_handles(1))]);
                 linkaxes(ax_handles,'x')
 %                 set(gcf,'CurrentAxes',ax_handles(1))
             end
@@ -280,12 +295,13 @@ classdef Stimset < Sharedmethods
                 else
                     hold on
                     for j=1:numel(obj(i).stimwaves)
-                        plot(obj(i).getsweep(j).Time, obj(i).stimwaves{j})
+                        obj(i).stimwaves{j}.plot
                         grid on
                     end
                     hold off
                     ylabel(obj(i).stimunits{1});
                 end
+                xlim([xlim(ax_handles(1))]);
                 linkaxes(ax_handles,'x')
 %                 set(gcf,'CurrentAxes',ax_handles(1))
             end

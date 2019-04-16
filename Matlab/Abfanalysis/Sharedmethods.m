@@ -41,6 +41,11 @@
         onsetrapfitwin      = 5;    % number of samples (in effect microseconds) to include in the onset rapidity fit, before and after the crossing of the onset rapidity dvdt threshold (apThreshRapidity)
         upsample            = 1e-3; % degree of upsampling for sections of trace (used in halfwidth and onset rapidity calculations)
         minrange4fitting    = 10;   % minimum duration of section of trace that will be fit using gettau function of Epoch objects.
+        dynamicresampling   = 1;    % set to 0 if you don't want any resampling. Set do 1 for performance increase.
+        passresamplingfreq  = 10000;% set the frequency for dynamic resampling. Must be a division of the sampling freq
+        apsamplingstart     = -2; % time in ms before the AP peak where the original sampling rate is kept intact
+        apsamplingend       = 0.05;  % time in ms after the AP peak where the original sampling rate is kept intact
+        stimwavesampling    = 10000;
     end
     
 %####################################################### METHODS ############################################################
