@@ -100,7 +100,8 @@ classdef Sweep < Sharedmethods & Trace
         function obj= addNWBepochs(obj, epochtable)
             
             scalefactor=obj.labbooknum.StimScaleFactor;
-            scalefactor=unique(scalefactor(~isnan(scalefactor)));
+            scalefactor=scalefactor(~isnan(scalefactor));
+            scalefactor=scalefactor(end);
             if ~isscalar(scalefactor), error('Multiple scalefactors found for this sweep'); end
             if ~isempty(scalefactor)
                 epochtable.firstlevel=epochtable.firstlevel.*scalefactor;
@@ -116,21 +117,29 @@ classdef Sweep < Sharedmethods & Trace
             
             for i=1:height(epochtable)
                 epochtab=table2struct(epochtable(i,:));
-                epochtab.strttime=sum(epochtable.duration(1:i-1));
-                epochtab.endtime=epochtab.strttime+epochtable.duration(i);
+                epochtab.strttime=double(sum(epochtable.duration(1:i-1)));
+                epochtab.endtime=double(epochtab.strttime+epochtable.duration(i));
                 
-                %epoch time info
-                epochtab.datetimestart = obj.datetimestart + duration(0,0,0,epochtab.strttime,'Format',obj.durationfmt);  
-                epochtab.timespan      = duration(0,0,0,epochtab.duration,'Format',obj.durationfmt);
-                epochtab.datetimeend   = epochtab.datetimestart + epochtab.timespan;   
-                
-                %get the data
-                epochts=obj.getsampleusingtime(epochtab.strttime,epochtab.endtime);
-                epochtab.data=epochts.Data;
-                epochtab.units=obj.DataInfo.Units;
-                
-                %add the epoch to the sweep
-                obj=obj.addepoch(epochtab);
+                if epochtab.strttime<obj.Time(end)
+                    if epochtab.endtime>obj.Time(end)
+                        epochtab.endtime=obj.Time(end);
+                    end
+
+                    %epoch time info
+                    epochtab.datetimestart = obj.datetimestart + duration(0,0,0,epochtab.strttime,'Format',obj.durationfmt);  
+                    epochtab.timespan      = duration(0,0,0,epochtab.duration,'Format',obj.durationfmt);
+                    epochtab.datetimeend   = epochtab.datetimestart + epochtab.timespan;   
+
+                    %get the data
+                    epochts=obj.getsampleusingtime(epochtab.strttime,epochtab.endtime);
+                    epochtab.data=epochts.Data;
+                    epochtab.units=obj.DataInfo.Units;
+
+                    %add the epoch to the sweep
+                    obj=obj.addepoch(epochtab);
+                else
+                    break
+                end
             end
             
         end

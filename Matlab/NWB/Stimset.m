@@ -103,8 +103,14 @@ classdef Stimset < Sharedmethods
                     data=h5read(fn, [obj.datalocs{i} '/data']);
                     sweepLB = obj.labbooknum(obj.labbooknum.SweepNum == obj.sweepnrs(i),:);
                     scepochtable=epochtable;
-                    scalefactor=unique(sweepLB.StimScaleFactor(~isnan(sweepLB.StimScaleFactor)));
-                    if ~isempty(scalefactor) && ~isscalar(scalefactor), error('Multiple scalefactors found'); end
+                    scalefactor=sweepLB.StimScaleFactor(~isnan(sweepLB.StimScaleFactor));
+                    scalefactor=scalefactor(end); 
+% sometimes when sweeps are overwritten, then the labbook contains more 
+% information about different recordings with the same sweep number! Still
+% need to fix this! For now I take the last recorded scale factor, but
+% other parameters such as the start time can be wrong!!!
+                       
+%                     if ~isempty(scalefactor) && ~isscalar(scalefactor), error('Multiple scalefactors found'); end
                     if ~isempty(scalefactor) && scalefactor~=1
                         scepochtable.firstlevel=epochtable.firstlevel.*scalefactor;
                         stimwavemode=2;
@@ -256,7 +262,7 @@ classdef Stimset < Sharedmethods
                 ax_handles = zeros(2,1);
                 ax_handles(1) = subplot('Position', [0.1 0.3 0.85 0.65]);
                 obj(i).getsweep.plot(varargin{:});
-                title(strrep(obj.name{1},'_',' '))
+                title(strrep(obj(i).name{1},'_',' '))
                 ax_handles(2) = subplot('Position', [0.1 0.05 0.85 0.18]);
                 if numel(obj(i).stimwaves)==1
                     obj(i).stimwaves{1}.plot(varargin{:})
@@ -290,7 +296,7 @@ classdef Stimset < Sharedmethods
                 title(strrep(obj.name,'_',' '))
                 ax_handles(2) = subplot('Position', [0.1 0.05 0.85 0.18]);
                 if numel(obj(i).stimwaves)==1
-                    plot(obj(i).getsweep(1).Time, obj(i).stimwaves{1})
+                    obj(i).stimwaves{1}.plot
                     grid on
                 else
                     hold on
