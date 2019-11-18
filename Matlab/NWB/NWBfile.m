@@ -80,11 +80,20 @@ classdef NWBfile < Sharedpaths & Sharedmethods
                 warning(warnmsg)
             end
             swps={info.Groups(1).Groups(2).Groups.Name};
-            stimswps={info.Groups(6).Groups(1).Groups.Name};
-            swpstimnames={};
-            for i=1:numel(swps)
-                swpstimnames(i)=h5read(fn, [swps{i} '/stimulus_description']);
+            if ~isempty(info.Groups(6).Groups(1).Groups)
+                stimswps={info.Groups(6).Groups(1).Groups.Name};
+                swpstimnames={};
+                for i=1:numel(swps)
+                    swpstimnames(i)=h5read(fn, [swps{i} '/stimulus_description']);
+                end
+            else
+                error('No stimulus data in nwb. Creating stimulus trace based on description')
             end
+           
+
+%             for i=1:numel(swps)
+%                 swpstimnames(i)=h5read(fn, [swps{i} '/aibs_stimulus_name']);
+%             end
 
             % load Lab notebook
             fn=fn;

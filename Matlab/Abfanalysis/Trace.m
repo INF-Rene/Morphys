@@ -96,7 +96,7 @@ classdef Trace < timeseries
             % See also ACTIONPOTENTIAL, SORTITEM, SORT
             for i = 1:numel(obj); if obj.nrofaps > 0, obj(i) = obj(i).sortitems('aps',varargin{:}); end; end
         end
-        
+            
         function ap = getap(obj,varargin)
             % get an action potential from list. 
             % Returns APs as a 1xN Actionpotential object with N equal to numel(idx). If no input provided, returns all aps. 
@@ -286,7 +286,7 @@ classdef Trace < timeseries
                 obj(i) = obj(i).addapts;                    
             end
         end
-        
+  
         function obj = findaps(obj)
             % find Actionpotentials in epoch. 
             % Returns a 1xN Actionpotential array. Uses findpeaks to find APs.
@@ -330,6 +330,7 @@ classdef Trace < timeseries
                      strt = obj.TimeInfo.Start;                                                                 % find start point.
                 else strt = obj.getap(i-1).peak_time;
                 end
+                if obj.getap(i).peak_time-strt>10, strt=obj.getap(i).peak_time-2;end
                 isi       = obj.getsampleusingtime(strt,obj.getap(i).peak_time);                                % get timeseries of trace before AP peak
                 isidvdt   = isi.getdvdtts.medianfilter(obj.dvdtmedfilt);                                        % get derivative. Perform a modest median filter to selectively filter out capacative transients
                 strtidx   = find(isidvdt.Data==max(isidvdt),1);                                                 % choose max dvdt of rising phase of current AP
@@ -371,6 +372,7 @@ classdef Trace < timeseries
                      strt = obj.TimeInfo.Start;                                                                 % find start point.
                 else strt = obj.getap(i-1).peak_time;
                 end
+                if obj.getap(i).peak_time-strt>10, strt=obj.getap(i).peak_time-2;end
                 isi       = obj.getsampleusingtime(strt,obj.getap(i).maxdvdt_time);                                % get timeseries of trace before AP peak
                 isidvdt   = isi.getdvdtts.medianfilter(obj.dvdtmedfilt);                                        % get derivative. Perform a modest median filter to selectively filter out capacative transients
                 strtidx   = find(isidvdt.Data==max(isidvdt),1);                                                 % choose max dvdt of rising phase of current AP
@@ -640,7 +642,7 @@ classdef Trace < timeseries
         end 
         
         function obj = getonsrapidity(obj)
-            % find the onset rapidity of an action potential.
+             % find the onset rapidity of an action potential.
             % Resamples AP to 1MHz to ensure same precision when estimating AP halfwidth, regardless of sampling frequency.
             % Of course, the value obtained for onset rapidity still depends hewavily on sampling frequency!
             % NOTE: Needs maxdvdt time, and threshold time of aps to calculate. 
@@ -650,47 +652,23 @@ classdef Trace < timeseries
             for i = 1:obj.nrofaps 
                 if ~isempty(obj.getap(i).thresh_time) && ~isempty(obj.getap(i).maxdvdt_time) && ~isnan(obj.getap(i).thresh_time) && ~isnan(obj.getap(i).maxdvdt_time)
                     if obj.getap(i).maxdvdt > obj.apThreshRapidity
-                        
+
                         ts   = obj.getsampleusingtime(obj.getap(i).thresh_time,obj.getap(i).maxdvdt_time);
                         vm   = ts.resample(ts.TimeInfo.Start:obj.upsample:ts.Time(end-1),'linear').getdata;
                         dvts = ts.getdvdtts;
                         dv   = dvts.resample(dvts.TimeInfo.Start:obj.upsample:dvts.TimeInfo.End,'linear').getdata;
 
                         % find rapidity threshold crossing and make a fitting window.
-%                         strtidx = max([1, length(dv) - find(flipud(dv)<obj.apThreshRapidity,1) - obj.onsetrapfitwin + 1]);
-%                         endidx  = min([strtidx + obj.onsetrapfitwin + 1, length(vm)]);
-
-                        % temporary hack for IQ paper analysis
-                        % startidx at crossing of threshold 15 mV/ms
-                        strtidx = max([1, length(dv) - find(flipud(dv)<15,1)+ 1]);
-%                         % endidx at 3 mV above the voltage at which
-%                         % threshold was crossed
-%                         endidx = find(vm > vm(strtidx)+3, 1);                  
-                        
+                        strtidx = max([1, length(dv) - find(flipud(dv)<obj.apThreshRapidity,1) - obj.onsetrapfitwin + 1]);
+                        endidx  = min([strtidx + obj.onsetrapfitwin + 1, length(vm)]);
 
                         % linear fit
-%                         x = vm(strtidx:endidx);
-%                         y = dv(strtidx:endidx);
-%                         if numel(vm)>= endidx
-%                             x = vm([strtidx, endidx]);
-%                             y = dv([strtidx, endidx]);
-%                             vmcentre = min(x)+0.5*range(x);
-%                             onsetrapfit = polyfit(x, y, 1); % straight fit through points enclosed in window
-%                             obj = obj.updateap(i,'onsetrapidity',onsetrapfit(1),'onsetrapfit',onsetrapfit,'onsetrapvm',vmcentre); % update AP 
-%                         else
-%                             warning('not enough space to fit onsetrapidity window before reaching maxDVDT')
-%                             obj = obj.updateap(i,'onsetrapidity',NaN,'onsetrapvm',NaN);
-%                         end
-                         % instead of linear fit, just look at the maximum
-                         % slope of the phase plot from threshold
-                        x = vm(strtidx:end);
-                        y = dv(strtidx:end);
-                        dvvm=diff(dv)./diff(vm);
-                        [onsetrap, index]=max(dvvm);
-                        if onsetrap > 150
-                            onsetrap=NaN;
-                        end
-                        obj = obj.updateap(i,'onsetrapidity',onsetrap,'onsetrapvm',vm(index));
+                        x = vm(strtidx:endidx);
+                        y = dv(strtidx:endidx);
+                        vmcentre = min(x)+0.5*range(x);
+                        onsetrapfit = polyfit(x, y, 1); % straight fit through points enclosed in window
+                        obj = obj.updateap(i,'onsetrapidity',onsetrapfit(1),'onsetrapfit',onsetrapfit,'onsetrapvm',vmcentre); % update AP 
+
                     end
                 else
                     cnt = cnt+1;

@@ -1,214 +1,28 @@
-function [Summary, missing] = ecodeAnalysis(cellname, celldir, destinpath, cellinfo)
-%UNTITLED5 Summary of this function goes here
-%   Detailed explanation goes here
-
-
-a=dir(celldir);
-tmp=endsWith({a.name}, '.abf');
-files=fullfile({a(tmp).folder},{a(tmp).name});
-Summary=table;
-Summary.Cellname(1)           = {cellname};
-missing=[1,1];  
-if isempty(files), return, end
-
-if isempty(cellname)
-    cellname=strsplit(celldir, {'\'});
-    cellname=cellname{end};
-end
-%% load files
-a={};
-
-for i=1:numel(files)
-    fprintf('Open file %1.0f out of %1.0f \n', i, numel(files))
-    [~, ~,h]=abfload_pro(files{i});
-    a{i}=h.stringSection;
-end
-
-if ~contains(h.stringSection, 'RawOutPut')
-    ss=load('D:\Morphys\Data\Electrophysiology\SetupSettings\Setupsettings_INF700A.mat');
-    ss=ss.obj;
-else
+function [Summary] = CCstepSummary(a, cellname)
     ss=load('D:\Morphys\Data\Electrophysiology\SetupSettings\Setupsettings_INF.mat');
     ss=ss.obj;
-end
-
-
-tmp1=find(contains(a, 'LSCOARSE'));
-tmp2=find(contains(a, 'LSFINEST'));
-if ~isempty(tmp1)
-    a1=Abffile(files{tmp1(end)}, ss);
-    a1=a1.analyseabf;
-    missing(1)=0;
-else
-    fprintf('LSCOARSE of cell %s is missing\n', cellname)
-end
-if ~isempty(tmp2)
-    a2=Abffile(files{tmp2(end)}, ss);
-    a2=a2.analyseabf;
-    missing(2)=0;
-else
-    fprintf('LSFINEST of cell %s is missing\n', cellname)
-end
-
-if all(missing==1)
-    Summary=table;
-    Summary.Cellname           = cellname;
-    return
-end
-
+    Summary=struct;
     
-
-%% make and save an overviewplot
-close all
-figure ('position', [0 0 1920 1000])
-
-%table with PatchSeqInfo on top
-if exist('cellinfo', 'var') && ~isempty(cellinfo)
-    T=cellinfo(1,ismember(cellinfo.Properties.VariableNames, {'CellName', 'MorphologyPresent_Yes_no', 'TransciptomicType','H_score',...
-        'ResolutionIndex','NormMarkerSum__0_40_', 'Cluster'}));
-    TString = evalc('disp(T)');
-    TString = strrep(TString,'<strong>','\bf');
-    TString = strrep(TString,'</strong>','\rm');
-    TString = strrep(TString,'_','\_');
-    TString = TString(1:end-2);
-    FixedWidth = get(0,'FixedWidthFontName');
-    annotation(gcf,'Textbox','String',TString,'Interpreter','Tex','FontName',FixedWidth,'Units','Normalized','Position',[0.04 0.975 0.90 0.02 ],...
-        'FitBoxToText', 'on', 'Margin', 1);
-end
-%text(0,0, TString)
-
-
-
-if missing(1)==0
-    %passive plot
-    subplot('position', [0.04 0.55 0.2 0.35 ])
-    a1.getchannel.getin('signal', 'primary').getsweep.plotanalysis
-    xlim([900 2800])
-    xlabel 'Time (ms)';
-    ylabel 'Vm (mV)';
-    title('Passive properties')
-end
-if missing(2)==0 && ~any([a2.getchannel.getin('signal', 'primary').getsweep.getepoch('Name', 'Epoch D').nrofaps]>0), missing(2)=1; end
-if missing(2)==0 
-    %First AP
-    subplot('position', [0.275 0.55 0.2 0.35 ])
-    FrstSpikeSwp=find([a2.getchannel.getin('signal', 'primary').getsweep.getepoch('Name', 'Epoch D').nrofaps]>0,1);
-    ap=a2.getchannel.getin('signal', 'primary').getsweep(FrstSpikeSwp).getepoch('Name', 'Epoch D').getap(1);
-    ap.plotanalysis2;
-    xlim([ap.start_time-1 ap.start_time+8]);
-    title('First AP')
-
-    %I-F plot
-    steps=[a2.getchannel.getin('signal', 'primary').getsweep.getepoch('Name', 'Epoch D').amplitude];
-    freqs=NaN(1,a2.nrofsweeps);
-    nrofAPs=NaN(1,a2.nrofsweeps);
-    for i=1:a2.nrofsweeps
-        nrofAPs(i)=a2.getchannel.getin('signal', 'primary').getsweep(i).getepoch('Name', 'Epoch D').nrofaps;
-        if nrofAPs(i)>1
-            freqs(i)=nanmean([a2.getchannel.getin('signal', 'primary').getsweep(i).getepoch('Name', 'Epoch D').getap(4:end).freq]);
+    if isa(a, 'Abffile') || iscell(a)
+        if numel(a)==1
+        sweep=a.getchannel.getin('signal', 'primary').getsweep;
+        a2=a;
+        else
+            a1=a{1};
+            a2=a{2};
+            sweep1 = a1.getchannel.getin('signal','primary').getsweep ;
+            sweep2 = a2.getchannel.getin('signal','primary').getsweep ;
+            sweep=[sweep1, sweep2([2 1 3:end])];
         end
+    elseif isa(a, 'Spike2Channel')
+        sweep=a.getin('signal', 'primary').getsweep;
+        a2=a;
     end
-    subplot('position', [0.52 0.55 0.19 0.35 ])
-    yyaxis left
-    if any(~isnan(freqs))
-        plot(steps([1 3:end])./steps(1)*100,freqs([1 3:end]), '--o')
-        hold on
-        if numel(steps)>1, scatter(steps(2)./steps(1)*100,freqs([2])), end
-        xlabel('I/Ithresh(%)')
-        ylabel('Mean Inst. Frequency of APs 4-end (Hz)')
-        ylim([0 max(freqs)*1.1])
-    end
-    yyaxis right;
-    plot(steps([1 3:end])./steps(1)*100,nrofAPs([1 3:end]), '--o')
-    hold on
-    if numel(steps)>1, scatter(steps(2)./steps(1)*100,nrofAPs([2])), end
-    ylabel('Nr of APs')
-    ylim([0 max(nrofAPs)*1.1])
-    title('I vs steady-state firing rate')
-
-    %adaptation & bursting behaviour plot
-    subplot('position', [0.77 0.55 0.19 0.35 ])
-    brst=NaN(1,numel(steps));
-    adapt=NaN(1,numel(steps));
-    for j=1:numel(steps)
-        if nrofAPs(j)>1
-            isis=[a2.getchannel.getin.getsweep(j).getepoch('Name', 'Epoch D').getap.isi];
-            isis=isis(~isnan(isis));
-            if numel(isis)>2
-                brst(j)=nanmean(isis(2:end))/isis(1);
-                disi=diff(isis);
-                adapt(j)= nanmean(disi./(isis(1:end-1)+isis(2:end)));
-            end
-        end
-    end
-    yyaxis left;
-    if any(~isnan(brst))
-        plot(steps([1 3:end])./steps(1)*100,brst([1 3:end]), '--o')
-        hold on
-        if numel(steps)>1, scatter(steps(2)./steps(1)*100,brst([2])), end
-        xlabel('I/Ithresh(%)')
-        ylabel('Burst Index')
-        ylim([0 max(brst)*1.1])
-    end
-    yyaxis right;
-    if any(~isnan(adapt))
-        plot(steps([1 3:end])./steps(1)*100,adapt([1 3:end]), '--o')
-        hold on
-        if numel(steps)>1, scatter(steps(2)./steps(1)*100,adapt([2])), end
-        ylabel('Adaptation index')
-        ylim([-inf max(adapt)*1.1])
-    end
-    title('Bursting & Adaptation')
     
-    %Sweep 1, 2, 5
-    subplot('position', [0.04 0.10 0.2 0.35 ])
-    a2.getchannel.getin('signal', 'primary').getsweep(1).plotanalysis
-    if a2.nrofsweeps>1  
-        a2.getchannel.getin('signal', 'primary').getsweep(2).plot('Color', [0.6 0.6 0.6])
-    end
-    xlim([900 2800])
-    rheo=a2.getchannel.getin('signal', 'primary').getsweep(1).getepoch('Name', 'Epoch D').amplitude;
-    title(['Rheobase (' num2str(rheo) ' pA) and Rheo-10 pA'])
     
-    if a2.nrofsweeps > 2
-        subplot('position', [0.28 0.10 0.2 0.35 ])
-        a2.getchannel.getin('signal', 'primary').getsweep(3).plotanalysis
-        xlim([900 2800])
-        title('Rheobase + 40')
-    end
-    if a2.nrofsweeps > 4
-        subplot('position', [0.54 0.10 0.2 0.35 ])
-        a2.getchannel.getin('signal', 'primary').getsweep(5).plotanalysis
-        xlim([900 2800])
-        title('Rheobase + 120')
-    elseif a2.nrofsweeps == 4
-        subplot('position', [0.54 0.10 0.2 0.35 ])
-        a2.getchannel.getin('signal', 'primary').getsweep(4).plotanalysis
-        xlim([900 2800])
-        title('Rheobase + 80')
-    end
-     
-    %at least 10 APs (or maximum)
-    subplot('position', [0.78 0.10 0.2 0.35 ])
-    AP10=find(nrofAPs>=10,1);
-    if isempty(AP10), [~,AP10]=max(nrofAPs); end
-    a2.getchannel.getin('signal', 'primary').getsweep(AP10).plotanalysis
-    xlim([900 2800])
-    title(['first 10 AP (' num2str(steps(AP10)) ' pA)'])
-end
-
-if ~isempty(destinpath)
-    saveas(gcf, [destinpath, cellname, '.fig'])
-    print([destinpath, cellname, '.jpg'],  '-djpeg', '-r300');
-end
-
-if all(missing==0) && a2.nrofsweeps>1
-    Summary=table2struct(Summary);
     %% Get CCstep summary data
     index=1;
-    sweep1 = a1.getchannel.getin('signal','primary').getsweep ;
-    sweep2 = a2.getchannel.getin('signal','primary').getsweep ;
-    sweep=[sweep1, sweep2([2 1 3:end])];
+
     NrofSweeps = length(sweep) ;
     % find current injection epoch and assign aps to sweep
     for step = 1:length(sweep(1).getepoch)
@@ -218,6 +32,13 @@ if all(missing==0) && a2.nrofsweeps>1
     end
     for j = 1:NrofSweeps
         swp(j).vmbase = sweep(j).getepoch(step-1).steadystate ;
+        if isnan(swp(j).vmbase)
+            preAPtimes=sweep(j).getepoch(step-1).getap.peak_time;
+            stepstart=sweep(j).getepoch(step).TimeInfo.Start;
+            if ~isempty(preAPtimes) && preAPtimes(end)+500 < stepstart
+                swp(j).vmbase = sweep(j).getepoch(step-1).getsampleusingtime(stepstart-200,stepstart-1).median;
+            end
+        end
         swp(j).jitter = sweep(j).getepoch(step-1).jitter ;
         if sweep(j).nrofepochs>=step
             swp(j).currinj = sweep(j).getepoch(step).stepdiff ;
@@ -413,15 +234,26 @@ if all(missing==0) && a2.nrofsweeps>1
         %% Create summary
         Summary(index).Cellname           = cellname;
         Summary(index).File               = a2.filename;
-        Summary(index).Date               = a2.filetimestart ;
-        Summary(index).UserID             = a2.userid ;
         Summary(index).guid               = a2.guid;
-        Summary(index).Channel            = a2.getchannel.number;
-        Summary(index).scalefactor        = a2.getchannel.getout.scalefactor;
-        Summary(index).holdingcurrent     = a2.getchannel.getout.holdingI ;
-        Summary(index).holdingvoltage     = a2.getchannel.getout.holdingV ;
-        Summary(index).NrofSweeps         = NrofSweeps ;
-        Summary(index).PDur               = milliseconds(sweep(1).getepoch(step).timespan);
+        %Summary(index).Date               = a2.filetimestart ;
+        if isa(a2, 'Abffile')
+            Summary(index).Date               = year(a2.filetimestart)*1e4+month(a2.filetimestart)*1e2+day(a2.filetimestart) ;
+            Summary(index).UserID             = a2.userid ;
+            Summary(index).Channel            = a2.getchannel.number;
+            Summary(index).scalefactor        = a2.getchannel.getout.scalefactor;
+            Summary(index).holdingcurrent     = a2.getchannel.getout.holdingI ;
+            Summary(index).holdingvoltage     = a2.getchannel.getout.holdingV ;
+            Summary(index).PDur               = milliseconds(sweep(1).getepoch(step).timespan);
+        elseif isa(a, 'Spike2Channel')
+            Summary(index).Date               = 0;
+            Summary(index).UserID             = 'RWS';
+            Summary(index).Channel            = 1;
+            Summary(index).scalefactor        = 1;
+            Summary(index).holdingcurrent     = a2.getin('signal', 'Secondary').getsweep(1).getepoch(1).median;
+            Summary(index).holdingvoltage     = NaN ;
+            Summary(index).PDur               = sweep(1).getepoch(step).timespan;
+        end
+        Summary(index).NrofSweeps         = NrofSweeps ;  
         Summary(index).FrstP              = swp(1).currinj ;
         Summary(index).DeltaP             = mean(diff([swp.currinj])) ;
         Summary(index).Rheobase           = swp(frstspikeswp).currinj ;
@@ -443,7 +275,7 @@ if all(missing==0) && a2.nrofsweeps>1
         Summary(index).VmatSag            = MinVmResponse(sagswp,1) ;
         Summary(index).TauM               = nanmean(taus(taus~=0)) ;
         Summary(index).TauSD              = nanstd(taus(taus~=0)) ;
-        Summary(index).OnsetFrstAP        = sweep(frstspikeswp).getepoch(step).getap(1).thresh_time - sum([sweep(frstspikeswp).getepoch(1:step-1).timespan]) ;
+        Summary(index).OnsetFrstAP        = sweep(frstspikeswp).getepoch(step).getap(1).thresh_time - sweep(frstspikeswp).getepoch(step).TimeInfo.Start ;
         Summary(index).ThreshFrstAP       = sweep(frstspikeswp).getepoch(step).getap(1).thresh ;
         Summary(index).FAPbasetothresh    = sweep(frstspikeswp).getepoch(step).getap(1).thresh-swp(frstspikeswp).vmbase ;
         Summary(index).AmpFAPthresh       = sweep(frstspikeswp).getepoch(step).getap(1).amp ;
@@ -480,8 +312,6 @@ if all(missing==0) && a2.nrofsweeps>1
     % if ~isempty(destinpath)
     %     save([destinpath,cellname, '.mat'],Summary)
     % end
-
-end
 
 end
 

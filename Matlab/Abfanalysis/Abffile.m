@@ -218,6 +218,9 @@ classdef Abffile < Sharedpaths & Setupsettings
             %   NOTE: To prevent DAC channels that do have a stimulus file but where DAC was disabled still initialise, 
             %   only DAC channels defined in the provided Setupsettings object will be taken into account.
             fprintf('Adding analog outputs...\n')
+%             if contains(obj.proname, 'endurance master9')
+%                 h.stringSection = [h.stringSection ' C:\Rene\Protocols\Endurance\endurance master9.atf '];
+%             end
             tmpoutinfo = obj.extractstringsectioninfo(h.stringSection,2); 
             if isfield(h,'EpochSec') 
                 dacnumberset       = unique([h.EpochSec.nDACNum]);

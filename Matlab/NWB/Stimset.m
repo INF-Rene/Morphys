@@ -186,7 +186,7 @@ classdef Stimset < Sharedmethods
                 for i=1:height(epochtable)
                     if epochtable.firstlevel(i)>0
                         midepochtime=sum(epochtable.duration(1:i-1))+0.5*epochtable.duration(i);
-                        epochtable.firstlevel(i)=obj.stimwaves{1}.getsampleusingtime(midepochtime).Data(1);
+                        epochtable.firstlevel(i)=obj.stimwaves{1}.getsampleusingtime(midepochtime-0.1,midepochtime+0.1).mean();
                     end
                 end
             end

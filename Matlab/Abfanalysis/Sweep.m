@@ -119,18 +119,23 @@ classdef Sweep < Sharedmethods & Trace
                 epochtab.strttime=sum(epochtable.duration(1:i-1));
                 epochtab.endtime=epochtab.strttime+epochtable.duration(i);
                 
-                %epoch time info
-                epochtab.datetimestart = obj.datetimestart + duration(0,0,0,epochtab.strttime,'Format',obj.durationfmt);  
-                epochtab.timespan      = duration(0,0,0,epochtab.duration,'Format',obj.durationfmt);
-                epochtab.datetimeend   = epochtab.datetimestart + epochtab.timespan;   
+                if obj.Time(end)> epochtab.strttime
                 
-                %get the data
-                epochts=obj.getsampleusingtime(epochtab.strttime,epochtab.endtime);
-                epochtab.data=epochts.Data;
-                epochtab.units=obj.DataInfo.Units;
-                
-                %add the epoch to the sweep
-                obj=obj.addepoch(epochtab);
+                    %epoch time info
+                    epochtab.datetimestart = obj.datetimestart + duration(0,0,0,epochtab.strttime,'Format',obj.durationfmt);  
+                    epochtab.timespan      = duration(0,0,0,epochtab.duration,'Format',obj.durationfmt);
+                    epochtab.datetimeend   = epochtab.datetimestart + epochtab.timespan;   
+
+                    %get the data
+                    epochts=obj.getsampleusingtime(epochtab.strttime,epochtab.endtime);
+                    epochtab.data=epochts.Data;
+                    epochtab.units=obj.DataInfo.Units;
+
+                    %add the epoch to the sweep
+                    obj=obj.addepoch(epochtab);
+                else
+                    break
+                end
             end
             
         end
@@ -281,6 +286,7 @@ classdef Sweep < Sharedmethods & Trace
             end
         end
         
+
         %% -------------------------------------- MISCELLANEOUS METHODS -----------------------------------------------------
         function value = getstartendepochwave(obj,idx,inputstr)
             % function to calculate the start or end level of an Epoch (at position 'idx' in Epoch list). That is, what is 
