@@ -252,6 +252,7 @@ classdef NWBfile < Sharedpaths & Sharedmethods
                 end
             else
                 firstLBtime = obj.labbooknum.TimeStamp(find(obj.labbooknum.SweepNum==1,1, 'last')); %because sweeps are often re-recorded when new cells are patched
+                firstLBtime = firstLBtime - seconds(10);
                 stimsetLB = obj.labbooknum(ismember(obj.labbooknum.SweepNum,stimsetswpnrs) & obj.labbooknum.TimeStamp>=firstLBtime,:);
                 starttime = nanmin(stimsetLB.TimeStamp);
                 endtime = nanmax(stimsetLB.TimeStamp);
