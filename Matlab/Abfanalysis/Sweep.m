@@ -100,36 +100,31 @@ classdef Sweep < Sharedmethods & Trace
         function obj= addNWBepochs(obj, epochtable)
             
             scalefactor=obj.labbooknum.StimScaleFactor;
-            scalefactor=scalefactor(~isnan(scalefactor));
-            scalefactor=scalefactor(end);
-            if ~isscalar(scalefactor), error('Multiple scalefactors found for this sweep'); end
+            scalefactor=unique(scalefactor(~isnan(scalefactor)));
+            if ~isempty(scalefactor) && ~isscalar(scalefactor)
+                warning('Multiple scalefactors found for this sweep')
+                scalefactor=scalefactor(end);
+            end
             if ~isempty(scalefactor)
                 epochtable.firstlevel=epochtable.firstlevel.*scalefactor;
             end
             
+            obj.nrinset=obj.nrinset(1);
             if any(any(epochtable.deltas(:,:)))>0
-                epochtable.duration=epochtable.duration+epochtable.deltas(:,1)*(obj.nrinset-1);
-                epochtable.firstlevel=epochtable.firstlevel+epochtable.deltas(:,2)*(obj.nrinset-1);
-                epochtable.pulseperiod=epochtable.pulseperiod+1000./epochtable.deltas(:,3)*(obj.nrinset-1);
-                epochtable.pulsewidth=epochtable.pulsewidth+epochtable.deltas(:,4)*(obj.nrinset-1);
+                epochtable.duration=epochtable.duration+epochtable.deltas(:,1).*(obj.nrinset-1);
+                epochtable.firstlevel=epochtable.firstlevel+epochtable.deltas(:,2).*(obj.nrinset-1);
+                epochtable.pulseperiod=epochtable.pulseperiod+1000./epochtable.deltas(:,3).*(obj.nrinset-1);
+                epochtable.pulsewidth=epochtable.pulsewidth+epochtable.deltas(:,4).*(obj.nrinset-1);
             end
             
             
             for i=1:height(epochtable)
                 epochtab=table2struct(epochtable(i,:));
-                epochtab.strttime=double(sum(epochtable.duration(1:i-1)));
-                epochtab.endtime=double(epochtab.strttime+epochtable.duration(i));
+                epochtab.strttime=sum(epochtable.duration(1:i-1));
+                epochtab.endtime=epochtab.strttime+epochtable.duration(i);
                 
-<<<<<<< HEAD
                 if obj.Time(end)> epochtab.strttime
                 
-=======
-                if epochtab.strttime<obj.Time(end)
-                    if epochtab.endtime>obj.Time(end)
-                        epochtab.endtime=obj.Time(end);
-                    end
-
->>>>>>> 693da398deaa2e36dd64e77780969e3abd0a8f34
                     %epoch time info
                     epochtab.datetimestart = obj.datetimestart + duration(0,0,0,epochtab.strttime,'Format',obj.durationfmt);  
                     epochtab.timespan      = duration(0,0,0,epochtab.duration,'Format',obj.durationfmt);
