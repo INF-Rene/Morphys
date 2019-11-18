@@ -295,9 +295,19 @@ classdef Trace < timeseries
             if ~isscalar(obj), error('Object must be scalar'); end
             warning('off', 'signal:findpeaks:largeMinPeakHeight') % fisrt turn off the annoying findpeaks warnings that occur when no peaks are found.
             [pks, locs] = findpeaks(obj.plateaufix(obj.getdata),'MinPeakHeight',obj.apMinPeakHeightVm,'minpeakdistance',floor(obj.apMinPeakDistance*obj.samplefreq*1e-3), 'MinPeakProminence', obj.apMinPeakProminence);
+            
+            cnt=0;
             for i=1:numel(pks)
-                obj = obj.addap('peak',pks(i),'peak_time',(locs(i)-1)*1e3/obj.samplefreq+obj.TimeInfo.Start);
+                promwindow=floor(20*1e-3*obj.samplefreq);
+                min1=min(obj.Data(locs(i)-promwindow:locs(i)));
+                min2=min(obj.Data(locs(i):locs(i)+promwindow));
+                if pks(i)-max(min1, min2)>obj.apMinPeakProminence %test whether the peak prominence is also reached within a +-20 ms window
+                    obj = obj.addap('peak',pks(i),'peak_time',(locs(i)-1)*1e3/obj.samplefreq+obj.TimeInfo.Start);
+                else
+                    cnt=cnt+1;
+                end
             end
+            if cnt>0, fprintf('%d false positive APs removed.\n',cnt); end
         end
         
         function obj = dynamicresample(obj)
@@ -324,7 +334,7 @@ classdef Trace < timeseries
             % NOTE: Assumes list of ACTIONPOTENTIALS is sorted!
             % See also ACTIONPOTENTIAL
             if ~isscalar(obj), error('Object must be scalar'); end
-            cnt=0;       
+            cnt=0;   
             for i = 1:obj.nrofaps                                                                               % for every AP event
                 if i == 1, 
                      strt = obj.TimeInfo.Start;                                                                 % find start point.
