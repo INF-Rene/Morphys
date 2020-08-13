@@ -195,7 +195,8 @@ classdef NWBfile < Sharedpaths & Sharedmethods
             % gather data for each unique stimset and save the sweeps
             fprintf('Adding stimsets and loading sweep data...')
             for i=1:numel(stimsetnms)
-                stimsetswpt = sweeptable(ismember(sweeptable.sweepnr, selectedswps(ic==i)),:) ;
+                stimsetswpt=sweeptable(stimselect);
+                stimsetswpt = stimsetswpt(ic==i & ismember(stimsetswpt.sweepnr, selectedswps),:) ;
 
                 obj=obj.addstimset(stimsetnms{i}, stimsetswpt);
 %                 obj.stimsets(i).sweepnrs = stimsetswpnrs;
