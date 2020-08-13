@@ -19,7 +19,7 @@ classdef Sweep < Sharedmethods & Trace
     properties (Access = public)
         number        = 0;  % number of sweep
         guid_in             % guid of parent Analogin
-        guid_stimset
+        guid_AD
         nrofepochs    = 0;  % number of elements in the epoch list
         sweeplagpnts  = 0;  % the annoying pClamp lag in points (=1/64th of trace length; occurs only when using analog waveform tab, not when using stimulus files)
         sweeplagtime  = duration(0,0,0,0,'Format','hh:mm:ss.SSSSSSS'); % lag in milliseconds, as duration object;
@@ -27,6 +27,9 @@ classdef Sweep < Sharedmethods & Trace
         updatedconfig = 0;  % indication of whether configuration info has been added. 0 = no, 1 = yes;
         labbooknum
         nrinset
+        stimwavemode        % 1 if the stimwave is always the same, 2 if the stimwave changes with every sweep
+        stimwavename
+        stimdataloc
     end
     
 %% ##################################################### METHODS ############################################################
@@ -109,7 +112,7 @@ classdef Sweep < Sharedmethods & Trace
                 epochtable.firstlevel=epochtable.firstlevel.*scalefactor;
             end
             
-            obj.nrinset=obj.nrinset(1);
+            obj.nrinset=obj.nrinset(end);
             if any(any(epochtable.deltas(:,:)))>0
                 epochtable.duration=epochtable.duration+epochtable.deltas(:,1).*(obj.nrinset-1);
                 epochtable.firstlevel=epochtable.firstlevel+epochtable.deltas(:,2).*(obj.nrinset-1);

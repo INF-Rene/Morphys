@@ -341,7 +341,7 @@ classdef Epoch < Sharedmethods & Trace
                 
                 % select data using time
                 fitts = obj.getsampleusingtime(fitstart,fitend);
-                [xdata, ydata] = prepareCurveData( fitts.Time-fitts.TimeInfo.Start, fitts.Data );
+                [xdata, ydata] = prepareCurveData( double(fitts.Time-fitts.TimeInfo.Start), double(fitts.Data) );
 
                 % attempt fit Set up fittype and options.
                 ft = fittype( 'a*exp(b*-x)+c', 'independent', 'x', 'dependent', 'y' );

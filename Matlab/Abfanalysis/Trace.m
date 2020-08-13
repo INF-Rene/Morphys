@@ -248,7 +248,8 @@ classdef Trace < timeseries
         %% ---------------------------------------- AP ANALYSIS METHODS -----------------------------------------------------
         function obj = analyseaps(obj)
             % find APs and all currently available features
-            for i = 1:numel(obj)   
+            for i = 1:numel(obj) 
+                if ~strcmp(obj(i).DataInfo.Units, 'mV'), continue; end
                 %fprintf('Finding APs...\n')
                 obj(i) = obj(i).findaps;
                 %fprintf('Getting thresholds...\n')
@@ -299,8 +300,16 @@ classdef Trace < timeseries
             cnt=0;
             for i=1:numel(pks)
                 promwindow=floor(20*1e-3*obj.samplefreq);
-                min1=min(obj.Data(locs(i)-promwindow:locs(i)));
-                min2=min(obj.Data(locs(i):locs(i)+promwindow));
+                if locs(i)-promwindow<0
+                    min1=min(obj.Data(1:locs(i)));
+                else
+                    min1=min(obj.Data(locs(i)-promwindow:locs(i)));
+                end
+                if locs(i)+promwindow > numel(obj.Data)
+                    min2=min(obj.Data(locs(i):end));
+                else
+                    min2=min(obj.Data(locs(i):locs(i)+promwindow));
+                end
                 if pks(i)-max(min1, min2)>obj.apMinPeakProminence %test whether the peak prominence is also reached within a +-20 ms window
                     obj = obj.addap('peak',pks(i),'peak_time',(locs(i)-1)*1e3/obj.samplefreq+obj.TimeInfo.Start);
                 else

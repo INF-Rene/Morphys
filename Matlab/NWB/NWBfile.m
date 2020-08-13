@@ -26,8 +26,12 @@ classdef NWBfile < Sharedpaths & Sharedmethods
         savename            % name to use when saving this file
         
         labbooktext
+        labbooktext_keys
         labbooknum
+        labbooknum_keys
+        labbook_timestamps
         
+        activeHS            % active Headstages
         stimsetfilters
         stimsets
         
@@ -42,7 +46,7 @@ classdef NWBfile < Sharedpaths & Sharedmethods
     methods
         
         % ----------------------------------------- CLASS CONSTRUCTOR--------------------------------------------------------
-        function obj = NWBfile(fn, stimsetfilters) 
+        function obj = NWBfile(fn, stimsetfilters, sweepselect) 
             % stimsetfilters is either a string or a cell array of strings to specify the search term for the stimsets that 
             % should be loaded in the NWBfile object
             
@@ -79,39 +83,80 @@ classdef NWBfile < Sharedpaths & Sharedmethods
                 warnmsg=sprintf('This script was designed for NWB-1.0.5. The loaded file has version %s \n', nwbv{1});
                 warning(warnmsg)
             end
+            
             swps={info.Groups(1).Groups(2).Groups.Name};
+            % dialog option if no stimset or sweep filters are specified
+            if ~exist('stimsetfilters', 'var'), stimsetfilters={};end
+            if ~exist('sweepselect', 'var'), sweepselect=[];end
+            if isempty(stimsetfilters) && isempty(sweepselect)
+                protocols=cell(numel(swps), 1);
+                for i=1:numel(swps)
+                    protocols(i) = h5read(fn, [swps{i} '/stimulus_description']);
+                end
+                list = unique(protocols);
+                [indx,tf] = listdlg('ListString',list);
+                if tf==1
+                    stimsetfilters=list(indx);
+                end
+            end
+            
             if ~isempty(info.Groups(6).Groups(1).Groups)
                 stimswps={info.Groups(6).Groups(1).Groups.Name};
                 swpstimnames={};
+                sweeptable=table();
                 for i=1:numel(swps)
-                    swpstimnames(i)=h5read(fn, [swps{i} '/stimulus_description']);
+                    tmp = strsplit(swps{i}, '_');
+                    stimdataloc = stimswps{contains(stimswps, tmp{2}) & endsWith(stimswps, ['DA' tmp{3}(end)] ) };
+                    if any(contains(stimswps, tmp{2}) & contains(stimswps, 'TTL') )
+                        TTLdataloc = stimswps{contains(stimswps, tmp{2}) & contains(stimswps, 'TTL') };
+                    else
+                        TTLdataloc = '';
+                    end
+                    % warning: will probably give trouble when multiple TTL waves are used
+                    
+                    sweeptable(i,{'dataloc', 'sweepnr', 'ADname','ADnr', 'protocol', 'stimdataloc', 'TTLdataloc'})=...
+                        {swps{i}, str2num(tmp{2})+1, tmp{3},str2double(tmp{3}(end))+1, h5read(fn, [swps{i} '/stimulus_description']),...
+                        stimdataloc, TTLdataloc};
+%                     info.Groups(1).Groups(2).Groups(1).Datasets(3).Dataspace.Size
                 end
             else
                 error('No stimulus data in nwb. Creating stimulus trace based on description')
             end
            
+            if exist('sweepselect', 'var') && ~isempty(sweepselect)
+                sweeptable(~ismember(sweeptable.sweepnr,sweepselect),:)=[];
+            end
 
 %             for i=1:numel(swps)
 %                 swpstimnames(i)=h5read(fn, [swps{i} '/aibs_stimulus_name']);
 %             end
 
             % load Lab notebook
-            fn=fn;
-            LBN=h5read(fn, '/general/labnotebook/Dev1/numericalValues');
-            LBN=squeeze(LBN(1,:,:))';
-            LBN_keys=h5read(fn, '/general/labnotebook/Dev1/numericalKeys');
-            LBN=cell2table(num2cell(LBN));
-            LBN.Properties.VariableNames=genvarname(LBN_keys(:,1));
-            LBN.Properties.VariableUnits=LBN_keys(:,2);
-            LBT=h5read(fn, '/general/labnotebook/Dev1/textualValues');
-            LBT=squeeze(LBT(1,:,:))';
-            LBT_keys=h5read(fn, '/general/labnotebook/Dev1/textualKeys');
-            LBT=cell2table(LBT);
-            LBT.Properties.VariableNames=genvarname(LBT_keys(:,1));
-            LBN.TimeStamp=datetime(LBN.TimeStamp, 'ConvertFrom', 'epochtime', 'Epoch', '1904-01-01');
-            LBN.SweepNum=LBN.SweepNum+1;% since MIES counts from sweep 0 and we count from sweep 1
-            obj.labbooktext=LBT;
-            obj.labbooknum=LBN;
+            obj.labbooknum=h5read(fn, '/general/labnotebook/Dev1/numericalValues');
+            obj.labbooknum_keys=h5read(fn, '/general/labnotebook/Dev1/numericalKeys');
+            
+            % find out active headstages
+            obj.activeHS = find(any(squeeze(obj.labbooknum(:, strcmp('Headstage Active', obj.labbooknum_keys),:))'));
+             
+            % LBN=squeeze(LBN(1,:,:))';
+            % LBN=cell2table(num2cell(LBN));
+%             LBN.Properties.VariableNames=genvarname(LBN_keys(:,1));
+%             LBN.Properties.VariableUnits=LBN_keys(:,2);
+            obj.labbooktext=h5read(fn, '/general/labnotebook/Dev1/textualValues');
+%             LBT=squeeze(LBT(1,:,:))';
+            obj.labbooktext_keys=h5read(fn, '/general/labnotebook/Dev1/textualKeys');
+%             LBT=cell2table(LBT);
+%             LBT.Properties.VariableNames=genvarname(LBT_keys(:,1));
+            obj.labbook_timestamps = squeeze(datetime(obj.labbooknum(1, strcmp('TimeStamp', obj.labbooknum_keys),:), ...
+                'ConvertFrom', 'epochtime', 'Epoch', '1904-01-01'));
+            obj.labbooknum(:, strcmp('SweepNum', obj.labbooknum_keys),:) = ...
+                obj.labbooknum(:, strcmp('SweepNum', obj.labbooknum_keys),:)+1; % since MIES/Igor Pro counts from sweep 0 and we count from sweep 1
+               
+            % make overview of swps and channels and stimsets
+            
+                
+
+            
             
 
             % Add file info
@@ -129,30 +174,35 @@ classdef NWBfile < Sharedpaths & Sharedmethods
             obj.filesystemdate= fileinfo.date;
             tmp=h5read(fn, '/file_create_date');
             obj.filecreatedate= datetime(tmp{1}, 'InputFormat', 'yyyy-MM-dd''T''HH:mm:ss''Z''' ) + duration(1, 0, 0);
-            firstLBentry = find(LBN.SweepNum==1,1, 'last'); %because sweeps are often re-recorded when new cells are patched
-            obj.filetimestart = LBN.TimeStamp(firstLBentry);
-            obj.filetimeend = LBN.TimeStamp(find(~isnat(LBN.TimeStamp),1, 'last'));
-            obj.fileduration  = duration(obj.filetimeend-obj.filetimestart,'Format',obj.durationfmt);
             
-
+            firstLBentry  = find(any(obj.labbooknum(obj.activeHS, strcmp('SweepNum', obj.labbooknum_keys),:)==1),1,'last'); %last entry sweeps are often re-recorded when new cells are patched
+            %firstLBentry = find(LBN.SweepNum==1,1, 'last'); 
+%             obj.filetimestart = LBN.TimeStamp(firstLBentry);
+%             obj.filetimeend = LBN.TimeStamp(find(~isnat(LBN.TimeStamp),1, 'last'));
+%             obj.fileduration  = duration(obj.filetimeend-obj.filetimestart,'Format',obj.durationfmt);
+            obj.filetimestart = obj.labbook_timestamps(firstLBentry);
+            obj.filetimeend = obj.labbook_timestamps(find(~isnat(obj.labbook_timestamps),1, 'last'));
+            obj.fileduration  = duration(obj.filetimeend-obj.filetimestart,'Format',obj.durationfmt);
 
             % load data from NWBfile according to stimset filters
             if ~iscell(stimsetfilters), stimsetfilters={stimsetfilters}; end
             obj.stimsetfilters=stimsetfilters;
-
-            selectedswps=unique(find(contains(swpstimnames,stimsetfilters)));
-            [stimsetnms, ~, ic] = unique(swpstimnames(selectedswps));
+            
+            stimselect=contains(sweeptable.protocol,stimsetfilters);
+            selectedswps=unique(sweeptable.sweepnr(stimselect));
+            [stimsetnms, ~, ic] = unique(sweeptable.protocol(stimselect));
             
             % gather data for each unique stimset and save the sweeps
             fprintf('Adding stimsets and loading sweep data...')
             for i=1:numel(stimsetnms)
-                stimsetswpnrs=selectedswps(ic==i);
-                obj=obj.addstimset(stimsetnms(i), stimsetswpnrs);
+                stimsetswpt = sweeptable(ismember(sweeptable.sweepnr, selectedswps(ic==i)),:) ;
+
+                obj=obj.addstimset(stimsetnms{i}, stimsetswpt);
 %                 obj.stimsets(i).sweepnrs = stimsetswpnrs;
-                obj.stimsets(i).datalocs = swps(stimsetswpnrs);
-                obj.stimsets(i).stimdatalocs = stimswps(stimsetswpnrs);
-                obj.stimsets(i).wavename = stimsetnms{i};
-                obj.stimsets(i) = obj.stimsets(i).loadsweepdata;
+%                 obj.stimsets(i).datalocs = swps(stimsetswpnrs);
+%                 obj.stimsets(i).stimdatalocs = stimswps(stimsetswpnrs);
+%                 obj.stimsets(i).wavename = stimsetnms{i};
+                obj.stimsets(i) = obj.stimsets(i).addnwbchannels; % add ADs and sweep and epochs etc
             end
 
             
@@ -243,29 +293,37 @@ classdef NWBfile < Sharedpaths & Sharedmethods
                 end
             end
         end
-        function obj =addstimset(obj, stimsetnms, stimsetswpnrs)
+        function obj =addstimset(obj,name, swpt) %stimsetnms, stimsetswpnrs
             if ~isscalar(obj), error('NWBfile object must be scalar.'); end
             
-            if ~isscalar(stimsetnms)
-                for i=1:numel(stimsetnms)
-                    obj.addstimset(obj, stimsetnms{i});
-                end
+            stimsetswpnrs = unique(swpt.sweepnr);
+            
+            stimsetidx = squeeze(ismember(obj.labbooknum(1, strcmp('SweepNum', obj.labbooknum_keys),:),stimsetswpnrs));
+            
+            firstLBtime = obj.labbook_timestamps(find(obj.labbooknum(1, strcmp('SweepNum', obj.labbooknum_keys),:)==min(stimsetswpnrs),1,'first'));
+            firstLBtime = firstLBtime - seconds(10);
+            
+            timeidx = squeeze(obj.labbook_timestamps>=firstLBtime);
+            stimsetidx = stimsetidx & timeidx;
+            stimsetLB = obj.labbooknum(:,:,stimsetidx);
+            
+            activeHS = find(any(squeeze(stimsetLB(:, strcmp('Headstage Active', obj.labbooknum_keys),:))'));
+            associated_stimsets = unique(swpt.protocol);
+            
+            
+            starttime = nanmin(obj.labbook_timestamps(stimsetidx));
+            endtime = nanmax(obj.labbook_timestamps(stimsetidx));
+            stim2add = Stimset('name', name,'sweeptable', swpt,'activeHS', activeHS, 'filename', obj.filename,...
+                'filedirectory', obj.filedirectory,'associated_stimsets', associated_stimsets,'sweepnrs',stimsetswpnrs,...
+                'datetimestart', starttime,'datetimeend', endtime, 'labbooknum', stimsetLB, 'labbooknum_keys',...
+                obj.labbooknum_keys, 'labbook_timestamps', obj.labbook_timestamps(stimsetidx),...
+                'guid_NWB', obj.guid);
+            if isempty(obj.stimsets) 
+                obj.stimsets        = stim2add;
             else
-                firstLBtime = obj.labbooknum.TimeStamp(find(obj.labbooknum.SweepNum==1,1, 'last')); %because sweeps are often re-recorded when new cells are patched
-                firstLBtime = firstLBtime - seconds(10);
-                stimsetLB = obj.labbooknum(ismember(obj.labbooknum.SweepNum,stimsetswpnrs) & obj.labbooknum.TimeStamp>=firstLBtime,:);
-                starttime = nanmin(stimsetLB.TimeStamp);
-                endtime = nanmax(stimsetLB.TimeStamp);
-                stim2add = Stimset('name', stimsetnms, 'filename', obj.filename, 'filedirectory', obj.filedirectory,...
-                    'sweepnrs',stimsetswpnrs, 'datetimestart', starttime,'datetimeend', endtime, ...
-                    'labbooknum', stimsetLB, 'guid_NWB', obj.guid);
-                if isempty(obj.stimsets) 
-                    obj.stimsets        = stim2add;
-                else
-                    obj.stimsets(end+1) = stim2add;
-                end
-    %             obj = obj.updatestimstats;
+                obj.stimsets(end+1) = stim2add;
             end
+%             obj = obj.updatestimstats;
         end
         
         function ap = getstimsets(obj,varargin)
