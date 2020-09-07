@@ -84,7 +84,8 @@ classdef NWBfile < Sharedpaths & Sharedmethods
                 warning(warnmsg)
             end
             
-            swps={info.Groups(1).Groups(2).Groups.Name};
+            grloc = strcmp({info.Groups(1).Groups.Name}, '/acquisition/timeseries');
+            swps={info.Groups(1).Groups(grloc).Groups.Name};
             % dialog option if no stimset or sweep filters are specified
             if ~exist('stimsetfilters', 'var'), stimsetfilters={};end
             if ~exist('sweepselect', 'var'), sweepselect=[];end
@@ -132,8 +133,9 @@ classdef NWBfile < Sharedpaths & Sharedmethods
 %             end
 
             % load Lab notebook
-            obj.labbooknum=h5read(fn, '/general/labnotebook/Dev1/numericalValues');
-            obj.labbooknum_keys=h5read(fn, '/general/labnotebook/Dev1/numericalKeys');
+            lbloc = info.Groups(4).Groups(3).Groups.Name;
+            obj.labbooknum=h5read(fn, [lbloc '/numericalValues']);
+            obj.labbooknum_keys=h5read(fn, [lbloc '/numericalKeys']);
             
             % find out active headstages
             obj.activeHS = find(any(squeeze(obj.labbooknum(:, strcmp('Headstage Active', obj.labbooknum_keys),:))'));
@@ -142,9 +144,9 @@ classdef NWBfile < Sharedpaths & Sharedmethods
             % LBN=cell2table(num2cell(LBN));
 %             LBN.Properties.VariableNames=genvarname(LBN_keys(:,1));
 %             LBN.Properties.VariableUnits=LBN_keys(:,2);
-            obj.labbooktext=h5read(fn, '/general/labnotebook/Dev1/textualValues');
+            obj.labbooktext=h5read(fn, [lbloc '/textualValues']);
 %             LBT=squeeze(LBT(1,:,:))';
-            obj.labbooktext_keys=h5read(fn, '/general/labnotebook/Dev1/textualKeys');
+            obj.labbooktext_keys=h5read(fn, [lbloc '/textualKeys']);
 %             LBT=cell2table(LBT);
 %             LBT.Properties.VariableNames=genvarname(LBT_keys(:,1));
             obj.labbook_timestamps = squeeze(datetime(obj.labbooknum(1, strcmp('TimeStamp', obj.labbooknum_keys),:), ...
@@ -195,7 +197,7 @@ classdef NWBfile < Sharedpaths & Sharedmethods
             % gather data for each unique stimset and save the sweeps
             fprintf('Adding stimsets and loading sweep data...')
             for i=1:numel(stimsetnms)
-                stimsetswpt=sweeptable(stimselect);
+                stimsetswpt=sweeptable(stimselect,:);
                 stimsetswpt = stimsetswpt(ic==i & ismember(stimsetswpt.sweepnr, selectedswps),:) ;
 
                 obj=obj.addstimset(stimsetnms{i}, stimsetswpt);
