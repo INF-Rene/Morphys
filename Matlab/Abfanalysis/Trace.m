@@ -343,7 +343,7 @@ classdef Trace < timeseries
             % NOTE: Assumes list of ACTIONPOTENTIALS is sorted!
             % See also ACTIONPOTENTIAL
             if ~isscalar(obj), error('Object must be scalar'); end
-            cnt=0;   
+            cnt=0;
             for i = 1:obj.nrofaps                                                                               % for every AP event
                 if i == 1, 
                      strt = obj.TimeInfo.Start;                                                                 % find start point.
@@ -476,6 +476,7 @@ classdef Trace < timeseries
             snakelen = floor(obj.ahpSnakeWin/mean(diff(obj.Time)));                                 % obtain length of ahp window
             %obj = obj.sortaps; % could add this line to be sure...
             for i = 1:obj.nrofaps                                                                   % for every AP event
+                if isnan(obj.getap(i).halfwidth), cnt=cnt+1;continue;end
                 endpoint   = obj.getap(i).peak_time+obj.getap(i).halfwidth+4.5+obj.ahpSnakeWin;     % fast ahp needs to be within 4.5+halfwidth ms after peak
                 isi        = obj.getsampleusingtime(obj.getap(i).peak_time,endpoint);               % get timeseries of data after AP
                 ahpwinstrt = find(isi.Data(1:end-snakelen+1)<isi.Data(snakelen:end),1);             % find start of ahp window
@@ -637,6 +638,29 @@ classdef Trace < timeseries
             if cnt>0, fprintf('%d out of %d action potentials: no Maxdvdt.\n',cnt,obj.nrofaps); end
         end
         
+        function obj = getupstroke(obj)
+            % get the mean slope during the rise from 30 to 70%
+            % NOTE: Needs peak time,amplitude and threshold time of aps to calculate. 
+            % See also ACTIONPOTENTIAL, GETTHRESH, GETMAXDVDT, FINDAPS.
+            if ~isscalar(obj), error('Object must be scalar'); end
+            cnt=0;
+            for i = 1:obj.nrofaps 
+                if ~isempty(obj.getap(i).thresh_time) && ~isempty(obj.getap(i).peak_time) && ~isnan(obj.getap(i).thresh_time) && ~isnan(obj.getap(i).peak_time)
+                    ts  = obj.getsampleusingtime(obj.getap(i).thresh_time,obj.getap(i).peak_time);
+                    up_V30 = obj.getap(i).thresh + 0.3*(obj.getap(i).amp);
+                    up_V70 = obj.getap(i).thresh + 0.7*(obj.getap(i).amp);
+                    up_t30 = ts.Time(find(ts.Data>up_V30, 1, 'first'));
+                    up_t70 = ts.Time(find(ts.Data>up_V70, 1, 'first'));
+                    up_ts  = ts.getsampleusingtime(up_t30, up_t70);
+                    up_p = polyfit(up_ts.Time-up_ts.Time(1),up_ts.Data,1);
+                    obj = obj.updateap(i,'upstroke',up_p(1)); % update AP 
+                else
+                    cnt=cnt+1;
+                end
+            end
+            if cnt>0, fprintf('%d out of %d action potentials: no upstroke.\n',cnt,obj.nrofaps); end
+        end
+        
         function obj = getmindvdt(obj)
             % find the minimum dvdt during repolarising phase of ACTIONPOTENTIAL.
             % NOTE: Needs peak time, and ahp time of aps to calculate. 
@@ -660,6 +684,34 @@ classdef Trace < timeseries
             if cnt>0, fprintf('%d out of %d action potentials: no mindvdt.\n',cnt,obj.nrofaps); end
         end 
         
+        function obj = getdownstroke(obj)
+            % get the mean slope during the fall from 70 to 30%
+            % NOTE: Needs peak time,amplitude and threshold time of aps to calculate. 
+            % See also ACTIONPOTENTIAL, GETTHRESH, GETMAXDVDT, FINDAPS.
+            if ~isscalar(obj), error('Object must be scalar'); end
+            cnt=0;
+            for i = 1:obj.nrofaps 
+                if ~isempty(obj.getap(i).ahp_time) && ~isnan(obj.getap(i).ahp_time)
+                    ahp_time=obj.getap(i).ahp_time;
+                else
+                    ahp_time=obj.getap(i).ahp_slow_time;
+                end
+                if ~isempty(ahp_time) && ~isempty(obj.getap(i).peak_time) && ~isnan(ahp_time) && ~isnan(obj.getap(i).peak_time) && ~isnan(obj.getap(i).amp)
+                    ts  = obj.getsampleusingtime(obj.getap(i).peak_time,ahp_time);
+                    dwn_V30 = obj.getap(i).peak - 0.3*(obj.getap(i).amp);
+                    dwn_V70 = obj.getap(i).peak - 0.7*(obj.getap(i).amp);
+                    dwn_t30 = ts.Time(find(ts.Data>dwn_V30, 1, 'last'));
+                    dwn_t70 = ts.Time(find(ts.Data>dwn_V70, 1, 'last'));
+                    dwn_ts = ts.getsampleusingtime(dwn_t30, dwn_t70);
+                    dwn_p = polyfit(dwn_ts.Time-dwn_ts.Time(1),dwn_ts.Data,1);
+                    obj = obj.updateap(i,'downstroke',dwn_p(1)); % update AP 
+                else
+                    cnt=cnt+1;
+                end
+            end
+            if cnt>0, fprintf('%d out of %d action potentials: no downstroke.\n',cnt,obj.nrofaps); end
+        end
+        
         function obj = getonsrapidity(obj)
              % find the onset rapidity of an action potential.
             % Resamples AP to 1MHz to ensure same precision when estimating AP halfwidth, regardless of sampling frequency.
@@ -679,7 +731,7 @@ classdef Trace < timeseries
 
                         % find rapidity threshold crossing and make a fitting window.
                         strtidx = max([1, length(dv) - find(flipud(dv)<obj.apThreshRapidity,1) - obj.onsetrapfitwin + 1]);
-                        endidx  = min([strtidx + obj.onsetrapfitwin + 1, length(vm)]);
+                        endidx  = min([strtidx + obj.onsetrapfitwin*2, length(vm)]);
 
                         % linear fit
                         x = vm(strtidx:endidx);

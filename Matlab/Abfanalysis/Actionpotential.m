@@ -35,6 +35,8 @@ classdef Actionpotential < Sharedmethods
         maxdvdt_time        = nan;% time of maximum dvdt
         mindvdt             = nan;% minimum dVdt during repolarisation phase of AP (mV/ms)
         mindvdt_time        = nan;% time of minimum dvdt
+        upstroke            = nan;% rising slope from 30 to 70% between amplitude and threshold
+        downstroke          = nan;% falling slope from 70 to 30% between ampltiude and threshold voltage
         onsetrapidity       = nan;% onset rapidity, slope of phase-plane when crossing dvdt threshold (defined in apThreshRapidity), usually set at 20 or 30 mV/ms (1/ms)
         onsetrapfit   = [nan,nan];% coefficients of linear fit. Use these in polyval to plot.
         onsetrapvm          = nan;% vm in centre of onset rapidity fit window

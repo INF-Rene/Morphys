@@ -147,12 +147,24 @@ classdef nwbchannel < Sharedmethods
                     sweep2add.timespan=sweep2add.Time(end);
                     
                     %find TP epoch duration from stimddata. This is really stupid but has to be done like this since the LB entries for
-                    %TP duration are always empty... Hopefully wil lbe implemented in MIES at a later time.
-                    stimdata=h5read(fn, [obj.sweeptable.stimdataloc{i} '/data'], 1, samplefreq/10*100e-3, 10); % first 100 ms (take only 1 in 10 samples for efficiency)
+                    %TP duration are always empty... Hopefully will be implemented in MIES at a later time.
+                    if sweep2add.timespan<100
+                        stimdata=h5read(fn, [obj.sweeptable.stimdataloc{i} '/data'], 1, sweep2add.Length/10, 10); % first 100 ms (take only 1 in 10 samples for efficiency)
+                    else
+                        stimdata=h5read(fn, [obj.sweeptable.stimdataloc{i} '/data'], 1, samplefreq/10*100e-3, 10); % first 100 ms (take only 1 in 10 samples for efficiency)
+                    end
                     TPepochdur=(find(stimdata~=0,1, 'first')-1)*10/samplefreq*1e3/0.45; % div by 0.45 bc the delay of the TP is 45% of the TP epoch (since the TP is 10% and in the middle of the epoch)
-                    scepochtable.duration(1)=TPepochdur;
+                    if isempty(TPepochdur) || round(sweep2add.Time(end)) == sum(scepochtable.duration(2:end))
+                        scepochtable(1,:)=[]; %no TP inserted
+                        TPepochdur=0;
+                    else 
+                        scepochtable.duration(1)=TPepochdur;
+                    end
+                    if nnz(scepochtable.type==7)==1 %type 7 is "Loaded custom wave", duration is always 0 in epochtable
+                        scepochtable.duration(scepochtable.type==7)=sweep2add.Time(end)-sum(scepochtable.duration);
+                    end
                     %get epoch information to split in epochs
-                    if sweep2add.Time(end)>sum(scepochtable.duration)
+                    if sweep2add.Time(end)>sum(scepochtable.duration) && sweep2add.Time(end)-sum(scepochtable.duration)>eps(sum(scepochtable.duration))
                         % sometimes duration of the recording is longer than the protocol
                         % because another protocol was simultaneously recorded
                         % in that case add another epoch to fill the sweep
