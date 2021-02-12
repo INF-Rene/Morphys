@@ -127,8 +127,7 @@ classdef Stimset < Sharedmethods
             % --------------------
             for i=1:numel(obj)
                 figure %create figure for each stimset
-                set(gcf,'position',[413,177,1120,801],'color',[1 1 1])
-                title(strrep(obj.name,'_',' '))
+                set(gcf,'position',[2100,-100,1120,801],'color',[1 1 1])             
                 
                 nrofsubplots = numel(obj.getnwbchannel)*2;
                 ax_handles   = zeros(nrofsubplots,1);
@@ -138,13 +137,13 @@ classdef Stimset < Sharedmethods
                     subplotcount  = subplotcount+1;
 
                     obj.getnwbchannel(j).getsweep.plot(varargin{:});
-                    title(obj.getnwbchannel(j).name)
+                    title([strrep(obj.filename,'_','\_') ' : ' obj.getnwbchannel(j).name])
 
                     ax_handles(subplotcount) = subplot(nrofsubplots,1,subplotcount); 
                     subplotcount  = subplotcount+1;
                     
                     obj.getnwbchannel(j).getstimwave.plot(varargin{:});
-                    title(['DA' num2str(obj.getnwbchannel(j).number-1)])
+                    title([strrep(obj.name,'_','\_') ' : DA' num2str(obj.getnwbchannel(j).number-1)])
 
                     
                 end
@@ -160,7 +159,7 @@ classdef Stimset < Sharedmethods
             % --------------------
             for i=1:numel(obj)
                 figure %create figure for each stimset
-                set(gcf,'position',[413,177,1120,801],'color',[1 1 1])
+                set(gcf,'position',[2100,-100,1120,801],'color',[1 1 1])
                 title(strrep(obj.name,'_',' '))
                 
                 nrofsubplots = numel(obj.getnwbchannel)*2;
@@ -171,13 +170,13 @@ classdef Stimset < Sharedmethods
                     subplotcount  = subplotcount+1;
 
                     obj.getnwbchannel(j).getsweep.plotanalysis;
-                    title(obj.getnwbchannel(j).name)
+                    title([strrep(obj.filename,'_','\_') ' : ' obj.getnwbchannel(j).name])
 
                     ax_handles(subplotcount) = subplot(nrofsubplots,1,subplotcount); 
                     subplotcount  = subplotcount+1;
                     
                     obj.getnwbchannel(j).getstimwave.plot;
-                    title(['DA' num2str(obj.getnwbchannel(j).number-1)])
+                    title([strrep(obj.name,'_','\_') ' : DA' num2str(obj.getnwbchannel(j).number-1)])
 
                     
                 end

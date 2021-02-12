@@ -117,6 +117,10 @@ classdef Stimwave < Sharedmethods & Trace
                 plot@timeseries(obj(i),varargin{:})
                 grid on
             end
+            yl = ylim ;
+            yrange = yl(2)-yl(1) ;
+            yrange2add = yrange*0.1 ;
+            ylim([yl(1)-yrange2add yl(2)+yrange2add])
             hold off
             % some formatting...
             title('Time Series Plot')
