@@ -213,21 +213,25 @@ classdef Epoch < Sharedmethods & Trace
         end
         
         %% -------------------------------------- ANALYSE EPOCH METHODS -----------------------------------------------------
-        function obj = analyseepoch(obj,apsaswell,prev_steadystate)
+        function obj = analyseepoch(obj,apsaswell,prev_steadystate,prev_amp)
             % analyse epoch
             % Wrapper function that analyses EPOCHs. If apsaswell==1, analyses ACTIONPOTENTIALs as well.
             
             % See also ACTIONPOTENTIAL, GETTAU, GETSAG, GETSTEADYSTATE.
             
             if ~isscalar(obj),error('Object must be scalar'); end
-            if nargin < 2, apsaswell=1; prev_steadystate = []; end
-            if nargin == 2, prev_steadystate = []; end
+            if nargin < 2, apsaswell=1; prev_steadystate = []; prev_amp = []; end
+            if nargin == 2, prev_steadystate = []; prev_amp = []; end
             
             % analyse action potentials
             if apsaswell == 1,
                 obj = obj.analyseaps; 
             end
 
+            if ~isempty(prev_amp)
+                obj.stepdiff = obj.amplitude - prev_amp ;
+            end
+            
             % analyse passive properties
             if obj.nrofaps == 0 
                 [obj.steadystate, obj.sswin] = obj.getsteadystate;

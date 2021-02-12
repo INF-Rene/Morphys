@@ -80,7 +80,8 @@ classdef nwbchannel < Sharedmethods
                     if any(any(epochtables.epochtable{i}.deltas>0))
                         epochtables.stimwavemode(i)=2; %for every sweep the stimwave will be read from file and saved
                     else
-                        epochtables.stimwavemode(i)=1; %only first stimwave will be saved as the stimwave is assumed to be exactly the same for every sweep
+                        %epochtables.stimwavemode(i)=1; %only first stimwave will be saved as the stimwave is assumed to be exactly the same for every sweep                        
+                        epochtables.stimwavemode(i)=2; % unsophisticated override of this setting
                     end
                 end
                 
@@ -97,15 +98,15 @@ classdef nwbchannel < Sharedmethods
                     scepochtable.duration(1)=TPepochdur;
                     stimwavemode=epochtables.stimwavemode(tmp);
                     
-                    scalefactor=unique(sweepLB.StimScaleFactor(~isnan(sweepLB.StimScaleFactor)));
-                    if ~isempty(scalefactor) && ~isscalar(scalefactor)
-                        warning('Multiple scalefactors found. Using the last one.');
-                        scalefactor=scalefactor(end);
-                    end
-                    if ~isempty(scalefactor) && scalefactor~=1
-                        scepochtable.firstlevel=scepochtable.firstlevel.*scalefactor;
-                        stimwavemode=2;
-                    end
+%                     scalefactor=unique(sweepLB.StimScaleFactor(~isnan(sweepLB.StimScaleFactor)));
+%                     if ~isempty(scalefactor) && ~isscalar(scalefactor)
+%                         warning('Multiple scalefactors found. Using the last one.');
+%                         scalefactor=scalefactor(end);
+%                     end
+%                     if ~isempty(scalefactor) && scalefactor~=1
+%                         scepochtable.firstlevel=scepochtable.firstlevel.*scalefactor;
+%                         stimwavemode=2;
+%                     end
                     %starttime= h5read(fn, [obj.datalocs{i} '/starting_time']);
 %                     if stimwavemode==2 && i>1
 %                         stimdata=h5read(fn, [obj.stimdatalocs{i} '/data']);
@@ -376,13 +377,13 @@ classdef nwbchannel < Sharedmethods
             stimwavemode=[obj.getsweep.stimwavemode];
             stimdatalocs={obj.getsweep.stimdataloc};
             samplefreqs=[obj.getsweep.samplefreq];
-            sweepnrs=[obj.getsweep.number];
+            sweepnrs2=[obj.getsweep.number];
             lengths=[obj.getsweep.Length];
             
-            for i=1:numel(obj.associated_stimsets)
-                loc=find(strcmp(stimwavenms, obj.associated_stimsets{i}));
+            for j=1:numel(obj.associated_stimsets)
+                loc=find(strcmp(stimwavenms, obj.associated_stimsets{j}));
                 if any(stimwavemode(loc)==2) % if already 
-                    for j=1:numel(loc)
+                    for i=1:numel(loc)
                         stimdata = h5read(fn, [stimdatalocs{loc(i)} '/data']);
                         if numel(stimdata) > lengths(loc(i))
                             stimdata = stimdata(1:lengths(loc(i)));
@@ -394,7 +395,7 @@ classdef nwbchannel < Sharedmethods
                         stimwavets.TimeInfo.Units=units{2};
                         stimwave = Stimwave('guid_nwbchannel', obj.guid, 'filename', obj.filename, ...
                             'filedirectory', obj.filedirectory, 'name', stimwavenms{loc(i)},...
-                            'sweepnrs', sweepnrs(loc(i)), 'dataloc', stimdatalocs{loc(i)}, 'units', units );
+                            'sweepnrs', sweepnrs2(loc(i)), 'dataloc', stimdatalocs{loc(i)}, 'units', units );
                         stimwave=stimwave.addts(stimwavets);
                         obj = obj.addstimwave(stimwave);
                     end
@@ -410,7 +411,7 @@ classdef nwbchannel < Sharedmethods
                     stimwavets.TimeInfo.Units=units{2};
                     stimwave = Stimwave('guid_nwbchannel', obj.guid, 'filename', obj.filename, ...
                             'filedirectory', obj.filedirectory, 'name', stimwavenms{loc(1)},...
-                           'sweepnrs', sweepnrs(loc), 'dataloc', {stimdatalocs{loc}}, 'units', units );
+                           'sweepnrs', sweepnrs2(loc), 'dataloc', {stimdatalocs{loc}}, 'units', units );
                     stimwave=stimwave.addts(stimwavets);
                     obj = obj.addstimwave(stimwave);
                 end
