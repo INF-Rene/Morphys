@@ -344,6 +344,7 @@ classdef Epoch < Sharedmethods & Trace
                 [xdata, ydata] = prepareCurveData( double(fitts.Time-fitts.TimeInfo.Start), double(fitts.Data) );
 
                 % attempt fit Set up fittype and options.
+                try
                 ft = fittype( 'a*exp(b*-x)+c', 'independent', 'x', 'dependent', 'y' );
                 opts = fitoptions( 'Method', 'NonlinearLeastSquares' );
                 opts.Display     = 'Off';
@@ -354,7 +355,7 @@ classdef Epoch < Sharedmethods & Trace
                 opts.StartPoint  = [ydata(1) 0 fitts.getsteadystate];
 
                 % Fit model to data.
-                try [fitresult, gof] = fit( xdata, ydata, ft, opts ); f_status = 'Passed';
+                [fitresult, gof] = fit( xdata, ydata, ft, opts ); f_status = 'Passed';
                 catch err;
                 end
                 if strcmp(f_status,'Passed'),
