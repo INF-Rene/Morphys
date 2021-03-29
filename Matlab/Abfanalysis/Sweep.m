@@ -100,7 +100,7 @@ classdef Sweep < Sharedmethods & Trace
             end
         end
         
-        function obj= addNWBepochs(obj, epochtable)
+        function obj= addNWBepochs(obj, epochtable,fn)
             
             scalefactor=obj.labbooknum.StimScaleFactor;
             scalefactor=unique(scalefactor(~isnan(scalefactor)));
@@ -137,6 +137,13 @@ classdef Sweep < Sharedmethods & Trace
                     epochts=obj.getsampleusingtime(epochtab.strttime,epochtab.endtime);
                     epochtab.data=epochts.Data;
                     epochtab.units=obj.DataInfo.Units;
+                    
+                    %get stim data to read input current for "step" epoch;
+                    %hotfix for EM data
+                    if strcmp(epochtab.idxstr, 'B')
+                        stimdata=h5read(fn, [obj.stimdataloc '/data'], double(epochtab.strttime*1e-3*obj.samplefreq),double(epochtab.duration*1e-3*obj.samplefreq));
+                        epochtab.firstlevel = nanmedian(stimdata);
+                    end
 
                     %add the epoch to the sweep
                     obj=obj.addepoch(epochtab);

@@ -176,9 +176,9 @@ classdef nwbchannel < Sharedmethods
                             {scepochtable.idx(end)+1, scepochtable.number(end)+1, dur, 'Square pulse',...
                             native2unicode(65+scepochtable.number(end)+1),...
                             0,0,0,0,0,[0, 0, 0, 0], 0};
-                        sweep2add=sweep2add.addNWBepochs(scepochtable2);
+                        sweep2add=sweep2add.addNWBepochs(scepochtable2,fn);
                     else
-                        sweep2add=sweep2add.addNWBepochs(scepochtable);
+                        sweep2add=sweep2add.addNWBepochs(scepochtable,fn);
                     end
                     
                     
