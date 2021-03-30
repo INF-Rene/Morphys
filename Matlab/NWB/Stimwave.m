@@ -108,7 +108,27 @@ classdef Stimwave < Sharedmethods & Trace
         
         
         % ----------------------------------------- PLOTTING METHODS --------------------------------------------------------
-        
+        function plot(obj,varargin)
+            % NOTE when asking a sweep to plot itself, it will always plot its entire timeseries, regardless of wether
+            % certain epochs have been removed from list...
+            hold on
+            for i=1:numel(obj)
+                plot@timeseries(obj(i),varargin{:})
+                grid on
+            end
+            yl = ylim ;
+            yrange = yl(2)-yl(1) ;
+            yrange2add = yrange*0.1 ;
+            ylim([yl(1)-yrange2add yl(2)+yrange2add])
+            hold off
+            % some formatting...
+            title('Time Series Plot')
+            datainfo = [obj.DataInfo]; unitvals = unique({datainfo.Units});
+            timeinfo = [obj.TimeInfo]; timevals = unique({timeinfo.Units});
+            if numel(unitvals)==1, ylabel(unitvals{:}); end
+            if numel(timevals)==1, xlabel(timevals{:}); end
+
+        end
   
     end
 end

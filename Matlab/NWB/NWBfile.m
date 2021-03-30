@@ -341,15 +341,35 @@ classdef NWBfile < Sharedpaths & Sharedmethods
       
         % ----------------------------------------- PLOTTING METHODS --------------------------------------------------------
         
-        function [hfig,ax_handles] = plot(obj,varargin)
-            %popup dialog asking which stimset to plot
-            obj.getstimsets.plot;
+        function [hfig,ax_handles] = plot(obj,path2save)
+            % plot all available stimsets
+            for i = 1:numel(obj.stimsets)
+                obj.getstimset(i).plot;
+
+                if exist('path2save', 'var') 
+                   if isfolder(path2save)
+                       print(fullfile(path2save,[obj.getstimset(i).filename '_' obj.getstimset(i).name '.jpg']),  '-djpeg', '-r300'); 
+                   elseif i == 1 % only print warning message the first time
+                       warning('Please provide a valid path to save your figures.')
+                   end
+                end
+            end            
         end       
                
-        function hfig = plotanalysis(obj)
-            %popup dialog asking which stimset to plot
-            obj.getstimsets.plotanalysis;
-        end             
+        function hfig = plotanalysis(obj,path2save)
+            % plot all available stimsets
+            for i = 1:numel(obj.stimsets)
+                obj.getstimset(i).plotanalysis;
+
+                if exist('path2save', 'var') 
+                   if isfolder(path2save)
+                       print(fullfile(path2save,[obj.getstimset(i).filename '_' obj.getstimset(i).name '_analysis.jpg']),  '-djpeg', '-r300'); 
+                   elseif i == 1 % only print warning message the first time
+                       warning('Please provide a valid path to save your figures.')
+                   end
+                end
+            end
+        end
     end
                
 end

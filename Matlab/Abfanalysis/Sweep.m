@@ -257,9 +257,10 @@ classdef Sweep < Sharedmethods & Trace
             if nargin<2, apsaswell=1; end
             for i=1:numel(obj)
                 prev_steadystate = [];
+                prev_amp = [];
                 for ii=1:obj(i).nrofepochs
-                    if ii>1, prev_steadystate = obj(i).getepoch(ii-1).steadystate; end % collect previous baseline
-                    obj(i).epochs(ii) = obj(i).getepoch(ii).analyseepoch(apsaswell,prev_steadystate);
+                    if ii>1, prev_steadystate = obj(i).getepoch(ii-1).steadystate; prev_amp = obj(i).getepoch(ii-1).amplitude; end % collect previous baseline
+                    obj(i).epochs(ii) = obj(i).getepoch(ii).analyseepoch(apsaswell,prev_steadystate,prev_amp);
                 end
             end
         end
