@@ -281,6 +281,28 @@ for i = 1:length(filelist)
         else
             freqmax = NaN ;
         end
+        
+        
+         % Firstsweep and lastsweep ISIS EM edits
+          % nr of APs first sweep (Eline Edit)
+         NrOfAPfrstSwp = length(sweep(frstspikeswp).ap) ;
+         NrofAPtrainSwp = length(sweep(TrainSweep).ap);
+         NrofAPlastSwp = length(sweep(NrofSweeps).ap);
+   
+        if length(sweep(frstspikeswp).ap) > 1
+            isis_FS = [sweep(frstspikeswp).ap(2:end).isi];
+        else 
+            isis_FS = NaN ;
+        end
+
+        if length(sweep(NrofSweeps).ap) > 1
+            isis_LS = [sweep(NrofSweeps).ap(2:end).isi];
+            isis_LS1 = [sweep(NrofSweeps).ap(2).isi];
+        else 
+            isis_LS = NaN ;
+            isis_LS1 = NaN  ;
+        end
+      
 end
 
         %% Create summary  
@@ -300,6 +322,15 @@ end
         Summary(index).FrstSpikeSwp       = frstspikeswp ; 
         Summary(index).TrainSwp           = TrainSweep ; 
         Summary(index).CurrAbvRheo        = CurrAbvRheo ;
+         Summary(index).NrofAPsFrstSwp     = NrOfAPfrstSwp ; 
+        Summary(index).NrOfAPsTrSwp       = NrOfAPsTrSwp ;
+        Summary(index).NrofAPlastSwp      = NrofAPlastSwp ; 
+        Summary(index).isis_FS            = isis_FS ;
+       % Summary(index).isis_FS1           = isis_FS1 ;
+        Summary(index).ISIsTS             = ISIsTS ;
+        Summary(index).ISIsTS1            = ISIsTS1 ;
+        Summary(index).isis_LS            = isis_LS ;
+        Summary(index).isis_LS1           = isis_LS1 ;
         Summary(index).vmbaseM            = nanmean(vmbase) ;
         Summary(index).vmbaseSD           = nanstd(vmbase) ;
         Summary(index).Jitter             = nanmean([sweep.jitter]) ;
