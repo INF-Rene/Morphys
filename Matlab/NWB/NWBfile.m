@@ -172,7 +172,7 @@ classdef NWBfile < Sharedpaths & Sharedmethods
             obj.filename     = fileinfo.name;
             obj.filedirectory= fileDir;
             obj.filetype     = 'Neurodata Without Borders file';
-            obj.fileversion  = nwbv{1};
+            obj.fileversion  = nwbv(2);
             obj.filesize     = fileinfo.bytes;
             
             % create a savename
