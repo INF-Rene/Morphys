@@ -90,15 +90,20 @@ for i = 1:length(filelist)
             end
         end
 
+         % if you want to plot all first AP sweeps, get the percentage away form
+ % obj.getstimset and run this part via index
         for j = 1:length(obj.stimsets)
             if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},firstsweepname))
                 %figure(); obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).plot
-                obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).getepoch(step).aps(1).plot('superimpose','peak');
+                % obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).getepoch(step).aps(1).plot('superimpose','peak');
                 legend(filelist)
-                xlim([-20 30])
+                xlim([-5 10])
+                title('First AP')
+                ylabel('mV')
+                xlabel('ms')
             end
         end
-        
+       
         
         idx1 = 1 ;
         for j = frstspikeswp:NrofSweeps  
@@ -238,7 +243,21 @@ for i = 1:length(filelist)
         % determine sweep for sag, (minimum voltage response closest to -100)
         tmp = abs(MinVmResponse+100) ;
         [sagswp sagswp] = min(tmp) ;
+ sagsweepname = sweep(sagswp).Name ;
  
+ % if you want to plot all sag sweeps, get the percentage away form
+ % obj.getstimset and run this part via index 
+ for j = 1:length(obj.stimsets)
+            if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},sagsweepname))
+                %figure(); obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).plot
+               obj.getstimset(j).getnwbchannel.getsweep('Name',sagsweepname).plot;
+                legend(filelist)
+                xlim([0 1800])
+                title('Sag')
+                ylabel('mV')
+                xlabel('ms')
+            end
+        end
 
         % calculate input frequency curve
         Freqs = Freqs(Freqs~=0) ;
