@@ -3,7 +3,7 @@
 close all, clear all
 
 %% Set path to load and save data
-basedir = '/Users/elinemertens/Data/ephys/nwb2 analyzed/198' ;
+basedir = '/Users/elinemertens/Data/ephys/Hippocampus/165/165_nwb2_analysis' ;
 savedir = '/Users/elinemertens/Data/ephys/Summary/Human' ;
 savename = 'Summary' ;
 
@@ -95,11 +95,11 @@ for i = 1:length(filelist)
         for j = 1:length(obj.stimsets)
             if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},firstsweepname))
                 %figure(); obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).plot
-                % obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).getepoch(step).aps(1).plot('superimpose','peak');
+                 obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).getepoch(step).aps(1).plot('superimpose','peak');
                 legend(filelist)
                 xlim([-5 10])
                 title('First AP')
-                ylabel('mV')
+               ylabel('mV')
                 xlabel('ms')
             end
         end
@@ -250,12 +250,12 @@ for i = 1:length(filelist)
  for j = 1:length(obj.stimsets)
             if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},sagsweepname))
                 %figure(); obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).plot
-               obj.getstimset(j).getnwbchannel.getsweep('Name',sagsweepname).plot;
-                legend(filelist)
-                xlim([0 1800])
-                title('Sag')
-                ylabel('mV')
-                xlabel('ms')
+               % obj.getstimset(j).getnwbchannel.getsweep('Name',sagsweepname).plot;
+              %  legend(filelist)
+             %   xlim([0 1800])
+               % title('Sag')
+              %   ylabel('mV')
+             % xlabel('ms')
             end
         end
 
@@ -334,9 +334,9 @@ for i = 1:length(filelist)
             isis_LS1 = NaN  ;
         end
       
-        
+end 
+%get this one out when you want to make a large summary with n>1
        
-end
 
         %% Create summary  
         Summary(index).File               = stimset(1).filename ;
@@ -361,7 +361,7 @@ end
         Summary(index).isis_FS            = isis_FS ;
        % Summary(index).isis_FS1           = isis_FS1 ;
         Summary(index).ISIsTS             = ISIsTS ;
-        Summary(index).ISIsTS1            = ISIsTS1 ;
+        %Summary(index).ISIsTS1            = ISIsTS1 ;
         Summary(index).isis_LS            = isis_LS ;
         Summary(index).isis_LS1           = isis_LS1 ;
         Summary(index).vmbaseM            = nanmean(vmbase) ;

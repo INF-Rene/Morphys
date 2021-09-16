@@ -423,7 +423,7 @@ classdef Sweep < Sharedmethods & Trace
             obj.updatedconfig = 1;
         end
 
-        %% ----------------------------------------- PLOTTING METHODS -------------------------------------------------------
+        %% ----------------------------------------- sTING METHODS -------------------------------------------------------
         function plot(obj,varargin)
             % NOTE when asking a sweep to plot itself, it will always plot its entire timeseries, regardless of wether
             % certain epochs have been removed from list...

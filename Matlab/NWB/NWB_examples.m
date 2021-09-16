@@ -17,7 +17,7 @@ end
 
     
     %%
-fn= '/Users/elinemertens/Data/ephys/Human_nwb2/H21.29.198.21/H21.29.198.21.11.02.nwb'
+fn= '/Users/elinemertens/Data/ephys/Hippocampus/165/H19.29.165.21.41_ephys_converted/H19.29.165.21.41.02-nwb2.nwb'
 
 
 %%
@@ -25,7 +25,7 @@ nwb = NWBfile(fn,[{'LP'} {'hresh'} {'CCSteps_DA_0'} {'LSFINEST'} {'LSCOARSE'}])
 %%
 obj=nwb.analyseNWB
 %%
-obj.saveme('/Users/elinemertens/Data/ephys/nwb2 analyzed/198', '198_Tim_cell2');
+obj.saveme('/Users/elinemertens/Data/ephys/Hippocampus/165/165_nwb2_analysis', '165_rec2');
 
 %%
 %%obj.saveme('/Users/elinemertens/Data/ephys/Human/H20.29.185.21.01/nwb analyzed','185_cell1.mat');

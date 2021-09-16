@@ -95,11 +95,11 @@ for i = 1:length(filelist)
         for j = 1:length(obj.stimsets)
             if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},firstsweepname))
                 %figure(); obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).plot
-                % obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).getepoch(step).aps(1).plot('superimpose','peak');
+                 obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).getepoch(step).aps(1).plot('superimpose','peak');
                 legend(filelist)
                 xlim([-5 10])
                 title('First AP')
-                ylabel('mV')
+               ylabel('mV')
                 xlabel('ms')
             end
         end
@@ -250,9 +250,12 @@ for i = 1:length(filelist)
  for j = 1:length(obj.stimsets)
             if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},sagsweepname))
                 %figure(); obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).plot
-               obj.getstimset(j).getnwbchannel.getsweep('Name',sagsweepname).plot;
-                legend(filelist)
-               
+               % obj.getstimset(j).getnwbchannel.getsweep('Name',sagsweepname).plot;
+              %  legend(filelist)
+             %   xlim([0 1800])
+               % title('Sag')
+              %   ylabel('mV')
+             % xlabel('ms')
             end
         end
 
@@ -331,9 +334,9 @@ for i = 1:length(filelist)
             isis_LS1 = NaN  ;
         end
       
-        
+end 
+%get this one out when you want to make a large summary with n>1
        
-end
 
         %% Create summary  
         Summary(index).File               = stimset(1).filename ;
@@ -358,7 +361,7 @@ end
         Summary(index).isis_FS            = isis_FS ;
        % Summary(index).isis_FS1           = isis_FS1 ;
         Summary(index).ISIsTS             = ISIsTS ;
-        Summary(index).ISIsTS1            = ISIsTS1 ;
+        %Summary(index).ISIsTS1            = ISIsTS1 ;
         Summary(index).isis_LS            = isis_LS ;
         Summary(index).isis_LS1           = isis_LS1 ;
         Summary(index).vmbaseM            = nanmean(vmbase) ;
@@ -376,7 +379,8 @@ end
         Summary(index).Sag                = sweep(sagswp,1).epoch(strcmp({sweep(sagswp,1).epoch.idxstr}, 'B')).sag / PkDeflect(sagswp,1) ;
         Summary(index).VmatSag            = MinVmResponse(sagswp,1) ;
         Summary(index).SagvM              = sweep(sagswp,1).epoch(strcmp({sweep(sagswp,1).epoch.idxstr}, 'B')).sag ;
-        Summary(index).PkDeflect          = PkDeflect(sagswp,1) ; 
+        Summary(index).Sagsweepname         = sagsweepname
+    Summary(index).PkDeflect          = PkDeflect(sagswp,1) ; 
         Summary(index).TauM               = nanmean(taus(taus~=0)) ;
         Summary(index).TauSD              = nanstd(taus(taus~=0)) ;
         Summary(index).OnsetFrstAP        = sweep(frstspikeswp).ap(1).thresh_time - (seconds(sum([sweep(frstspikeswp).epoch(1:find(strcmp({sweep(frstspikeswp,1).epoch.idxstr}, 'A'))).timespan]))*1000) ; 
