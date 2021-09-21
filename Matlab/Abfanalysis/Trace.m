@@ -245,6 +245,14 @@ classdef Trace < timeseries
             s = obj(1).set('Data',std(obj.getdata,0,2)/sqrt(numel(obj)));
         end
         
+        function obj = low_pass_filter(obj, freq)
+            for i=1:numel(obj)
+                Wn = [(freq/(obj(i).samplefreq/2))];
+                [B,A] = butter(2,Wn, 'low');
+                obj(i).Data = filtfilt(B,A,double(obj(i).Data));
+            end
+        end
+        
         %% ---------------------------------------- AP ANALYSIS METHODS -----------------------------------------------------
         function obj = analyseaps(obj)
             % find APs and all currently available features

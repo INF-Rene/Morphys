@@ -14,26 +14,32 @@ abf = Abffile(fp,ss);
 
 for i=1:numel(fn)
     data=abfload_pro(fn{i});
-    if contains(fn{i}, 'H1')
-        plotcolor='r';
-    elseif contains(fn{i}, 'M1')
-        plotcolor='g';
-    end
-    signal=normalize(mean(squeeze(data(:,1,:))'), 'range');
-    stim=normalize(mean(squeeze(data(:,2,:))'), 'range');
+ 
+   
+    signal=mean(squeeze(data(:,1,:))');
+    stim=mean(squeeze(data(:,2,:))');
 
-    Fs = 10000;           % Sampling frequency
+     Fs = 10000;           % Sampling frequency
     L = length(signal);      % Signal length
     f = (0:L-1)*Fs/L;
+
     signal_fft=fft(signal);
     stim_fft=fft(stim);
 
     %plot
-    %smoothed
-    plot(f, smooth(abs(signal_fft)./abs(stim_fft)),plotcolor);
+
+%     %raw
+    plot(f, abs(signal_fft)./abs(stim_fft));
     xlim([0.5 35])
     hold on
-%     %raw
-%     plot(f, abs(signal_fft)./abs(stim_fft));
-%     xlim([0.5 35])
+        %smoothed
+    smoothed=smooth(abs(signal_fft)./abs(stim_fft),23,  'lowess');
+    plot(f, smoothed);
+    xlim([0.5 35])
+    
+    %resonance freq
+    [~, loc] = max(smoothed(f>0.5 & f<35));
+    f2 = f(f>0.5 & f<35);
+    res_freq = f2(loc);
+
 end
