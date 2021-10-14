@@ -1,19 +1,3 @@
-%select folder to analyze 
-folder = uigetdir 
-cd (folder);
-%make a list with all nwbs
-list = dir();
-list = struct2table(list);
-list = list(list.bytes>1000,:); %only files with actual data
-
-%% USE THIS nwb2: 
-for i = 1:numel(list.name)
- nwb = NWBfile([{'X8'}]);
- nwb.savename = sprintf('res_%s.nwb',nwb.filename(1:end-4));
- saveme(nwb,'/Users/elinemertens/Data/ephys/Hippocampus/Resonance/198', nwb.savename) 
-end
-
-
 %% Resonance analysis  single files 
 
 fn= '/Users/elinemertens/Data/ephys/Hippocampus/165/H19.29.165.21.41_ephys_converted/H19.29.165.21.41.05_nwb2.nwb'
@@ -21,23 +5,26 @@ fn= '/Users/elinemertens/Data/ephys/Hippocampus/165/H19.29.165.21.41_ephys_conve
 nwb = NWBfile(fn,[{'X8_C'}])
 
 
-%% Zorg dat hiervoor de traces individueel al bekeken zijn of ze vergelijkbaar zijn (indien niet, geen average trace nemen)
-
-%% know the list (only for list)
-basedir = '/Users/elinemertens/Data/ephys/Hippocampus/Resonance' ;
-fileinfo  = dir(fullfile(basedir,'*.nwb'));
-filelist  = {fileinfo.name};
-
-%% Bij errors 'expected input to be finite' moet je 
+%% Zorg dat hiervoor de traces individueel al bekeken zijn of ze vergelijkbaar zijn 
+%(indien niet, geen average trace nemen)
+% Bij errors 'expected input to be finite' moet je 
 % even de losse sweeps bekijken en dan de juiste sweeps selecteren
 % signal = nwb.getstimset.getnwbchannel.getsweep(1:3).avtrace
-  
-signal = nwb.getstimset.getnwbchannel.getsweep(7).avtrace;
+ signal = nwb.getstimset.getnwbchannel.getsweep.avtrace;
+ 
+ plot(signal)
+ 
+ %looks good? combine them 
+
+%%
+signal = nwb.getstimset.getnwbchannel.getsweep(1:3).avtrace;
 
 plot(signal)
 %%
 signal = signal.low_pass_filter(1000);
-stim = nwb.getstimset.getnwbchannel.getstimwave(1).Data ;
+%check if you take correct stimwave(#) (after wash in this is diff)
+stim = nwb.getstimset.getnwbchannel.getstimwave(2).Data ;
+% if the first sweep is bad or incomplete, take getstimwave(2)
 signal=signal.resample(0:0.1:signal.TimeInfo.End).Data;
 
 
@@ -49,9 +36,47 @@ signal=signal.resample(0:0.1:signal.TimeInfo.End).Data;
     Fs = 10000;           % Sampling frequency
     L = length(signal);      % Signal length
     f = (0:L-1)*Fs/L;
-
+   
     plot(signal)
     grid off
+set(gca, 'TickDir', 'out')
+    ylabel('Voltage (mV)','FontSize',12)
+              xlabel('Time (sec)', 'FontSize',12)
+   
+              %%
+ 
+ time = nwb.stimsets.nwbchannels.sweeps(2).Time  ;
+ start_rmp = mean(signal(time>1000 & time<5000));
+ plot(signal)
+ xlim([0 5000])
+
+ 
+ %% max amplitude 
+
+[first_wave, loc] = max(signal(time>500 & time<1500));
+ delta_first_wave = (start_rmp) - (first_wave) ; 
+ plot(time)
+
+ 
+ %%
+ 
+[max_ampl, loc] = max(signal(time>1500 & time<20000));
+t2 = time(time>1500 & time<20000);
+  time_max_amp = t2(loc);
+
+%max_amp = max(signal(time>1500 & time<20000));
+% end_rmp = mean(time>21000 & time<23000) ;
+ 
+ 
+ 
+  %%
+  nwb.stimsets.nwbchannels.sweeps(1, 1).Data  
+  
+  
+  [max_amp, loc] = max(signal(stim>1500 & stim<20000)); 
+s2 = signal(stim>1500 & stim<20000);
+  time_max_amp = s2(loc);
+              
     
     %%
     signal_fft=fft(signal);
@@ -60,29 +85,47 @@ signal=signal.resample(0:0.1:signal.TimeInfo.End).Data;
     %plot
 
 %     %raw
-    plot(f, abs(signal_fft)./abs(stim_fft));
-    xlim([0.5 35])
+    plot(f, abs((signal_fft)./abs(stim_fft)*1000));
+    xlim([0.5 25])
     hold on
         %smoothed
-    smoothed=smooth(abs(signal_fft)./abs(stim_fft),23,  'lowess');
+    smoothed=smooth(abs((signal_fft)./abs(stim_fft)*1000),23,  'lowess');
     plot(f, smoothed);
-    xlim([0.5 35])
+    xlim([0.5 25])
     
     %% plot only smoothed 
-    
-     smoothed=smooth(abs(signal_fft)./abs(stim_fft),23,  'lowess');
+
+     smoothed=smooth((abs(signal_fft)./abs(stim_fft)*1000),23,  'lowess');
     plot(f, smoothed);
-    xlim([0.5 35])
-    grid off
-  
-          
-            
-                 ylabel('find out')
-              xlabel('Frequency (Hz)')
+    xlim([0.5 25])
+    grid off  ;
+set(gca, 'TickDir', 'out')
+    box off         
+                 ylabel('Impedance (MΩ)','FontSize',12)
+              xlabel('Frequency (Hz)', 'FontSize',12)
     
    %% resonance freq
-    [~, loc] = max(smoothed(f>0.5 & f<35));
-    f2 = f(f>0.5 & f<35);
+    [max_imp, loc] = max(smoothed(f>0.5 & f<25));
+    f2 = f(f>0.5 & f<25);
     res_freq = f2(loc);
     
-
+    
+    %% 3db cutoff
+   normalized = smoothed(f>0.5 & f<25)./max_imp;
+   
+   % when does normalized frequency response go below square root of 0.5?
+   % This is the definition of 3 dB cutoff!
+   cutoff_3db=f2(find(normalized>=sqrt(0.5), 1, 'last'));
+   figure
+   plot(f2, normalized)
+   hold on
+   line(xlim,[sqrt(0.5), sqrt(0.5)],'linewidth',2,'lineStyle',':','color','k')
+   %line([cutoff_3db, cutoff_3db],ylim,'linewidth',2,'lineStyle',':','color','k')
+ ylim([0.1 1.2])
+ box off
+ set(gca, 'TickDir', 'out')
+ ylabel('Impedance (normalized)','FontSize',12)
+ xlabel('Frequency (Hz)', 'FontSize',12)
+   
+%%
+clear all 

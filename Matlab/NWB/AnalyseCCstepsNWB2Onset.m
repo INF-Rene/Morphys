@@ -3,7 +3,7 @@
 close all, clear all
 
 %% Set path to load and save data
-basedir = '/Users/elinemertens/Data/ephys/Hippocampus/165/165_nwb2_analysis' ;
+basedir = '/Users/elinemertens/Data/ephys/Hippocampus/185' ;
 savedir = '/Users/elinemertens/Data/ephys/Summary/Human' ;
 savename = 'Summary' ;
 
@@ -95,12 +95,12 @@ for i = 1:length(filelist)
         for j = 1:length(obj.stimsets)
             if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},firstsweepname))
                 %figure(); obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).plot
-                 obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).getepoch(step).aps(1).plot('superimpose','peak');
-                legend(filelist)
-                xlim([-5 10])
-                title('First AP')
-               ylabel('mV')
-                xlabel('ms')
+             %    obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).getepoch(step).aps(1).plot('superimpose','peak');
+             %   legend(filelist)
+              %  xlim([-5 10])
+              %  title('First AP')
+            %   ylabel('mV')
+            %    xlabel('ms')
             end
         end
        
@@ -249,13 +249,15 @@ for i = 1:length(filelist)
  % obj.getstimset and run this part via index 
  for j = 1:length(obj.stimsets)
             if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},sagsweepname))
-                %figure(); obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).plot
-               % obj.getstimset(j).getnwbchannel.getsweep('Name',sagsweepname).plot;
-              %  legend(filelist)
-             %   xlim([0 1800])
-               % title('Sag')
-              %   ylabel('mV')
-             % xlabel('ms')
+                %%figure(); obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).plot
+                obj.getstimset(j).getnwbchannel.getsweep('Name',sagsweepname).plot;
+                legend(filelist)
+                xlim([0 1800])
+                title('Sag')
+                grid off
+                 set(gca, 'TickDir', 'out')
+                 ylabel('mV')
+              xlabel('ms')
             end
         end
 
