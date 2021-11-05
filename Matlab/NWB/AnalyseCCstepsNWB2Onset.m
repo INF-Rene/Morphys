@@ -3,7 +3,7 @@
 close all, clear all
 
 %% Set path to load and save data
-basedir = '/Users/elinemertens/Data/ephys/Hippocampus/185' ;
+basedir = '/Users/elinemertens/Data/ephys/nwb2 analyzed/205' ;
 savedir = '/Users/elinemertens/Data/ephys/Summary/Human' ;
 savename = 'Summary' ;
 
@@ -336,7 +336,7 @@ for i = 1:length(filelist)
             isis_LS1 = NaN  ;
         end
       
-end 
+%end 
 %get this one out when you want to make a large summary with n>1
        
 
@@ -478,11 +478,11 @@ end
         Summary(index).onsetrap21to40  = nanmean(aps2.onsetrapidity(aps2.freqbin>=3 & aps2.freqbin<=4)) ;
         Summary(index).updwnratio21to40  = nanmean(aps2.updownratio(aps2.freqbin>=3 & aps2.freqbin<=4)) ;
 
-        %end %if at line 64
+        %end %if at line 64 
         %clear variables assigned in "sweep" For loop
         clearvars -except Summary i basedir savedir savename filelist index
         index = index + 1 ;
-    %end
+    end
 %% save
 save(fullfile(savedir, savename), 'Summary') ;
 clearvars -except Summary i

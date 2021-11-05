@@ -1,6 +1,6 @@
 %% Resonance analysis  single files 
 
-fn= '/Users/elinemertens/Data/ephys/Hippocampus/165/H19.29.165.21.41_ephys_converted/H19.29.165.21.41.05_nwb2.nwb'
+fn= '/Users/elinemertens/Data/ephys/Hippocampus/H21.29.198.21/H21.29.198.21.01.01.nwb'
 
 nwb = NWBfile(fn,[{'X8_C'}])
 
@@ -10,6 +10,7 @@ nwb = NWBfile(fn,[{'X8_C'}])
 % Bij errors 'expected input to be finite' moet je 
 % even de losse sweeps bekijken en dan de juiste sweeps selecteren
 % signal = nwb.getstimset.getnwbchannel.getsweep(1:3).avtrace
+% or signal = nwb.getstimset.getnwbchannel.getsweep([1:4 5:6]).avtrace;
  signal = nwb.getstimset.getnwbchannel.getsweep.avtrace;
  
  plot(signal)
@@ -17,7 +18,7 @@ nwb = NWBfile(fn,[{'X8_C'}])
  %looks good? combine them 
 
 %%
-signal = nwb.getstimset.getnwbchannel.getsweep(1:3).avtrace;
+signal = nwb.getstimset.getnwbchannel.getsweep(2:3).avtrace;
 
 plot(signal)
 %%
@@ -46,14 +47,15 @@ set(gca, 'TickDir', 'out')
  %% Values resonance 
  
 time = nwb.getstimset.getnwbchannel.getstimwave(2).Time ;  
- start_rmp = mean(signal(time>100 & time<500));
+ aastart_rmp = mean(signal(time>100 & time<500));
 
 [first_wave, loc] = max(signal(time>500 & time<1500));
- delta_first_wave = (start_rmp) - (first_wave) ; 
+ adelta_first_wave = (aastart_rmp) - (first_wave) ; 
 
 [max_ampl, loc] = max(signal(time>1500 & time<20000));
 t2 = time(time>1500 & time<20000);
   time_max_amp = t2(loc);
+  cdelta_max_wave = (aastart_rmp) - (max_ampl) ;
 
 end_rmp = mean(signal(time>21000 & time<23000)) ;
           
