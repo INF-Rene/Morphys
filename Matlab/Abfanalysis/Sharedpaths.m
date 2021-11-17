@@ -21,7 +21,7 @@ classdef Sharedpaths
     
     properties (Hidden = true)
         listofuserids       = {'AKS','DBH','DRU','EJM', 'GTS','IKS','JDZ','JOR','JSR','MBV','NAG','RBP','RWS','SHT','THK','TKN'};
-        dir_base            = 'D:\';
+        dir_base            = '/Users/elinemertens/Downloads/Morphys-master';
         dir_ephys           = fullfile('Morphys','Data','Electrophysiology');
         dir_abfs            = fullfile('Morphys','Data','Electrophysiology','Abffiles');
         dir_setupsettings   = fullfile('Morphys','Data','Electrophysiology','SetupSettings');

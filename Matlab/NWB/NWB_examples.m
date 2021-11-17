@@ -9,19 +9,19 @@ list = list(list.bytes>1000,:); %only files with actual data
 %% USE THIS nwb2: 
 for i = 1:numel(list.name)
     fn =cell2mat(list.name(i));
- nwb = NWBfile(fn,[{'LP'} {'hresh'} {'CCSteps_DA_0'} {'LSFINEST'} {'LSCOARSE'}]);
+ nwb = NWBfile(fn,[{'LP'} {'hresh'} {'teps_DA_0'} {'LSFINEST'} {'LSCOARSE'}]);
  obj =nwb.analyseNWB ;
  obj.savename = sprintf('NWB_%s.mat',obj.filename(1:end-4));
- saveme(obj,'/Users/elinemertens/Data/ephys/nwb2 analyzed/203', obj.savename) 
+ saveme(obj,'/Users/elinemertens/Data/ephys/nwb2 analyzed/184', obj.savename) 
 end
 
     
     %%
-fn= '/Users/elinemertens/Data/ephys/Hippocampus/165/H19.29.165.21.41_ephys_converted/H19.29.165.21.41.05_nwb2.nwb'
+fn= '/Users/elinemertens/Data/ephys/Hippocampus/H20.29.184.21/nwb2/H20.29.184.21.41.02.nwb'
 
 
-%%
-nwb = NWBfile(fn,[{'LP'} {'hresh'} {'CCSteps_DA_0'} {'LSFINEST'} {'LSCOARSE'}])
+%% let op of je wel of geen chirp wilt 
+nwb = NWBfile(fn,[{'LP'} {'hresh'} {'CCSteps'} {'LSFINEST'} {'LSCOARSE'} {'CHIRP'}])
 %%
 obj=nwb.analyseNWB
 %%

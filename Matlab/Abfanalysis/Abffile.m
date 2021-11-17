@@ -271,7 +271,7 @@ classdef Abffile < Sharedpaths & Setupsettings
                 
                 % Ignore DACs in stringSection that are already defined by protocol section. These MUST be inactive atf
                 % files and therefore not interesting.
-                if ~strcmp('eCode',tmpoutinfo.stimfilename{1}(1:5))
+                if numel(tmpoutinfo.stimfilename{1}) < 5 | ~strcmp('eCode',tmpoutinfo.stimfilename{1}(1:5));
                     outchannels = outchannels(~ismember(outchannels,obj.getanalogoutputnrs_current));
                 end
                 
@@ -630,6 +630,9 @@ classdef Abffile < Sharedpaths & Setupsettings
             % Assumption: only .pro and .atf files are listed in string section
 
             %########################################################################################################################
+            % replace all \ with / to be compatable with macbook files 
+            stringsection = strrep(stringsection, '\', '/') ;
+
 
             % Find all paths first:
             stringsection = stringsection(stringsection~='#'); % remove annoying hashtags
@@ -640,6 +643,7 @@ classdef Abffile < Sharedpaths & Setupsettings
                 pathsidxstr {i,1}   = stringsection(pathsIdx(i*2-1)-1: pathsIdx(i*2-1+1)+3);
             end    
 
+           
             switch request
                 case 1 % Return protocol (assuming there can be only one for an abf file):
                     [filepath,filename] = fileparts(pathsidxstr{[cellfun(@(x) strcmp('.pro',x(end-3:end)),pathsidxstr)],:});

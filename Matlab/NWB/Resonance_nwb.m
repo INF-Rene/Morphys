@@ -1,6 +1,6 @@
-%% Resonance analysis  single files 
+%% Resonance analysis  single files (raw nwb files)
 
-fn= '/Users/elinemertens/Data/ephys/Hippocampus/H21.29.198.21/H21.29.198.21.01.01.nwb'
+fn= '/Users/elinemertens/Data/ephys/Hippocampus/H20.29.185.21/H20.29.185.21.02.nwb'
 
 nwb = NWBfile(fn,[{'X8_C'}])
 
@@ -11,7 +11,7 @@ nwb = NWBfile(fn,[{'X8_C'}])
 % even de losse sweeps bekijken en dan de juiste sweeps selecteren
 % signal = nwb.getstimset.getnwbchannel.getsweep(1:3).avtrace
 % or signal = nwb.getstimset.getnwbchannel.getsweep([1:4 5:6]).avtrace;
- signal = nwb.getstimset.getnwbchannel.getsweep.avtrace;
+ signal = nwb.getstimset.getnwbchannel.getsweep(5).avtrace;
  
  plot(signal)
  
