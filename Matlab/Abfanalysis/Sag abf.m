@@ -1,9 +1,11 @@
-p1   = ('/Users/elinemertens/Data/ephys/Hippocampus/H17.29.117.21/H17.29.117.21.IV');
-fn1  = '2017_03_30_0071.abf';
+p1   = ('/Users/elinemertens/Data/ephys/Hippocampus/H17.29.117.21/H17.29.117.21_all_thijs');
+fn1  = '2017_03_29_0041.abf';
 fp1  = fullfile(p1,fn1);
 ss  = load('/Users/elinemertens/Data/Morphys-master/Matlab/Abfanalysis/Setupsettings_INF.mat');
 ss  = ss.obj;
 abf = Abffile(fp1,ss);
+abf.plot
+%%
 abf = abf.analyseabf ; 
 
 %% if you want to specify the correct channels you do this 

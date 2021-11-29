@@ -17,15 +17,15 @@ end
 
     
     %%
-fn= '/Users/elinemertens/Data/ephys/Hippocampus/H20.29.184.21/nwb2/H20.29.184.21.41.02.nwb'
+fn= '/Users/elinemertens/Data/ephys/Hippocampus/H21.29.198.21/H21.29.198.21.11.01.nwb'
 
 
 %% let op of je wel of geen chirp wilt 
-nwb = NWBfile(fn,[{'LP'} {'hresh'} {'CCSteps'} {'LSFINEST'} {'LSCOARSE'} {'CHIRP'}])
+nwb = NWBfile(fn,[{'LP'} {'hresh'} {'teps'} {'LSFINEST'} {'LSCOARSE'} {'CHIRP'}])
 %%
 obj=nwb.analyseNWB
 %%
-obj.saveme('/Users/elinemertens/Data/ephys/nwb2 analyzed/202', '202_05');
+obj.saveme('/Users/elinemertens/Data/ephys/Hippocampus/nwb2 analyzed/184', '184.03.mat');
 
 %%
 %%obj.saveme('/Users/elinemertens/Data/ephys/Human/H20.29.185.21.01/nwb analyzed','185_cell1.mat');

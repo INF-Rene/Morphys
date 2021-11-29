@@ -1,6 +1,6 @@
-% patient 117 hippocampus analysis 
-p1   = ('//Users/elinemertens/Data/ephys/Hippocampus/H17.29.117.21/resonance_all');
-fn1  = '2017_03_29_s2_c2_0017.abf';
+% patient 117 hippocampus analysis  for resonance
+p1   = ('/Users/elinemertens/Data/ephys/Hippocampus/H17.29.117.21/H17.29.117.21_all_thijs');
+fn1  = '2017_03_29_0041.abf';
 fp1  = fullfile(p1,fn1);
 ss  = load('/Users/elinemertens/Data/Morphys-master/Matlab/Abfanalysis/Setupsettings_INF.mat');
 ss  = ss.obj;
@@ -36,9 +36,9 @@ signal=signal.resample(0:0.1:signal.TimeInfo.End).Data;
                  ylabel('Voltage (mV)')
               xlabel('Time (sec)')
               
-  %%
+  %% for tijs you do channels (1,2) and for djai not 
                
-time = zabf1.channels.analogins(1,1).sweeps.Time ;  
+time = zabf1.channels(1,2).analogins(1,1).sweeps.Time ;  
  aastart_rmp = mean(signal(time>100 & time<140));
 
 [first_wave, loc] = max(signal(time>140 & time<700));

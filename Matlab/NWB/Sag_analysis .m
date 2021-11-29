@@ -1,5 +1,5 @@
 %%Load in analyzed mat files 
-basedir = '/Users/elinemertens/Data/ephys/Hippocampus/H20.29.184.21/nwb2' ;
+basedir = '/Users/elinemertens/Data/ephys/Hippocampus/nwb2 analyzed/198' ;
 savedir = '/Users/elinemertens/Data/ephys/Summary/Human' ;
 savename = 'Summary' ;
 

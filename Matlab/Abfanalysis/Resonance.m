@@ -3,8 +3,8 @@
 %  MATLAB version: 9.10.0.1602886 (R2021a)
 % -------------------------------------------------------------------
 
-p   = ('/Users/elinemertens/Downloads');
-fn  = '2018_10_17_0018.abf';
+p   = ('/Users/elinemertens/Data/ephys/Hippocampus/H17.29.117.21/H17.29.117.21_all_thijs');
+fn  = '2017_03_29_0041.abf';
 fp  = fullfile(p,fn);
 ss  = load('/Users/elinemertens/Data/Morphys-master/Matlab/Abfanalysis/Setupsettings_INF.mat');
 ss  = ss.obj;

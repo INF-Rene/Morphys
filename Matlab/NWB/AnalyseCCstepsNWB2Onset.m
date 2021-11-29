@@ -3,7 +3,7 @@
 close all, clear all
 
 %% Set path to load and save data
-basedir = '/Users/elinemertens/Data/ephys/nwb2 analyzed/Hipp example traces' ;
+basedir = '/Users/elinemertens/Data/ephys/Hippocampus/nwb2 analyzed/185' ;
 savedir = '/Users/elinemertens/Data/ephys/Summary/Human' ;
 savename = 'Summary' ;
 
@@ -335,9 +335,14 @@ for i = 1:length(filelist)
             isis_LS = NaN ;
             isis_LS1 = NaN  ;
         end
-      
-%end 
-%get this one out when you want to make a large summary with n>1
+     
+        %get the holding current 
+        lb = obj.getstimset(1).getnwbchannel(1).labbooknum ; 
+        vals=lb.I0x2DClampHoldingLevel(~isnan(lb.I0x2DClampHoldingLevel)) ; 
+        currentinj_avg = nanmedian(vals) ; 
+        
+%end if you want to make a large summary, remove the end here 
+
        
 
         %% Create summary  
@@ -347,7 +352,7 @@ for i = 1:length(filelist)
         Summary(index).guid               = obj.guid ;
         Summary(index).Channel            = NaN ;
         Summary(index).scalefactor        = NaN ;
-        Summary(index).holdingcurrent     = NaN ;
+        Summary(index).holdingcurrent     = currentinj_avg ;
         Summary(index).holdingvoltage     = NaN ;
         Summary(index).NrofSweeps         = NrofSweeps ;
         Summary(index).PDur               = seconds(sweep(1).epoch(strcmp({sweep(1).epoch.idxstr}, 'B')).timespan)*1000 ;
