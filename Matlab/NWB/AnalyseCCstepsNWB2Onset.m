@@ -3,7 +3,7 @@
 close all, clear all
 
 %% Set path to load and save data
-basedir = '/Users/elinemertens/Data/ephys/Hippocampus/nwb2 analyzed/185' ;
+basedir = '/Users/elinemertens/Data/ephys/nwb2 analyzed/199' ;
 savedir = '/Users/elinemertens/Data/ephys/Summary/Human' ;
 savename = 'Summary' ;
 
@@ -95,9 +95,9 @@ for i = 1:length(filelist)
         for j = 1:length(obj.stimsets)
             if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},firstsweepname))
                 %figure(); obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).plot
-             %    obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).getepoch(step).aps(1).plot('superimpose','peak');
-             %   legend(filelist)
-              %  xlim([-5 10])
+                 obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).getepoch(step).aps(1).plot('superimpose','peak');
+                legend(filelist)
+                xlim([-5 10])
               %  title('First AP')
             %   ylabel('mV')
             %    xlabel('ms')
@@ -247,19 +247,19 @@ for i = 1:length(filelist)
  
  % if you want to plot all sag sweeps, get the percentage away form
  % obj.getstimset and run this part via index 
- for j = 1:length(obj.stimsets)
-            if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},sagsweepname))
-                %%figure(); obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).plot
-                obj.getstimset(j).getnwbchannel.getsweep('Name',sagsweepname).plot;
-                legend(filelist)
-                xlim([0 1800])
-                title('Sag')
-                grid off
-                 set(gca, 'TickDir', 'out')
-                 ylabel('mV')
-              xlabel('ms')
-            end
-        end
+%  for j = 1:length(obj.stimsets)
+%             if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},sagsweepname))
+%                 %%figure(); obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).plot
+%                 obj.getstimset(j).getnwbchannel.getsweep('Name',sagsweepname).plot;
+%                 legend(filelist)
+%                 xlim([0 1800])
+%                 title('Sag')
+%                 grid off
+%                  set(gca, 'TickDir', 'out')
+%                  ylabel('mV')
+%               xlabel('ms')
+%             end
+%         end
 
         % calculate input frequency curve
         Freqs = Freqs(Freqs~=0) ;
@@ -343,7 +343,7 @@ for i = 1:length(filelist)
         
 %end if you want to make a large summary, remove the end here 
 
-       
+
 
         %% Create summary  
         Summary(index).File               = stimset(1).filename ;

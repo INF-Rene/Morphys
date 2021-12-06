@@ -1,6 +1,6 @@
 %% Resonance analysis  single files (raw nwb files)
 
-fn= '/Users/elinemertens/Data/ephys/Hippocampus/H20.29.185.21/H20.29.185.21.06.nwb'
+fn= '/Users/elinemertens/Downloads/H21.29.190.11.05-compressed.nwb'
 
 nwb = NWBfile(fn,[{'X8_C'}])
 
