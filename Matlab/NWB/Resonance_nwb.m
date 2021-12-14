@@ -1,6 +1,6 @@
 %% Resonance analysis  single files (raw nwb files)
 
-fn= '/Users/elinemertens/Downloads/H21.29.190.11.05-compressed.nwb'
+fn= '/Users/elinemertens/Data/ephys/Hippocampus/H21.29.198.21/H21.29.198.21.11.01.nwb'
 
 nwb = NWBfile(fn,[{'X8_C'}])
 
@@ -18,7 +18,7 @@ nwb = NWBfile(fn,[{'X8_C'}])
  %looks good? combine them 
 
 %%
-signal = nwb.getstimset.getnwbchannel.getsweep(2:5).avtrace;
+signal = nwb.getstimset.getnwbchannel.getsweep.avtrace;
 
 plot(signal)
 %%

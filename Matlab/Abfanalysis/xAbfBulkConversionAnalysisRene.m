@@ -17,7 +17,7 @@
     %        
 %% presets
 % set a USERNAME
-listofuserids = {'AKS','DBH','DRU','GTS','IKS','JDZ','JOR','JSR','MBV','NAG','RBP','RWS','SHT','THK','TKN'};
+listofuserids = {'AKS','EJM', 'DBH','DRU','GTS','IKS','JDZ','JOR','JSR','MBV','NAG','RBP','RWS','SHT','THK','TKN'};
 global USERNAME
 if isempty(USERNAME)
     idx = listdlg('PromptString','Select a userid:','SelectionMode','single','ListString',listofuserids);
