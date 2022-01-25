@@ -277,6 +277,8 @@ classdef Trace < timeseries
                 %obj(i) = obj(i).getreladp;
                 %fprintf('Onsetrapidity...\n')
                 obj(i) = obj(i).getonsrapidity;
+                obj(i) = obj(i).getupstroke;
+                obj(i) = obj(i).getdownstroke;
                 %fprintf('startend...\n')
                 obj(i) = obj(i).getapstartend;
                 %fprintf('apnrs...\n')

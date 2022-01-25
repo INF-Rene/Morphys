@@ -4,7 +4,7 @@ classdef NWBfile < Sharedpaths & Sharedmethods
     %   This uses matlab's built in hdf5 functions to load electrophysiology data from a 
     %   NWB file (Neurodata Without Borders, see https://neurodatawithoutborders.github.io/)
     %   ---------------------------------------------------------------------------------------------------------------------
-    %   Author:       René Wilbers (renewilbers@gmail.com)
+    %   Author:       Renï¿½ Wilbers (renewilbers@gmail.com)
     %   Created:      29-03-2019
     %   Modifications (Date/Name/Description):
     %   ---------------------------------------------------------------------------------------------------------------------
@@ -92,7 +92,7 @@ classdef NWBfile < Sharedpaths & Sharedmethods
             if isempty(stimsetfilters) && isempty(sweepselect)
                 protocols=cell(numel(swps), 1);
                 for i=1:numel(swps)
-                    protocols(i) = h5read(fn, [swps{i} '/stimulus_description']);
+                    protocols(i) = h5readatt(fn, swps{i}, 'stimulus_description');
                 end
                 list = unique(protocols);
                 [indx,tf] = listdlg('ListString',list);
