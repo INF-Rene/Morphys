@@ -75,14 +75,12 @@ classdef NWBfile < Sharedpaths & Sharedmethods
             
             
             % load NWB info
-            obj.fileconversiondate = char(datetime(datestr(now()),'Format',obj.datetimefmt));
+             info=h5info(fn);          
+            grloc = strcmp({info.Attributes.Name}, 'nwb_version');
+            nwbv = info.Attributes(grloc).Value ;
             
-            info=h5info(fn);
-            nwbv=h5read(fn, '/nwb_version');
-            if ~strcmp(nwbv, 'NWB-1.0.5')
-                warnmsg=sprintf('This script was designed for NWB-1.0.5. The loaded file has version %s \n', nwbv{1});
-                warning(warnmsg)
-            end
+            if ~strcmp(nwbv, '2.2.4')
+                warnmsg=sprintf('This script was designed for NWB-2.2.4. The loaded file has version %s \n', nwbv{1});
             
             grloc = strcmp({info.Groups(1).Groups.Name}, '/acquisition/timeseries');
             swps={info.Groups(1).Groups(grloc).Groups.Name};
