@@ -1,7 +1,7 @@
 %%Load in analyzed mat files 
-basedir = '/Users/elinemertens/Data/ephys/Hippocampus/nwb2 analyzed/198' ;
+basedir = '/Users/elinemertens/Data/ephys/Analyzed/209_ZD' ;
 savedir = '/Users/elinemertens/Data/ephys/Summary/Human' ;
-savename = 'Summary' ;
+savename = 'Summary_209' ;
 
 %% load file list
 fileinfo  = dir(fullfile(basedir,'*.mat'));

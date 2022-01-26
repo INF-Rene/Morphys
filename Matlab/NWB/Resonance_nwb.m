@@ -1,6 +1,6 @@
 %% Resonance analysis  single files (raw nwb files)
 
-fn= '/Users/elinemertens/Data/ephys/Hippocampus/H21.29.198.21/H21.29.198.21.11.01.nwb'
+fn= '/Users/elinemertens/Downloads/cell6_DIV9.nwb'
 
 nwb = NWBfile(fn,[{'X8_C'}])
 
@@ -11,14 +11,14 @@ nwb = NWBfile(fn,[{'X8_C'}])
 % even de losse sweeps bekijken en dan de juiste sweeps selecteren
 % signal = nwb.getstimset.getnwbchannel.getsweep(1:3).avtrace
 % or signal = nwb.getstimset.getnwbchannel.getsweep([1:4 5:6]).avtrace;
- signal = nwb.getstimset.getnwbchannel.getsweep(3).avtrace;
+ signal = nwb.getstimset.getnwbchannel.getsweep([1:3]).avtrace;
  
  plot(signal)
  
  %looks good? combine them 
 
 %%
-signal = nwb.getstimset.getnwbchannel.getsweep.avtrace;
+signal = nwb.getstimset.getnwbchannel.getsweep(15).avtrace;
 
 plot(signal)
 %%
@@ -92,7 +92,7 @@ set(gca, 'TickDir', 'out')
     res_freq = f2(loc);
     
     
-    %% 3db cutoff
+    %% 3db cutoff 
    normalized = smoothed(f>0.5 & f<25)./max_imp;
    
    % when does normalized frequency response go below square root of 0.5?
@@ -111,3 +111,8 @@ set(gca, 'TickDir', 'out')
    
 %%
 clear all 
+
+%%  
+plot(stim) 
+hold on 
+ylim([-300,300])

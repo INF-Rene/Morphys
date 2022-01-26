@@ -3,9 +3,9 @@
 close all, clear all
 
 %% Set path to load and save data; mat data load 
-basedir = '/Users/elinemertens/Data/ephys/Analyzed/199' ;
+basedir = '/Users/elinemertens/Data/ephys/Analyzed/209' ;
 savedir = '/Users/elinemertens/Data/ephys/Summary/Human' ;
-savename = 'Summary' ;
+savename = 'Summary_209' ; 
 
 %% load file list
 fileinfo  = dir(fullfile(basedir,'*.mat'));
@@ -118,11 +118,11 @@ for i = 1:length(filelist)
         %if apcrit==1 %end at line 332
         % calculate variables
         vmbase = [sweep.vmbase] ;
-        Freqs=[];
-        StimInts=[];
-        currInjections_R=[];
-        voltageResponses=[];
-        taus=[];
+        Freqs= NaN(NrofSweeps,1) ;
+        StimInts= NaN(NrofSweeps,1) ;
+        currInjections_R= NaN(NrofSweeps,1);
+        voltageResponses= NaN(NrofSweeps,1);
+        taus= NaN(NrofSweeps,1);
         for j = 1:NrofSweeps       
             step = find(strcmp({sweep(j).epoch.idxstr}, 'B'));
             if sweep(j,1).currinj >= -100 && sweep(j,1).currinj < 0
@@ -245,31 +245,32 @@ for i = 1:length(filelist)
         [sagswp sagswp] = min(tmp) ;
  sagsweepname = sweep(sagswp).Name ;
  
- % if you want to plot all sag sweeps, get the percentage away form
- % obj.getstimset and run this part via index 
-%  for j = 1:length(obj.stimsets)
-%             if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},sagsweepname))
-%                 %%figure(); obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).plot
-%                 obj.getstimset(j).getnwbchannel.getsweep('Name',sagsweepname).plot;
-%                 legend(filelist)
-%                 xlim([0 1800])
-%                 title('Sag')
-%                 grid off
-%                  set(gca, 'TickDir', 'out')
-%                  ylabel('mV')
-%               xlabel('ms')
-%             end
-%         end
+%  if you want to plot all sag sweeps, get the percentage away form
+%  obj.getstimset and run this part via index 
+ for j = 1:length(obj.stimsets)
+            if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},sagsweepname))
+                %%figure(); obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).plot
+                obj.getstimset(j).getnwbchannel.getsweep('Name',sagsweepname).plot;
+                legend(filelist)
+                xlim([0 1800])
+                title('Sag')
+                grid off
+                 set(gca, 'TickDir', 'out')
+                 ylabel('mV')
+              xlabel('ms')
+            end
+        end
 
         % calculate input frequency curve
-        Freqs = Freqs(Freqs~=0) ;
-        StimInts = StimInts(StimInts~=0) ;
-        if length(Freqs) > 1
-            [fitFi]=fit(StimInts,Freqs,f_R, 'StartPoint', [0 0]); 
-            FrqChngStimInt = fitFi.R ;
-        else  
-            FrqChngStimInt = NaN ;   
-        end
+       % this caused problems after fixing the input resistance 
+%         Freqs = Freqs(Freqs~=0) ;
+%         StimInts = StimInts(StimInts~=0) ;
+%         if length(Freqs) > 1
+%             [fitFi]=fit(StimInts,Freqs,f_R, 'StartPoint', [0 0]); 
+%             FrqChngStimInt = fitFi.R ;
+%         else  
+%             FrqChngStimInt = NaN ;   
+%         end
 
         % bursting & adaptation index
         if TrSweepCrit==1
@@ -353,7 +354,6 @@ for i = 1:length(filelist)
         Summary(index).Channel            = NaN ;
         Summary(index).scalefactor        = NaN ;
         Summary(index).holdingcurrent     = NaN ;
-        Summary(index).currentinj         = currentinj_avg ;
         Summary(index).holdingvoltage     = NaN ;
         Summary(index).NrofSweeps         = NrofSweeps ;
         Summary(index).PDur               = seconds(sweep(1).epoch(strcmp({sweep(1).epoch.idxstr}, 'B')).timespan)*1000 ;
@@ -381,7 +381,8 @@ for i = 1:length(filelist)
         Summary(index).NrOfAPsMax         = max(NrofAPs) ;
         Summary(index).FreqTrSwp          = FreqTrSwp ;
         Summary(index).NrOfAPsTrSwp       = NrOfAPsTrSwp ; 
-        Summary(index).FrqChngStimInt     = FrqChngStimInt ;
+        %Summary(index).FrqChngStimInt     = FrqChngStimInt ;
+        Summary(index).FrqChngStimInt     = NaN ;
         Summary(index).NrofRBAPs          = sum(NrofRBAPs) ;
         Summary(index).NrofRBAPsM         = NrofRBAPsM ;
         Summary(index).Sag                = sweep(sagswp,1).epoch(strcmp({sweep(sagswp,1).epoch.idxstr}, 'B')).sag / PkDeflect(sagswp,1) ;
@@ -483,7 +484,12 @@ for i = 1:length(filelist)
         Summary(index).thresh21to40  = nanmean(aps2.thresh(aps2.freqbin>=3 & aps2.freqbin<=4)) ; 
         Summary(index).onsetrap21to40  = nanmean(aps2.onsetrapidity(aps2.freqbin>=3 & aps2.freqbin<=4)) ;
         Summary(index).updwnratio21to40  = nanmean(aps2.updownratio(aps2.freqbin>=3 & aps2.freqbin<=4)) ;
-
+        Summary(index).currentinje        = currentinj_avg ;
+      %  Summary(index).AVupstroke         = trace(frstspikeswp).ap(1).upstroke ;
+      %  Summary(index).AVdownstroke       = sweep(frstspikeswp).ap(1).downstroke ;
+     
+        
+        
         %end %if at line 64 
         %clear variables assigned in "sweep" For loop
         clearvars -except Summary i basedir savedir savename filelist index

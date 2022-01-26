@@ -120,6 +120,8 @@ classdef Actionpotential < Sharedmethods
             end
         end
         
+        
+       
         function obj = getdvdtts(obj,n)
             % get n-th order derivative of ap and store as its timeseries
             % Based on matlab function 'diff'. obj.getDvdt(n) returns nth difference, so n=2 would give second order

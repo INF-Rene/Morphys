@@ -2,11 +2,11 @@ clear all
 clc
 %% Bulk conversion for NWB2 files
 % set path to find .NWB files
-dir_abfs          = '/Users/annagalakhova/PhD INF CNCR VU/DATA/L1_PatchSeq/ephys human/test for error handling';
-% set path to save analyzed files
-dir_mats_analysed = '/Users/annagalakhova/PhD INF CNCR VU/DATA/L1_PatchSeq/ephys human/test for error handling/mat'
+dir_abfs          = '/Users/elinemertens/Data/ephys/Human_nwb2/H21.29.205_T';
+% set path to save analyzed filesç
+dir_mats_analysed = '/Users/elinemertens/Data/ephys/Summary/Human'
 % set path to save figures
-dir_figs_analysed = '/Users/annagalakhova/PhD INF CNCR VU/DATA/PatchSeq analysed/HUMAN/NOT WORKING/new nwb2/figures'
+dir_figs_analysed = '/Users/elinemertens/Data/ephys/Summary/Human'
 % get a list of all .nwb files in the specified path
 fileinfo  = dir(fullfile(dir_abfs,'*.nwb'));
 filelist  = {fileinfo.name};

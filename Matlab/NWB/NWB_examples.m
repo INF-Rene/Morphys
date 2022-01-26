@@ -7,25 +7,24 @@ list = struct2table(list);
 list = list(list.bytes>1000,:); %only files with actual data
 
 %% USE THIS nwb2: 
-for i = 1:numel(list.name)
+for i = 1:numel(list.name) 
     fn =cell2mat(list.name(i));
  nwb = NWBfile(fn,[{'LP'} {'hresh'} {'Steps'} {'LSFINEST'} {'LSCOARSE'}]);
  obj =nwb.analyseNWB ;
  obj.savename = sprintf('NWB_%s.mat',obj.filename(1:end-4));
- saveme(obj,'/Users/elinemertens/Data/ephys/nwb2 analyzed/199', obj.savename) 
+ saveme(obj,'/Users/elinemertens/Data/ephys/Analyzed/209', obj.savename) 
 end
 
     
     %%
-fn= '/Users/elinemertens/Data/ephys/Human/H21.29.199_T/H21.29.199_T_01_02-compressed.nwb'
-
+fn= '/Users/elinemertens/Data/ephys/Human/H22.29.209_H/H22.29.209.21.02.03-compressed.nwb'
 
 %% let op of je wel of geen chirp wilt 
-nwb = NWBfile(fn,[{'LP'} {'hresh'} {'CCSteps'} {'LSFINEST'} {'LSCOARSE'} {'CHIRP'}])
+nwb = NWBfile(fn,[{'LP'} {'hresh'} {'CCSteps'} {'LSFINEST'} {'LSCOARSE'}]);
 %%
 obj=nwb.analyseNWB
 %%
-obj.saveme('/Users/elinemertens/Data/ephys/nwb2 analyzed/199_test', '199_02_take2.mat');
+obj.saveme('/Users/elinemertens/Data/ephys/Analyzed/209_ZD');
 
 %%
 %%obj.saveme('/Users/elinemertens/Data/ephys/Human/H20.29.185.21.01/nwb analyzed','185_cell1.mat');
@@ -35,7 +34,7 @@ obj.saveme('/Users/elinemertens/Data/ephys/nwb2 analyzed/199_test', '199_02_take
 
 
 %% 01092021 
-fn= '/Users/elinemertens/Data/ephys/Human_nwb2/H21.29.198.21/H21.29.198.21.11.02.nwb'
+fn= '/Users/elinemertens/Data/ephys/Human_nwb2/H21.29.205_T/using/H21.29.205.11.01.01-compressed.nwb'
 nwb = NWBfile(fn,[{'LP'} {'CCSteps_DA_0'}]);
 
 %%
