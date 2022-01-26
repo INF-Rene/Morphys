@@ -75,13 +75,16 @@ classdef NWBfile < Sharedpaths & Sharedmethods
             
             
             % load NWB info
-             info=h5info(fn);          
+            info=h5info(fn);          
             grloc = strcmp({info.Attributes.Name}, 'nwb_version');
             nwbv = info.Attributes(grloc).Value ;
             
             if ~strcmp(nwbv, '2.2.4')
                 warnmsg=sprintf('This script was designed for NWB-2.2.4. The loaded file has version %s \n', nwbv{1});
-            
+                warning(warnmsg)
+            end
+                
+                
             grloc = strcmp({info.Groups(1).Groups.Name}, '/acquisition/timeseries');
             swps={info.Groups(1).Groups(grloc).Groups.Name};
             % dialog option if no stimset or sweep filters are specified

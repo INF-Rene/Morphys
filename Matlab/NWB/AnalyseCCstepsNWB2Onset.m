@@ -3,7 +3,7 @@
 close all, clear all
 
 %% Set path to load and save data; mat data load 
-basedir = '/Users/elinemertens/Data/ephys/Analyzed/209' ;
+basedir = '/Users/elinemertens/Data/ephys/Analyzed/209_good' ;
 savedir = '/Users/elinemertens/Data/ephys/Summary/Human' ;
 savename = 'Summary_209' ; 
 

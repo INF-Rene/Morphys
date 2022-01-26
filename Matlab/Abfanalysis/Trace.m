@@ -384,6 +384,18 @@ classdef Trace < timeseries
                 end
             end
             
+            for i = 1:obj.nrofaps 
+                if ~isempty(obj.getap(i).upstroke)
+                upstroke(i) = obj.getap(i).upstroke ;
+                end
+            end
+            
+            for i = 1:obj.nrofaps 
+                if ~isempty(obj.getap(i).downstroke)
+                downstroke(i) = obj.getap(i).downstroke ;
+                end
+            end
+            
             if ~isempty(maxdvdts)
                 Mmaxdvdt = nanmean(maxdvdts) ;
             else
