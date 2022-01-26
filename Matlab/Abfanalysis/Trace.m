@@ -245,14 +245,6 @@ classdef Trace < timeseries
             s = obj(1).set('Data',std(obj.getdata,0,2)/sqrt(numel(obj)));
         end
         
-        function obj = low_pass_filter(obj, freq)
-            for i=1:numel(obj)
-                Wn = [(freq/(obj(i).samplefreq/2))];
-                [B,A] = butter(2,Wn, 'low');
-                obj(i).Data = filtfilt(B,A,double(obj(i).Data));
-            end
-        end
-        
         %% ---------------------------------------- AP ANALYSIS METHODS -----------------------------------------------------
         function obj = analyseaps(obj)
             % find APs and all currently available features
@@ -284,7 +276,10 @@ classdef Trace < timeseries
                 %obj(i) = obj(i).getadp;
                 %obj(i) = obj(i).getreladp;
                 %fprintf('Onsetrapidity...\n')
+                %changed on Jan 25 for Eline by René
                 obj(i) = obj(i).getonsrapidity;
+                obj(i) = obj(i).getupstroke;
+                obj(i) = obj(i).getdownstroke;
                 %fprintf('startend...\n')
                 obj(i) = obj(i).getapstartend;
                 %fprintf('apnrs...\n')
