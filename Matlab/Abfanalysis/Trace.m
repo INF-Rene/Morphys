@@ -249,7 +249,7 @@ classdef Trace < timeseries
         function obj = analyseaps(obj)
             % find APs and all currently available features
             for i = 1:numel(obj) 
-                if ~strcmp(obj(i).DataInfo.Units, 'mV'), continue; end
+%                 if ~strcmp(obj(i).DataInfo.Units, 'mV'), continue; end
                 %fprintf('Finding APs...\n')
                 obj(i) = obj(i).findaps;
                 %fprintf('Getting thresholds...\n')
@@ -882,6 +882,14 @@ classdef Trace < timeseries
                 else
                     prevalue = data(i);
                 end
+            end
+        end
+        
+        function obj = low_pass_filter(obj, freq)
+            for i=1:numel(obj)
+                Wn = [(freq/(obj(i).samplefreq/2))];
+                [B,A] = butter(2,Wn, 'low');
+                obj(i).Data = filtfilt(B,A,double(obj(i).Data));
             end
         end
         

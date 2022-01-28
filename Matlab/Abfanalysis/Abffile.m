@@ -271,7 +271,7 @@ classdef Abffile < Sharedpaths & Setupsettings
                 
                 % Ignore DACs in stringSection that are already defined by protocol section. These MUST be inactive atf
                 % files and therefore not interesting.
-                if ~strcmp('eCode',tmpoutinfo.stimfilename{1}(1:5))
+                if numel(tmpoutinfo.stimfilename{1}) < 5 | ~strcmp('eCode',tmpoutinfo.stimfilename{1}(1:5))
                     outchannels = outchannels(~ismember(outchannels,obj.getanalogoutputnrs_current));
                 end
                 

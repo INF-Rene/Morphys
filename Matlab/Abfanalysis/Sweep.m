@@ -103,7 +103,7 @@ classdef Sweep < Sharedmethods & Trace
         function obj= addNWBepochs(obj, epochtable)
             
             scalefactor=obj.labbooknum.StimScaleFactor;
-            scalefactor=unique(scalefactor(~isnan(scalefactor)));
+            scalefactor=unique(scalefactor(~isnan(scalefactor)), 'stable');
             if ~isempty(scalefactor) && ~isscalar(scalefactor)
                 warning('Multiple scalefactors found for this sweep')
                 scalefactor=scalefactor(end);
@@ -286,7 +286,7 @@ classdef Sweep < Sharedmethods & Trace
             % See also UPDATEEPOCH, EPOCH.
             for i=1:numel(obj)
                 for ii=2:obj(i).nrofepochs
-                    if all(ismember(obj(i).getepoch([ii-1,ii]).get('typestr'),'step')) % if both adjacent epochs are step epochs
+                    if all(ismember(obj(i).getepoch([ii-1,ii]).get('typestr'),'step')) || all(ismember(obj(i).getepoch([ii-1,ii]).get('typestr'),'Square pulse')) % if both adjacent epochs are step epochs
                         obj(i) = obj(i).updateepoch(ii,'stepdiff' , obj(i).getepoch(ii).amplitude - obj(i).getepoch(ii-1).amplitude);
                     end
                 end

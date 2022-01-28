@@ -97,7 +97,7 @@ classdef nwbchannel < Sharedmethods
                     scepochtable.duration(1)=TPepochdur;
                     stimwavemode=epochtables.stimwavemode(tmp);
                     
-                    scalefactor=unique(sweepLB.StimScaleFactor(~isnan(sweepLB.StimScaleFactor)));
+                    scalefactor=unique(sweepLB.StimScaleFactor(~isnan(sweepLB.StimScaleFactor)), 'stable');
                     if ~isempty(scalefactor) && ~isscalar(scalefactor)
                         warning('Multiple scalefactors found. Using the last one.');
                         scalefactor=scalefactor(end);
@@ -162,6 +162,8 @@ classdef nwbchannel < Sharedmethods
                     end
                     if nnz(scepochtable.type==7)==1 %type 7 is "Loaded custom wave", duration is always 0 in epochtable
                         scepochtable.duration(scepochtable.type==7)=sweep2add.Time(end)-sum(scepochtable.duration);
+                    elseif nnz(scepochtable.type==7)==3 % THIS IS A HACK. Assuming that 3 custom waves means it's one of the noise protocols (X4PT_C2NSD1SHORT_DA_0 or X4PU_C2NSD2SHORT_DA_0), in which case the epoch duration is 3000 ms!
+                        scepochtable.duration(scepochtable.type==7)=3000;
                     end
                     %get epoch information to split in epochs
                     if sweep2add.Time(end)>sum(scepochtable.duration) && sweep2add.Time(end)-sum(scepochtable.duration)>eps(sum(scepochtable.duration))

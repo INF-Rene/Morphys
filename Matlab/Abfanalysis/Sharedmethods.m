@@ -45,7 +45,7 @@
         passresamplingfreq  = 10000;% set the frequency for dynamic resampling. Must be a division of the sampling freq
         apsamplingstart     = -2; % time in ms before the AP peak where the original sampling rate is kept intact
         apsamplingend       = 0.05;  % time in ms after the AP peak where the original sampling rate is kept intact
-        stimwavesampling    = 10000;
+        stimwavesampling    = 500000;
     end
     
 %####################################################### METHODS ############################################################
