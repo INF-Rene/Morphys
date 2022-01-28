@@ -78,21 +78,37 @@ classdef NWBfile < Sharedpaths & Sharedmethods
             obj.fileconversiondate = char(datetime(datestr(now()),'Format',obj.datetimefmt));
             
             info=h5info(fn);
-            nwbv=h5read(fn, '/nwb_version');
-            if ~strcmp(nwbv, 'NWB-1.0.5')
-                warnmsg=sprintf('This script was designed for NWB-1.0.5. The loaded file has version %s \n', nwbv{1});
-                warning(warnmsg)
+            if any(strcmp({info.Datasets.Name}, 'nwb_version'))
+                nwbv=h5read(fn, '/nwb_version');
+            else
+                nwbv=h5readatt(fn, '/', 'nwb_version');
             end
+            nwbv=nwbv{1};
             
-            grloc = strcmp({info.Groups(1).Groups.Name}, '/acquisition/timeseries');
-            swps={info.Groups(1).Groups(grloc).Groups.Name};
+            
+%             if ~strcmp(nwbv, 'NWB-1.0.5')
+%                 warnmsg=sprintf('This script was designed for NWB-1.0.5. The loaded file has version %s \n', nwbv{1});
+%                 warning(warnmsg)
+%             end
+            
+            if strcmp(nwbv, 'NWB-1.0.5')
+                grloc = strcmp({info.Groups(1).Groups.Name}, '/acquisition/timeseries');
+                swps={info.Groups(1).Groups(grloc).Groups.Name};
+            elseif strcmp(nwbv, '2.2.4')
+                grloc = strcmp({info.Groups.Name}, '/acquisition');
+                swps={info.Groups(grloc).Groups.Name};
+            end
             % dialog option if no stimset or sweep filters are specified
             if ~exist('stimsetfilters', 'var'), stimsetfilters={};end
             if ~exist('sweepselect', 'var'), sweepselect=[];end
             if isempty(stimsetfilters) && isempty(sweepselect)
                 protocols=cell(numel(swps), 1);
                 for i=1:numel(swps)
-                    protocols(i) = h5read(fn, [swps{i} '/stimulus_description']);
+                    if strcmp(nwbv, 'NWB-1.0.5')
+                        protocols(i) = h5read(fn, [swps{i} '/stimulus_description']);
+                    else
+                        protocols(i) = h5readatt(fn, swps{i}, 'stimulus_description');
+                    end
                 end
                 list = unique(protocols);
                 [indx,tf] = listdlg('ListString',list);
@@ -101,8 +117,9 @@ classdef NWBfile < Sharedpaths & Sharedmethods
                 end
             end
             
-            if ~isempty(info.Groups(6).Groups(1).Groups)
-                stimswps={info.Groups(6).Groups(1).Groups.Name};
+            grloc=strcmp({info.Groups.Name}, '/stimulus');
+            if ~isempty(info.Groups(grloc).Groups(1).Groups)
+                stimswps={info.Groups(grloc).Groups(1).Groups.Name};
                 swpstimnames={};
                 sweeptable=table();
                 for i=1:numel(swps)
@@ -114,9 +131,13 @@ classdef NWBfile < Sharedpaths & Sharedmethods
                         TTLdataloc = '';
                     end
                     % warning: will probably give trouble when multiple TTL waves are used
-                    
+                    if strcmp(nwbv, 'NWB-1.0.5')
+                        protocol = h5read(fn, [swps{i} '/stimulus_description']);
+                    else
+                        protocol = h5readatt(fn, swps{i}, 'stimulus_description');
+                    end
                     sweeptable(i,{'dataloc', 'sweepnr', 'ADname','ADnr', 'protocol', 'stimdataloc', 'TTLdataloc'})=...
-                        {swps{i}, str2num(tmp{2})+1, tmp{3},str2double(tmp{3}(end))+1, h5read(fn, [swps{i} '/stimulus_description']),...
+                        {swps{i}, str2num(tmp{2})+1, tmp{3},str2double(tmp{3}(end))+1, protocol,...
                         stimdataloc, TTLdataloc};
 %                     info.Groups(1).Groups(2).Groups(1).Datasets(3).Dataspace.Size
                 end
@@ -133,7 +154,10 @@ classdef NWBfile < Sharedpaths & Sharedmethods
 %             end
 
             % load Lab notebook
-            lbloc = info.Groups(4).Groups(3).Groups.Name;
+            grloc = strcmp({info.Groups.Name}, '/general');
+            grloc2 = strcmp({info.Groups(grloc).Groups.Name}, '/general/labnotebook');
+            lbloc = info.Groups(grloc).Groups(grloc2).Groups.Name;
+            
             obj.labbooknum=h5read(fn, [lbloc '/numericalValues']);
             obj.labbooknum_keys=h5read(fn, [lbloc '/numericalKeys']);
             
@@ -166,7 +190,7 @@ classdef NWBfile < Sharedpaths & Sharedmethods
             obj.filename     = fileinfo.name;
             obj.filedirectory= fileDir;
             obj.filetype     = 'Neurodata Without Borders file';
-            obj.fileversion  = nwbv{1};
+            obj.fileversion  = nwbv;
             obj.filesize     = fileinfo.bytes;
             
             % create a savename
@@ -175,7 +199,8 @@ classdef NWBfile < Sharedpaths & Sharedmethods
             % Get dates and durations
             obj.filesystemdate= fileinfo.date;
             tmp=h5read(fn, '/file_create_date');
-            obj.filecreatedate= datetime(tmp{1}, 'InputFormat', 'yyyy-MM-dd''T''HH:mm:ss''Z''' ) + duration(1, 0, 0);
+%             obj.filecreatedate= datetime(tmp{1}, 'InputFormat', 'yyyy-MM-dd''T''HH:mm:ss''Z''' ) + duration(1, 0, 0);
+            obj.filecreatedate= datetime(tmp{1}(1:end-6), 'InputFormat', 'yyyy-MM-dd''T''HH:mm:ss.SSS' ) + duration(1, 0, 0);
             
             firstLBentry  = find(any(obj.labbooknum(obj.activeHS, strcmp('SweepNum', obj.labbooknum_keys),:)==1),1,'last'); %last entry sweeps are often re-recorded when new cells are patched
             %firstLBentry = find(LBN.SweepNum==1,1, 'last'); 
