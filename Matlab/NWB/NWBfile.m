@@ -4,7 +4,7 @@ classdef NWBfile < Sharedpaths & Sharedmethods
     %   This uses matlab's built in hdf5 functions to load electrophysiology data from a 
     %   NWB file (Neurodata Without Borders, see https://neurodatawithoutborders.github.io/)
     %   ---------------------------------------------------------------------------------------------------------------------
-    %   Author:       Ren� Wilbers (renewilbers@gmail.com)
+    %   Author:       René Wilbers (renewilbers@gmail.com)
     %   Created:      29-03-2019
     %   Modifications (Date/Name/Description):
     %   ---------------------------------------------------------------------------------------------------------------------
@@ -75,6 +75,8 @@ classdef NWBfile < Sharedpaths & Sharedmethods
             
             
             % load NWB info
+            obj.fileconversiondate = char(datetime(datestr(now()),'Format',obj.datetimefmt));
+            
             info=h5info(fn);          
             grloc = strcmp({info.Attributes.Name}, 'nwb_version');
             nwbv = info.Attributes(grloc).Value ;
@@ -83,17 +85,16 @@ classdef NWBfile < Sharedpaths & Sharedmethods
                 warnmsg=sprintf('This script was designed for NWB-2.2.4. The loaded file has version %s \n', nwbv{1});
                 warning(warnmsg)
             end
-                
-                
-            grloc = strcmp({info.Groups(1).Groups.Name}, '/acquisition/timeseries');
-            swps={info.Groups(1).Groups(grloc).Groups.Name};
+            
+            grloc = strcmp({info.Groups.Name}, '/acquisition');
+            swps={info.Groups(grloc).Groups.Name};
             % dialog option if no stimset or sweep filters are specified
             if ~exist('stimsetfilters', 'var'), stimsetfilters={};end
             if ~exist('sweepselect', 'var'), sweepselect=[];end
             if isempty(stimsetfilters) && isempty(sweepselect)
                 protocols=cell(numel(swps), 1);
                 for i=1:numel(swps)
-                    protocols(i) = h5readatt(fn, swps{i}, 'stimulus_description');
+                    protocols(i) = h5read(fn, [swps{i} '/stimulus_description']);
                 end
                 list = unique(protocols);
                 [indx,tf] = listdlg('ListString',list);
@@ -101,9 +102,11 @@ classdef NWBfile < Sharedpaths & Sharedmethods
                     stimsetfilters=list(indx);
                 end
             end
-            
-            if ~isempty(info.Groups(6).Groups(1).Groups)
-                stimswps={info.Groups(6).Groups(1).Groups.Name};
+                       
+            grloc = strcmp({info.Groups.Name}, '/stimulus');
+            grloc2 = strcmp({info.Groups(grloc).Groups.Name}, '/stimulus/presentation');
+            if ~isempty(info.Groups(grloc).Groups(grloc2).Groups)
+                stimswps={info.Groups(grloc).Groups(grloc2).Groups.Name};
                 swpstimnames={};
                 sweeptable=table();
                 for i=1:numel(swps)
@@ -117,7 +120,7 @@ classdef NWBfile < Sharedpaths & Sharedmethods
                     % warning: will probably give trouble when multiple TTL waves are used
                     
                     sweeptable(i,{'dataloc', 'sweepnr', 'ADname','ADnr', 'protocol', 'stimdataloc', 'TTLdataloc'})=...
-                        {swps{i}, str2num(tmp{2})+1, tmp{3},str2double(tmp{3}(end))+1, h5read(fn, [swps{i} '/stimulus_description']),...
+                        {swps{i}, str2num(tmp{2})+1, tmp{3},str2double(tmp{3}(end))+1, h5readatt(fn, [swps{i}], 'stimulus_description'),...
                         stimdataloc, TTLdataloc};
 %                     info.Groups(1).Groups(2).Groups(1).Datasets(3).Dataspace.Size
                 end
@@ -134,7 +137,9 @@ classdef NWBfile < Sharedpaths & Sharedmethods
 %             end
 
             % load Lab notebook
-            lbloc = info.Groups(4).Groups(3).Groups.Name;
+            grloc = strcmp({info.Groups.Name}, '/general');
+            grloc2 = strcmp({info.Groups(grloc).Groups.Name}, '/general/labnotebook');
+            lbloc = info.Groups(grloc).Groups(grloc2).Groups.Name;
             obj.labbooknum=h5read(fn, [lbloc '/numericalValues']);
             obj.labbooknum_keys=h5read(fn, [lbloc '/numericalKeys']);
             
@@ -167,7 +172,7 @@ classdef NWBfile < Sharedpaths & Sharedmethods
             obj.filename     = fileinfo.name;
             obj.filedirectory= fileDir;
             obj.filetype     = 'Neurodata Without Borders file';
-            obj.fileversion  = nwbv{1};
+            obj.fileversion  = nwbv(2);
             obj.filesize     = fileinfo.bytes;
             
             % create a savename
@@ -176,7 +181,7 @@ classdef NWBfile < Sharedpaths & Sharedmethods
             % Get dates and durations
             obj.filesystemdate= fileinfo.date;
             tmp=h5read(fn, '/file_create_date');
-            obj.filecreatedate= datetime(tmp{1}, 'InputFormat', 'yyyy-MM-dd''T''HH:mm:ss''Z''' ) + duration(1, 0, 0);
+            obj.filecreatedate= datetime(tmp{1}, 'InputFormat', 'yyyy-MM-dd''T''HH:mm:ss.SSS+HH:mm' ) + duration(1, 0, 0);
             
             firstLBentry  = find(any(obj.labbooknum(obj.activeHS, strcmp('SweepNum', obj.labbooknum_keys),:)==1),1,'last'); %last entry sweeps are often re-recorded when new cells are patched
             %firstLBentry = find(LBN.SweepNum==1,1, 'last'); 
@@ -342,14 +347,34 @@ classdef NWBfile < Sharedpaths & Sharedmethods
       
         % ----------------------------------------- PLOTTING METHODS --------------------------------------------------------
         
-        function [hfig,ax_handles] = plot(obj,varargin)
-            %popup dialog asking which stimset to plot
-            obj.getstimsets.plot;
+        function [hfig,ax_handles] = plot(obj,path2save)
+            % plot all available stimsets
+            for i = 1:numel(obj.stimsets)
+                obj.getstimset(i).plot;
+
+                if exist('path2save', 'var') 
+                   if isfolder(path2save)
+                       print(fullfile(path2save,[obj.getstimset(i).filename '_' obj.getstimset(i).name '.jpg']),  '-djpeg', '-r300'); 
+                   elseif i == 1 % only print warning message the first time
+                       warning('Please provide a valid path to save your figures.')
+                   end
+                end
+            end            
         end       
                
-        function hfig = plotanalysis(obj)
-            %popup dialog asking which stimset to plot
-            obj.getstimsets.plotanalysis;
+        function hfig = plotanalysis(obj,path2save)
+            % plot all available stimsets
+            for i = 1:numel(obj.stimsets)
+                obj.getstimset(i).plotanalysis;
+
+                if exist('path2save', 'var') 
+                   if isfolder(path2save)
+                       print(fullfile(path2save,[obj.getstimset(i).filename '_' obj.getstimset(i).name '_analysis.jpg']),  '-djpeg', '-r300'); 
+                   elseif i == 1 % only print warning message the first time
+                       warning('Please provide a valid path to save your figures.')
+                   end
+                end
+            end 
         end             
     end
                

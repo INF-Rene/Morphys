@@ -277,7 +277,6 @@ classdef Trace < timeseries
                 %obj(i) = obj(i).getreladp;
                 %fprintf('Onsetrapidity...\n')
                 %changed on Jan 25 for Eline by René
-                %lets see 
                 obj(i) = obj(i).getonsrapidity;
                 obj(i) = obj(i).getupstroke;
                 obj(i) = obj(i).getdownstroke;
@@ -384,17 +383,6 @@ classdef Trace < timeseries
                 end
             end
             
-            for i = 1:obj.nrofaps 
-                if ~isempty(obj.getap(i).upstroke)
-                upstroke(i) = obj.getap(i).upstroke ;
-                end
-            end
-            
-            for i = 1:obj.nrofaps 
-                if ~isempty(obj.getap(i).downstroke)
-                downstroke(i) = obj.getap(i).downstroke ;
-                end
-            end
             
             if ~isempty(maxdvdts)
                 Mmaxdvdt = nanmean(maxdvdts) ;
