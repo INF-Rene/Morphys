@@ -359,6 +359,8 @@
                                                             'isi'
                                                             'freq'
                                                             'number'
+                                                            'upstroke'
+                                                            'downstroke'
                                                             };
                     otherwise, return
                 end

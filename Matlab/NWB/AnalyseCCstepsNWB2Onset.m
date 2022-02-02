@@ -3,9 +3,9 @@
 close all, clear all
 
 %% Set path to load and save data; mat data load 
-basedir = '/Users/elinemertens/Data/ephys/Analyzed/206' ;
+basedir = '/Users/elinemertens/Data/ephys/Analyzed/trunc' ;
 savedir = '/Users/elinemertens/Data/ephys/Summary/Human' ;
-savename = 'Summary_205' ; 
+savename = 'Summary_T' ; 
 
 %% load file list
 fileinfo  = dir(fullfile(basedir,'*.mat'));
@@ -488,14 +488,14 @@ figure(2)
         Summary(index).onsetrap21to40  = nanmean(aps2.onsetrapidity(aps2.freqbin>=3 & aps2.freqbin<=4)) ;
         Summary(index).updwnratio21to40  = nanmean(aps2.updownratio(aps2.freqbin>=3 & aps2.freqbin<=4)) ;
         Summary(index).currentinje        = currentinj_avg ;
-%        Summary(index).UpStrokeFrstAP       = sweep(frstspikeswp).ap(1).upstroke ;
-  %      Summary(index).DwnStrokeFrstAP      = sweep(frstspikeswp).aps(1).downstroke ;
+        Summary(index).UpStrokeFrstAP       = sweep(frstspikeswp).ap(1).upstroke ;
+        Summary(index).DwnStrokeFrstAP      = sweep(frstspikeswp).ap(1).downstroke ;
         
         
         
         %end %if at line 64 
         %clear variables assigned in "sweep" For loop
-        clearvars -except Summary i basedir savedir savename filelist index
+      %  clearvars -except Summary i basedir savedir savename filelist index
         index = index + 1 ;
     end
 %% save
