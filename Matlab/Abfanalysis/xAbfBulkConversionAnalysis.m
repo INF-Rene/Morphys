@@ -79,7 +79,7 @@ else
     todo=1:numel(fn2chnnl);
 end
 
-
+%%
 parfor i=1
     
     % load the Abf xfile object, analyse and save

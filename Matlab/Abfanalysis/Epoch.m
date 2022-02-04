@@ -229,9 +229,9 @@ classdef Epoch < Sharedmethods & Trace
             end
 
             % 211116 removed this part due to errors with analyzing abf 
-            if ~isempty(prev_amp)
-                obj.stepdiff = obj.amplitude - prev_amp ;
-            end
+%             if ~isempty(prev_amp)
+%                 obj.stepdiff = obj.amplitude - prev_amp ;
+%             end
             
             % analyse passive properties
             if obj.nrofaps == 0 

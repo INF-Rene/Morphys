@@ -30,14 +30,27 @@ if isempty(USERNAME)
 end
 
 % set paths
-dir_abfs          = 'D:\Courses\LCI 2018 week 1\SpikeProfiles';
-dir_mats_converts = 'D:\Courses\LCI 2018 week 1\SpikeProfiles\Converted';
-dir_mats_analysed = 'D:\Courses\LCI 2018 week 1\SpikeProfiles\Analyzed';
+dir_abfs          = '/Users/elinemertens/Data/ephys/Hippocampus/H17.29.117.21/H17.29.117.21.IV';
+dir_mats_converts = '/Users/elinemertens/Data/ephys/Hippocampus/H17.29.117.21/converted';
+dir_mats_analysed = '/Users/elinemertens/Data/ephys/Hippocampus/H17.29.117.21/analyzed';
 
 % load table and keep only relevant columns
-todo = {'2018_10_15_0003.abf';'2018_10_15_0007.abf';'2018_10_16_0036.abf';'2018_10_16_0039.abf';'2018_10_17_0001.abf';'2018_10_17_0005.abf';'2018_10_17_0007.abf';'2018_10_17_0012.abf';'2018_10_17_0016.abf'}
+todo = {'2017_03_29_0026.abf' ;
+'2017_03_29_0076.abf' ;
+'2017_03_29_0080.abf';
+'2017_03_29_0167.abf';
+'2017_03_29_0195.abf';
+'2017_03_29_0295.abf';
+'2017_03_29_s1_c1_0007.abf';
+'2017_03_29_s2_c1_0006.abf';
+'2017_03_29_s2_c2_0004.abf';
+'2017_03_30_0002.abf';
+'2017_03_30_0032.abf';
+'2017_03_30_0071.abf';
+'2017_03_30_0100.abf';
+'2017_03_30_0164.abf'}
 %% setup settings
-ss = load('D:\Morphys\Data\Electrophysiology\SetupSettings\Setupsettings_INF.mat');
+ss = load('/Users/elinemertens/Documents/CNCR/Morphys/Data/Electrophysiology/SetupSettings/Setupsettings_INF.mat');
 ss = ss.obj;
 
 %% To run if files are partly run already

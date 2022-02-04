@@ -353,14 +353,15 @@
                                                             'maxdvdt_time'
                                                             'mindvdt'     
                                                             'mindvdt_time'
+                                                            'upstroke'
+                                                            'downstroke'
                                                             'onsetrapidity'  
                                                             'onsetrapfit'    
                                                             'onsetrapvm'
                                                             'isi'
                                                             'freq'
                                                             'number'
-                                                            'upstroke'
-                                                            'downstroke'
+                                                           
                                                             };
                     otherwise, return
                 end
