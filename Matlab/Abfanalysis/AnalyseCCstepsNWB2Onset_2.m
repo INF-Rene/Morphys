@@ -3,9 +3,9 @@
 close all, clear all
 
 %% Set path to load and save data; mat data load 
-basedir = '/Users/elinemertens/Data/ephys/Analyzed/209_good' ;
-savedir = '/Users/elinemertens/Data/ephys/Summary/Human' ;
-savename = 'Summary' ;
+basedir = '/Users/elinemertens/Data/ephys/Hippocampus/nwb2_analyzed/165_NWB2' ;
+savedir = '/Users/elinemertens/Data/ephys/Hippocampus/2022_Summary' ;
+savename = 'Summary_184' ;
 
 %% load file list
 fileinfo  = dir(fullfile(basedir,'*.mat'));
@@ -398,9 +398,11 @@ for i = 1:length(filelist)
         Summary(index).HalfWFrstAP        = sweep(frstspikeswp).ap(1).halfwidth ; 
         Summary(index).AHPFrstAP          = sweep(frstspikeswp).ap(1).relahp ;
         Summary(index).AHPslowFrstAP      = sweep(frstspikeswp).ap(1).relahp_slow ;
-        Summary(index).UpStrkFrstAP       = sweep(frstspikeswp).ap(1).maxdvdt ;
-        Summary(index).DwnStrkFrstAP      = sweep(frstspikeswp).ap(1).mindvdt ;
-        Summary(index).UpDwnStrkRatio     = abs(sweep(frstspikeswp).ap(1).maxdvdt) / abs(sweep(frstspikeswp).ap(1).mindvdt) ;
+         Summary(index).UpStrkFrstAP      = sweep(frstspikeswp).ap(1).upstroke ;
+        Summary(index).DwnStrkFrstAP      = sweep(frstspikeswp).ap(1).downstroke ;
+        Summary(index).UpDwnStrkRatio     = abs(sweep(frstspikeswp).ap(1).upstroke) / abs(sweep(frstspikeswp).ap(1).downstroke) ;
+        Summary(index).MaxUpFrstAP        = sweep(frstspikeswp).ap(1).maxdvdt ;
+        Summary(index).MaxDwnFrstAP       = sweep(frstspikeswp).ap(1).mindvdt ;
         Summary(index).OnsetTSFAP         = OnsetTSFAP ;  
         Summary(index).TSbasetothreshM    = mean(TSbasetothresh) ; 
         Summary(index).TSbasetothreshSD   = std(TSbasetothresh) ; 

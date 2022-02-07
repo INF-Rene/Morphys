@@ -401,10 +401,11 @@ for i = 1:bb.nrofabfs
         Summary(index).HalfWFrstAP        = sweep(frstspikeswp).ap(1).halfwidth ; 
         Summary(index).AHPFrstAP          = sweep(frstspikeswp).ap(1).relahp ;
         Summary(index).AHPslowFrstAP      = sweep(frstspikeswp).ap(1).relahp_slow ;
-        Summary(index).UpStrkFrstAP       = 
-        ).upstroke ;
+        Summary(index).UpStrkFrstAP       = sweep(frstspikeswp).ap(1).upstroke ;
         Summary(index).DwnStrkFrstAP      = sweep(frstspikeswp).ap(1).downstroke ;
-        Summary(index).UpDwnStrkRatio     = abs(sweep(frstspikeswp).ap(1).maxdvdt) / abs(sweep(frstspikeswp).ap(1).mindvdt) ;
+        Summary(index).UpDwnStrkRatio     = abs(sweep(frstspikeswp).ap(1).upstroke) / abs(sweep(frstspikeswp).ap(1).downstroke) ;
+        Summary(index).MaxUpFrstAP        = sweep(frstspikeswp).ap(1).maxdvdt ;
+        Summary(index).MaxDwnFrstAP        = sweep(frstspikeswp).ap(1).mindvdt ;
         Summary(index).OnsetTSFAP         = OnsetTSFAP ;  
         Summary(index).TSbasetothreshM    = mean(TSbasetothresh) ; 
         Summary(index).TSbasetothreshSD   = std(TSbasetothresh) ; 

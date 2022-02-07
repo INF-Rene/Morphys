@@ -3,9 +3,9 @@
 close all, clear all
 
 %% Set path to load and save data; mat data load 
-basedir = '/Users/elinemertens/Data/ephys/Analyzed/trunc' ;
-savedir = '/Users/elinemertens/Data/ephys/Summary/Human' ;
-savename = 'Summary_T' ; 
+basedir = '/Users/elinemertens/Data/ephys/Hippocampus/nwb2_analyzed/2022_NEW/2022_again/165' ;
+savedir = '/Users/elinemertens/Data/ephys/Hippocampus/2022_Summary' ;
+savename = 'Summary_198' ;  
 
 %% load file list
 fileinfo  = dir(fullfile(basedir,'*.mat'));
@@ -18,7 +18,10 @@ for i = 1:length(filelist)
     fprintf('Looking for CC-step protocols: file nr %1.0f \n', i);
     load(fullfile(basedir,filelist{i})) ;
     
-    stimsets = struct2table(obj.getstimsets.metadata) ;
+    stimnms={obj.getstimsets.name};
+    CCsteploc=cellfun(@(x) contains(x, 'Steps'), stimnms);
+    stimsets = struct2table(obj.getstimsets(CCsteploc).metadata, 'AsArray', true) ;
+    %stimsets = struct2table(obj.getstimsets.metadata) ;
     sweeps = struct2table(obj.getstimsets.getnwbchannel.getsweep.metadata) ;
     epochs = struct2table(obj.getstimsets.getnwbchannel.getsweep.getepoch.metadata) ;
     aps = struct2table(obj.getstimsets.getnwbchannel.getsweep.getepoch.getap.metadata) ;
