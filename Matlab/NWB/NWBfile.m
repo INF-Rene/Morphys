@@ -200,7 +200,7 @@ classdef NWBfile < Sharedpaths & Sharedmethods
             obj.filesystemdate= fileinfo.date;
             tmp=h5read(fn, '/file_create_date');
 %             obj.filecreatedate= datetime(tmp{1}, 'InputFormat', 'yyyy-MM-dd''T''HH:mm:ss''Z''' ) + duration(1, 0, 0);
-            obj.filecreatedate= datetime(tmp{1}(1:end-6), 'InputFormat', 'yyyy-MM-dd''T''HH:mm:ss.SSS' ) + duration(1, 0, 0);
+%            obj.filecreatedate= datetime(tmp{1}(1:end-6), 'InputFormat', 'yyyy-MM-dd''T''HH:mm:ss.SSS' ) + duration(1, 0, 0);
             
             firstLBentry  = find(any(obj.labbooknum(obj.activeHS, strcmp('SweepNum', obj.labbooknum_keys),:)==1),1,'last'); %last entry sweeps are often re-recorded when new cells are patched
             %firstLBentry = find(LBN.SweepNum==1,1, 'last'); 

@@ -4,7 +4,7 @@ cd (folder);
 %make a list with all nwbs
 list = dir();
 list = struct2table(list);
-list = list(list.bytes>1000,:); %only files with actual data
+list = list(list.bytes>10000,:); %only files with actual data
 
 %% USE THIS nwb2: 
 for i = 1:numel(list.name) 
@@ -12,19 +12,23 @@ for i = 1:numel(list.name)
  nwb = NWBfile(fn,[{'LP'} {'hresh'} {'Steps'} {'CC'} {'LSFINEST'} {'LSCOARSE'}]);
  obj =nwb.analyseNWB ;
  obj.savename = sprintf('NWB_%s.mat',obj.filename(1:end-4));
- saveme(obj,'/Users/elinemertens/Data/ephys/Hippocampus/nwb2_analyzed/2022_NEW/2022_again/165', obj.savename) 
+ saveme(obj,'/Users/elinemertens/Data/ephys/Analyzed/2022_new/199', obj.savename) 
 end
 
     
     %%
-fn= '/Users/elinemertens/Data/ephys/Hippocampus/165/H19.29.165.21.41_ephys_converted/H19.29.165.21.41.01_nwb2.nwb'
+fn= '/Users/elinemertens/Data/ephys/Human_nwb2/H22.29.210_ZD/H22.29.210.11.61.06.nwb'
 
 %% let op of je wel of geen chirp wilt 
 nwb = NWBfile(fn,[{'LP'} {'hresh'} {'CC'} {'Steps'} {'LSFINEST'} {'LSCOARSE'}]);
+
+%% ONLY CC
+nwb = NWBfile(fn,[{'CC'} {'Steps'} {'LSFINEST'} {'LSCOARSE'}]);
 %%
 obj=nwb.analyseNWB
 %%
-obj.saveme('/Users/elinemertens/Data/ephys/Analyzed/209_ZD');
+obj.savename = sprintf('NWB_%s.mat',obj.filename(1:end-4));
+obj.saveme('/Users/elinemertens/Data/ephys/Analyzed/210_ZD/CC');
 
 %%
 %%obj.saveme('/Users/elinemertens/Data/ephys/Human/H20.29.185.21.01/nwb analyzed','185_cell1.mat');

@@ -3,7 +3,7 @@
 close all, clear all
 
 %% Set path to load and save data; mat data load 
-basedir = '/Users/elinemertens/Data/ephys/Hippocampus/nwb2_analyzed/2022_NEW/2022_again/165' ;
+basedir = '/Users/elinemertens/Data/ephys/Analyzed/210_ZD/CC' ;
 savedir = '/Users/elinemertens/Data/ephys/Hippocampus/2022_Summary' ;
 savename = 'Summary_198' ;  
 
@@ -18,10 +18,10 @@ for i = 1:length(filelist)
     fprintf('Looking for CC-step protocols: file nr %1.0f \n', i);
     load(fullfile(basedir,filelist{i})) ;
     
-    stimnms={obj.getstimsets.name};
-    CCsteploc=cellfun(@(x) contains(x, 'Steps'), stimnms);
-    stimsets = struct2table(obj.getstimsets(CCsteploc).metadata, 'AsArray', true) ;
-    %stimsets = struct2table(obj.getstimsets.metadata) ;
+%     stimnms={obj.getstimsets.name};
+%     CCsteploc=cellfun(@(x) contains(x, 'Steps'), stimnms);
+%   stimsets = struct2table(obj.getstimsets(CCsteploc).metadata, 'AsArray', true) ;
+    stimsets = struct2table(obj.getstimsets.metadata) ;
     sweeps = struct2table(obj.getstimsets.getnwbchannel.getsweep.metadata) ;
     epochs = struct2table(obj.getstimsets.getnwbchannel.getsweep.getepoch.metadata) ;
     aps = struct2table(obj.getstimsets.getnwbchannel.getsweep.getepoch.getap.metadata) ;
@@ -405,9 +405,11 @@ figure(2)
         Summary(index).HalfWFrstAP        = sweep(frstspikeswp).ap(1).halfwidth ; 
         Summary(index).AHPFrstAP          = sweep(frstspikeswp).ap(1).relahp ;
         Summary(index).AHPslowFrstAP      = sweep(frstspikeswp).ap(1).relahp_slow ;
-        Summary(index).UpStrkFrstAP       = sweep(frstspikeswp).ap(1).maxdvdt ;
-        Summary(index).DwnStrkFrstAP      = sweep(frstspikeswp).ap(1).mindvdt ;
-        Summary(index).UpDwnStrkRatio     = abs(sweep(frstspikeswp).ap(1).maxdvdt) / abs(sweep(frstspikeswp).ap(1).mindvdt) ;
+        Summary(index).UpStrokeFrstAP       = sweep(frstspikeswp).ap(1).upstroke ;
+        Summary(index).DwnStrokeFrstAP      = sweep(frstspikeswp).ap(1).downstroke ;
+        Summary(index).UpDwnStrkRatio     = abs(sweep(frstspikeswp).ap(1).upstroke) / abs(sweep(frstspikeswp).ap(1).downstroke) ;
+        Summary(index).MaxUpStrkFrstAP       = sweep(frstspikeswp).ap(1).maxdvdt ;
+        Summary(index).MaxDwnStrkFrstAP      = sweep(frstspikeswp).ap(1).mindvdt ;
         Summary(index).OnsetTSFAP         = OnsetTSFAP ;  
         Summary(index).TSbasetothreshM    = mean(TSbasetothresh) ; 
         Summary(index).TSbasetothreshSD   = std(TSbasetothresh) ; 
@@ -491,8 +493,7 @@ figure(2)
         Summary(index).onsetrap21to40  = nanmean(aps2.onsetrapidity(aps2.freqbin>=3 & aps2.freqbin<=4)) ;
         Summary(index).updwnratio21to40  = nanmean(aps2.updownratio(aps2.freqbin>=3 & aps2.freqbin<=4)) ;
         Summary(index).currentinje        = currentinj_avg ;
-        Summary(index).UpStrokeFrstAP       = sweep(frstspikeswp).ap(1).upstroke ;
-        Summary(index).DwnStrokeFrstAP      = sweep(frstspikeswp).ap(1).downstroke ;
+       
         
         
         
