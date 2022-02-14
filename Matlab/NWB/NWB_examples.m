@@ -12,7 +12,7 @@ for i = 1:numel(list.name)
  nwb = NWBfile(fn,[{'LP'} {'hresh'} {'Steps'} {'CC'} {'LSFINEST'} {'LSCOARSE'}]);
  obj =nwb.analyseNWB ;
  obj.savename = sprintf('NWB_%s.mat',obj.filename(1:end-4));
- saveme(obj,'/Users/elinemertens/Data/ephys/Analyzed/2022_new/199', obj.savename) 
+ saveme(obj,'/Users/elinemertens/Data/ephys/Hippocampus/ZD_wash_in/analyzed', obj.savename) 
 end
 
     

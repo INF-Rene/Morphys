@@ -26,13 +26,12 @@ plot(signal)
 signal = lowpass(signal,1000,10000);
 
 %%
-
+signal = signal.low_pass_filter(1000);
 %check if you take correct stimwave(#) (after wash in this is diff)
 stim = nwb.getstimset.getnwbchannel.getstimwave(2).Data ;
 % if the first sweep is bad or incomplete, take getstimwave(2)
 signal=signal.resample(0:0.1:signal.TimeInfo.End).Data;
-%signal = lowpass(signal,1000,10000);
-%signal = signal.low_pass_filter(1000);
+
 
 %%
 %   signal=normalize(mean(squeeze(data(:,1,:))'), 'range');

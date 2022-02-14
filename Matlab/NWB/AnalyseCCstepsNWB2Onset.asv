@@ -3,7 +3,7 @@
 close all, clear all
 
 %% Set path to load and save data; mat data load 
-basedir = '/Users/elinemertens/Data/ephys/Hippocampus/ZD_wash_in/analyzed' ;
+basedir = '/Users/elinemertens/Data/ephys/Analyzed/2022_new/202' ;
 savedir = '/Users/elinemertens/Data/ephys/Hippocampus/2022_Summary' ;
 savename = 'Summary_198' ;  
 
@@ -383,8 +383,8 @@ figure(2)
         Summary(index).isis_FS            = isis_FS ;
 %        Summary(index).isis_FS1           = isis_FS1 ;
         Summary(index).isis_TS            = isis_TS ;
-        Summary(index).isis_TS1           = isis_TS1 
-       % Summary(index).ISIsTS             = ISIsTS ;
+       % Summary(index).isis_TS1           = isis_TS1 
+        Summary(index).ISIsTS             = ISIsTS ;
 %         Summary(index).ISIsTS1            = ISIsTS1 ;
         Summary(index).isis_LS            = isis_LS ;
         Summary(index).isis_LS1           = isis_LS1 ;
