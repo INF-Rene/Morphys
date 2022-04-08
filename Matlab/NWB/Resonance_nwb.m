@@ -1,6 +1,6 @@
 %% Resonance analysis  single files (raw nwb files)
 
-fn= '/Users/elinemertens/Data/ephys/Human_nwb2/H22.29.210_ZD/H22.29.210.11.01.03-compressed.nwb'
+fn= '/Users/elinemertens/Data/ephys/Human_nwb2/H21.29.206_T/H21.29.206.11.01.06-compressed.nwb'
 
 nwb = NWBfile(fn,[{'X8_C'}])
 
@@ -10,8 +10,8 @@ nwb = NWBfile(fn,[{'X8_C'}])
 % Bij errors 'expected input to be finite' moet je 
 % even de losse sweeps bekijken en dan de juiste sweeps selecteren
 % signal = nwb.getstimset.getnwbchannel.getsweep(1:3).avtrace
-% or signal = nwb.getstimset.getnwbchannel.getsweep([1:4 5:6]).avtrace;
- signal = nwb.getstimset.getnwbchannel.getsweep([1:5]).avtrace;
+% or signal = nwb.getstimset.getnwbchannel.getsweep([1:4 6:7]).avtrace;
+ signal = nwb.getstimset.getnwbchannel.getsweep(1:5);
  
  plot(signal)
  
@@ -22,17 +22,13 @@ signal = nwb.getstimset.getnwbchannel.getsweep(1:5).avtrace;
 
 plot(signal)
 
-%%
-signal = lowpass(signal,1000,10000);
-
-%%
-
 %check if you take correct stimwave(#) (after wash in this is diff)
 stim = nwb.getstimset.getnwbchannel.getstimwave(2).Data ;
+signal = signal.low_pass_filter(1000);
 % if the first sweep is bad or incomplete, take getstimwave(2)
 signal=signal.resample(0:0.1:signal.TimeInfo.End).Data;
 %signal = lowpass(signal,1000,10000);
-%signal = signal.low_pass_filter(1000);
+
 
 %%
 %   signal=normalize(mean(squeeze(data(:,1,:))'), 'range');
@@ -43,11 +39,15 @@ signal=signal.resample(0:0.1:signal.TimeInfo.End).Data;
     L = length(signal);      % Signal length
     f = (0:L-1)*Fs/L;
    
+     
     plot(signal)
     grid off
 set(gca, 'TickDir', 'out')
+   % ylim([-80 -60]);
+
     ylabel('Voltage (mV)','FontSize',12)
-              xlabel('Time (sec)', 'FontSize',12)
+   xlabel('Time (sec)', 'FontSize',12)
+           
    
  %% Values resonance 
  
@@ -81,17 +81,21 @@ end_rmp = mean(signal(time>21000 & time<23000)) ;
     xlim([0.5 25])
     
     %% plot only smoothed 
+     signal_fft=fft(signal);
+    stim_fft=fft(stim);
 
+figure(4)
      smoothed=smooth((abs(signal_fft)./abs(stim_fft)*1000),23,  'lowess');
     plot(f, smoothed);
     xlim([0.5 25])
+    %ylim([0 100])
     grid off  ;
 set(gca, 'TickDir', 'out')
     box off         
                  ylabel('Impedance (MΩ)','FontSize',12)
               xlabel('Frequency (Hz)', 'FontSize',12)
-    
-   %% resonance freq
+
+              
     [max_imp, loc] = max(smoothed(f>0.5 & f<25));
     f2 = f(f>0.5 & f<25);
     res_freq = f2(loc);

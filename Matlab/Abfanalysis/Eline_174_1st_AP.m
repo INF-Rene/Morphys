@@ -386,4 +386,7 @@ for i=1:bb.nrofabfs
     %bb.getabf(i).saveme(path2save,bb.getabf(i).filename('fn'))
 end
  
+%%
+figure(1)
+abf.getchannel(1).selectsweep([1 3 5 7 9 11 13 15]).plot  ;
 

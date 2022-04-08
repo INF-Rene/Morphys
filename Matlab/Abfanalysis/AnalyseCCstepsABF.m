@@ -8,10 +8,10 @@ savedir = '/Users/elinemertens/Matlab Data/Analyzed' ; % specify path for saving
 savename = 'CellSummary_Par1'; % specify filename to be saved
 
 %%
-p   = ('/Users/elinemertens/Data/ephys/Human/H20.29.187_T/ccsteps');
-fn  = '2020_11_23_0006.abf';
+p   = ('/Users/elinemertens/Data/ephys/Hippocampus/H17.29.117.21/H17.29.117.21.IV');
+fn  = '2017_03_29_0295.abf';
 fp  = fullfile(p,fn);
-ss  = load('/Users/elinemertens/Data/Morphys-master/Matlab/Abfanalysis/Setupsettings_INF.mat');
+ss  = load('/Users/elinemertens/Documents/CNCR/Data/Matlab Data/Morphys-master/Matlab/Abfanalysis/Setupsettings_INF.mat');
 ss  = ss.obj;
 abf = Abffile(fp,ss);
 %% import CSV files %if you're loading a lot of files at the same time. not used in this version of the script

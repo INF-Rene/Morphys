@@ -3,30 +3,18 @@
 %  MATLAB version: 9.10.0.1602886 (R2021a)
 % -------------------------------------------------------------------
 
-p   = ('/Users/elinemertens/Data/ephys/CHIRP/180');
-fn  = '2020_08_04_0076.abf';
+p   = ('/Users/elinemertens/Data/ephys/CHIRP/174');
+fn  = '2020_03_04_0060.abf';
 fp  = fullfile(p,fn);
 ss  = load('/Users/elinemertens/Documents/CNCR/Data/Matlab Data/Morphys-master/Matlab/Abfanalysis/Setupsettings_INF.mat');
 ss  = ss.obj;
 zabf = Abffile(fp,ss);
 
-
-%% For djai different channels 
-signal =  zabf.channels.analogins(1, 1).sweeps(1:3).avtrace ;
+signal =  zabf.channels.analogins(1, 1).sweeps(1).avtrace ;
 plot(signal)
-
-%%
 signal = signal.low_pass_filter(1000);
 data = abfload_pro(fp);
 stim = squeeze(data(:,2,1));
-signal=signal.resample(0:0.1:signal.TimeInfo.End).Data;
-
-%% thijs
-signal = zabf1.channels(1, 2).analogins.sweeps.avtrace
-plot(signal)
-signal = signal.low_pass_filter(1000);
-data = abfload_pro(fp1);
-stim = squeeze(data(:,4,1));
 signal=signal.resample(0:0.1:signal.TimeInfo.End).Data;
 
 
@@ -40,24 +28,7 @@ signal=signal.resample(0:0.1:signal.TimeInfo.End).Data;
     
                  ylabel('Voltage (mV)')
               xlabel('Time (sec)')
-              
-  %% for tijs you do channels (1,2) and for djai not 
-               
-time = zabf1.channels(1,2).analogins(1,1).sweeps.Time ;  
- aastart_rmp = mean(signal(time>100 & time<140));
-
-[first_wave, loc] = max(signal(time>140 & time<700));
- adelta_first_wave = (aastart_rmp) - (first_wave) ; 
-
-[max_ampl, loc] = max(signal(time>300 & time<10000));
-t2 = time(time>300 & time<10000);
-  time_max_amp = t2(loc);
-  cdelta_max_wave = (aastart_rmp) - (max_ampl) ;
-
-cend_rmp = mean(signal(time>10000 & time<10200)) ;
-    
-    
-    %%
+   
     signal_fft=fft(signal);
     stim_fft=fft(stim);
 
@@ -86,9 +57,6 @@ xlabel('Frequency (Hz)')
 set(gca, 'TickDir', 'out')
     % Set the remaining axes properties
 
-   
-   %% resonance freq
-   
    [max_imp, loc] = max(smoothed(f>1.2 & f<25));
     f2 = f(f>1.2 & f<25);
     res_freq = f2(loc);

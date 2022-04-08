@@ -3,8 +3,8 @@
 close all, clear all
 
 %% Set path to load and save data; mat data load 
-basedir = '/Users/elinemertens/Data/ephys/Hippocampus/ZD_wash_in/analyzed' ;
-savedir = '/Users/elinemertens/Data/ephys/Hippocampus/2022_Summary' ;
+basedir = '/Users/elinemertens/Data/Projects/Collaborations/EPFL/EPFL_conf_2022/analyzed' ;
+savedir = '/Users/elinemertens/Data/ephys/Hippocampus/2022_Summary';
 savename = 'Summary_198' ;  
 
 %% load file list
@@ -18,10 +18,14 @@ for i = 1:length(filelist)
     fprintf('Looking for CC-step protocols: file nr %1.0f \n', i);
     load(fullfile(basedir,filelist{i})) ;
     
-%     stimnms={obj.getstimsets.name};
-%     CCsteploc=cellfun(@(x) contains(x, 'Steps'), stimnms);
-%   stimsets = struct2table(obj.getstimsets(CCsteploc).metadata, 'AsArray', true) ;
-    stimsets = struct2table(obj.getstimsets.metadata) ;
+   % either run through all protocols, if it can't resolve this, remove %
+   % on line 22-24 and put it at 24. It will now loop through stimsets to
+   % find ccsteps 
+   
+     stimnms={obj.getstimsets.name};
+     CCsteploc=cellfun(@(x) contains(x, 'teps'), stimnms);
+   stimsets = struct2table(obj.getstimsets(CCsteploc).metadata, 'AsArray', true) ;
+   % stimsets = struct2table(obj.getstimsets.metadata, 'AsArray', true) ;
     sweeps = struct2table(obj.getstimsets.getnwbchannel.getsweep.metadata) ;
     epochs = struct2table(obj.getstimsets.getnwbchannel.getsweep.getepoch.metadata) ;
     aps = struct2table(obj.getstimsets.getnwbchannel.getsweep.getepoch.getap.metadata) ;
@@ -108,6 +112,20 @@ for i = 1:length(filelist)
             end
         end
        
+figure(2)
+        for j = 1:length(obj.stimsets)
+            if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},firstsweepname))
+                %figure(); obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).plot
+                 obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).plot;
+                legend(filelist)
+                   grid off
+                 set(gca, 'TickDir', 'out')
+                 xlim([0 3000])
+              %  title('First AP')
+            %   ylabel('mV')
+            %    xlabel('ms')
+            end
+        end
         
         idx1 = 1 ;
         for j = frstspikeswp:NrofSweeps  
@@ -246,12 +264,13 @@ for i = 1:length(filelist)
         end
         % determine sweep for sag, (minimum voltage response closest to -100)
         tmp = abs(MinVmResponse+100) ;
-        [sagswp sagswp] = min(tmp) ;
+        tmp = tmp(~isnan(tmp));
+        [sagswp sagswp] = min(tmp)  ;
  sagsweepname = sweep(sagswp).Name ;
  
 %  if you want to plot all sag sweeps, get the percentage away form
 %  obj.getstimset and run this part via index 
-figure(2)
+figure(3)
  for j = 1:length(obj.stimsets)
             if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},sagsweepname))
                 %%figure(); obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).plot
@@ -383,7 +402,7 @@ figure(2)
         Summary(index).isis_FS            = isis_FS ;
 %        Summary(index).isis_FS1           = isis_FS1 ;
         Summary(index).isis_TS            = isis_TS ;
-        Summary(index).isis_TS1           = isis_TS1 
+        Summary(index).isis_TS1           = isis_TS1 ;
        % Summary(index).ISIsTS             = ISIsTS ;
 %         Summary(index).ISIsTS1            = ISIsTS1 ;
         Summary(index).isis_LS            = isis_LS ;
@@ -407,6 +426,7 @@ figure(2)
         Summary(index).PkDeflect          = PkDeflect(sagswp,1) ; 
         Summary(index).TauM               = nanmean(taus(taus~=0)) ;
         Summary(index).TauSD              = nanstd(taus(taus~=0)) ;
+        Summary(index).curr_FrstAP        = sweep(frstspikeswp).ap(1).currinj ;
         Summary(index).OnsetFrstAP        = sweep(frstspikeswp).ap(1).thresh_time - (seconds(sum([sweep(frstspikeswp).epoch(1:find(strcmp({sweep(frstspikeswp,1).epoch.idxstr}, 'A'))).timespan]))*1000) ; 
         Summary(index).ThreshFrstAP       = sweep(frstspikeswp).ap(1).thresh ; 
         Summary(index).FAPbasetothresh    = sweep(frstspikeswp).ap(1).thresh-sweep(frstspikeswp).vmbase ; 
@@ -502,7 +522,6 @@ figure(2)
         Summary(index).thresh21to40  = nanmean(aps2.thresh(aps2.freqbin>=3 & aps2.freqbin<=4)) ; 
         Summary(index).onsetrap21to40  = nanmean(aps2.onsetrapidity(aps2.freqbin>=3 & aps2.freqbin<=4)) ;
         Summary(index).updwnratio21to40  = nanmean(aps2.updownratio(aps2.freqbin>=3 & aps2.freqbin<=4)) ;
-        Summary(index).currentinje        = currentinj_avg ;
        
         
         

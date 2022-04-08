@@ -229,6 +229,14 @@ classdef Trace < timeseries
             end
         end
         
+        function obj = low_pass_filter(obj, freq)
+            for i=1:numel(obj)
+                Wn = [(freq/(obj(i).samplefreq/2))];
+                [B,A] = butter(2,Wn, 'low');
+                obj(i).Data = filtfilt(B,A,double(obj(i).Data));
+            end
+        end
+        
         function s = avtrace(obj)
             % average of Sweep objects. Note this is different from the TIMESERIES native MEAN method, which returns a mean
             % over time, so that's 1 value. Returned sweep objects retains all properties of 1st Sweep object in array.

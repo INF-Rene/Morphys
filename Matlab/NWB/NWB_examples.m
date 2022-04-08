@@ -9,26 +9,29 @@ list = list(list.bytes>10000,:); %only files with actual data
 %% USE THIS nwb2: 
 for i = 1:numel(list.name) 
     fn =cell2mat(list.name(i));
- nwb = NWBfile(fn,[{'LP'} {'hresh'} {'Steps'} {'CC'} {'LSFINEST'} {'LSCOARSE'}]);
+ nwb = NWBfile(fn,[{'LP'} {'hresh'} {'CHIRP'} {'Steps'} {'CC'} {'LSFINEST'} {'LSCOARSE'}]);
  obj =nwb.analyseNWB ;
  obj.savename = sprintf('NWB_%s.mat',obj.filename(1:end-4));
- saveme(obj,'/Users/elinemertens/Data/ephys/Hippocampus/ZD_wash_in/analyzed', obj.savename) 
+ saveme(obj,'/Users/elinemertens/Data/ephys/Analyzed/214', obj.savename) 
 end
 
     
     %%
-fn= '/Users/elinemertens/Data/ephys/Human_nwb2/H22.29.210_ZD/H22.29.210.11.61.06.nwb'
+fn= '/Users/elinemertens/Data/ephys/Human_nwb2/H20.29.183_T/H20.29.183.11.01.01.nwb'
 
 %% let op of je wel of geen chirp wilt 
-nwb = NWBfile(fn,[{'LP'} {'hresh'} {'CC'} {'Steps'} {'LSFINEST'} {'LSCOARSE'}]);
+nwb = NWBfile(fn,[{'TRIPLE'} {'LP'} {'hresh'} {'CC'} {'teps'} {'LSFINEST'} {'LSCOARSE'}]);
 
 %% ONLY CC
 nwb = NWBfile(fn,[{'CC'} {'Steps'} {'LSFINEST'} {'LSCOARSE'}]);
+
+%% everything
+nwb = NWBfile(fn,[{'X'} {'CC'} {'teps'}]);
 %%
 obj=nwb.analyseNWB
 %%
 obj.savename = sprintf('NWB_%s.mat',obj.filename(1:end-4));
-obj.saveme('/Users/elinemertens/Data/ephys/Analyzed/210_ZD/CC');
+saveme(obj,'/Users/elinemertens/Data/ephys/Hippocampus/ZD_wash_in/analyzed', obj.savename) 
 
 %%
 %%obj.saveme('/Users/elinemertens/Data/ephys/Human/H20.29.185.21.01/nwb analyzed','185_cell1.mat');

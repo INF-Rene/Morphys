@@ -1,5 +1,5 @@
 %%Load in analyzed mat files 
-basedir = '/Users/elinemertens/Data/ephys/Analyzed/209_ZD' ;
+basedir = '/Users/elinemertens/Data/ephys/Hippocampus/nwb2_analyzed/209/eline' ;
 savedir = '/Users/elinemertens/Data/ephys/Summary/Human' ;
 savename = 'Summary_209' ;
 
@@ -49,7 +49,7 @@ for i=1:numel(filelist)
         % peak and ss voltage
         
 %         swps_f = swps.low_pass_filter(1000);
-        
+        swps 
         vstep = [swps.getepoch(stepepoch).vstep];
         rmp = [swps.getepoch(stepepoch-1).steadystate];
         v_delta = vstep - rmp;
@@ -78,7 +78,8 @@ for i=1:numel(filelist)
         % results to table
      % Protocol_column = repmat(stimset.name, height(t), 1);
      % Filename_column = repmat(filelist{i}, height(t), 1); 
-      
+      % let op dat alle namen hetzelfde zijn (dus geen compressed.nwb), 
+      % dit snapt het script niet 
         t = table(pA', vstep', rmp', ss', ss_delta', sag_ratio', 'VariableNames', {'pA', 'sagvolt', 'RMP', 'ss', 'ss_delta', 'sag_ratio'});
       %  t.Protocol = repmat(stimset.name, height(t), 1);
       t.Filename = repmat(filelist{i}, height(t), 1);

@@ -1,17 +1,13 @@
 %% Resonance analysis  single files (raw nwb files)
 
-fn= '/Users/elinemertens/Data/ephys/Human_nwb2/H22.29.210_ZD/H22.29.210.11.01.03-compressed.nwb'
+fn= '/Users/elinemertens/Data/ephys/Hippocampus/H22.29.209_H/eline/H22.29.209.21.02.03-compressed.nwb'
 
 nwb = NWBfile(fn,[{'X8_C'}])
 
 
 %% Zorg dat hiervoor de traces individueel al bekeken zijn of ze vergelijkbaar zijn 
-%(indien niet, geen average trace nemen)
-% Bij errors 'expected input to be finite' moet je 
-% even de losse sweeps bekijken en dan de juiste sweeps selecteren
-% signal = nwb.getstimset.getnwbchannel.getsweep(1:3).avtrace
-% or signal = nwb.getstimset.getnwbchannel.getsweep([1:4 5:6]).avtrace;
- signal = nwb.getstimset.getnwbchannel.getsweep([1:5]).avtrace;
+
+ signal = nwb.getstimset.getnwbchannel.getsweep(1:5);
  
  plot(signal)
  
@@ -23,30 +19,26 @@ signal = nwb.getstimset.getnwbchannel.getsweep(1:5).avtrace;
 plot(signal)
 
 %%
-signal = lowpass(signal,1000,10000);
-
-%%
-signal = signal.low_pass_filter(1000);
 %check if you take correct stimwave(#) (after wash in this is diff)
 stim = nwb.getstimset.getnwbchannel.getstimwave(2).Data ;
+signal = signal.low_pass_filter(1000);
 % if the first sweep is bad or incomplete, take getstimwave(2)
 signal=signal.resample(0:0.1:signal.TimeInfo.End).Data;
-
-
-%%
-%   signal=normalize(mean(squeeze(data(:,1,:))'), 'range');
-%     stim=normalize(mean(squeeze(data(:,2,:))'), 'range');
 
     %%
     Fs = 10000;           % Sampling frequency
     L = length(signal);      % Signal length
     f = (0:L-1)*Fs/L;
    
+     
     plot(signal)
     grid off
 set(gca, 'TickDir', 'out')
+    ylim([-80 -60]);
+
     ylabel('Voltage (mV)','FontSize',12)
-              xlabel('Time (sec)', 'FontSize',12)
+   xlabel('Time (sec)', 'FontSize',12)
+           
    
  %% Values resonance 
  
@@ -80,10 +72,11 @@ end_rmp = mean(signal(time>21000 & time<23000)) ;
     xlim([0.5 25])
     
     %% plot only smoothed 
-
+figure(4)
      smoothed=smooth((abs(signal_fft)./abs(stim_fft)*1000),23,  'lowess');
     plot(f, smoothed);
     xlim([0.5 25])
+   % ylim([0 50])
     grid off  ;
 set(gca, 'TickDir', 'out')
     box off         
