@@ -7,12 +7,14 @@
 % of the upcoming codes either. We will remove bb.getabf(1).plot and replace it
 % with abf.plot 
 
-p1   = ('/Users/elinemertens/Matlab Data/H20.29.174/cell1');
-fn1  = '2020_03_04_0002.abf';
+p1   = ('/Users/elinemertens/Data/ephys/Hippocampus/Ting/JT Human CA1 pyr neuron ephys/H17.06.015.21.02.04 CA1 pyr (JT)');
+fn1  = '17d05072.abf';
 fp1  = fullfile(p1,fn1);
-ss  = load('/Users/elinemertens/Matlab Data/Morphys-master/Matlab/Abfanalysis/Setupsettings_INF.mat');
+ss  = load('/Users/elinemertens/Documents/CNCR/Morphys/Data/Electrophysiology/SetupSettings/Setupsettings_INF.mat');
 ss  = ss.obj;
 abf1 = Abffile(fp1,ss);
+
+%%
     
 p2   = ('/Users/elinemertens/Matlab Data/H20.29.174/cell2');
 fn2  = '2020_03_04_0021.abf';

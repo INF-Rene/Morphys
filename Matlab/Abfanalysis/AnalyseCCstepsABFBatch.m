@@ -6,7 +6,7 @@ close all, clear all
 % The Abfbatch object allows you to handle a collection of Abffiles. 
 % Use GUI to select abf/mat files to add to batch, and select an setup settings object
 
-bb = Abfbatch('gui'); 
+    bb = Abfbatch('gui'); 
  
 %% inspect
 bb = bb.inspectbatch;
@@ -46,10 +46,9 @@ savename = 'Summary'; % specify filename to be saved
 % fileinfo  = dir(fullfile(basedir,'*.mat'));
 % filelist  = {fileinfo.name};
 
-
 %% Load batch of analysed abfs
 
-%% extract data tables from obj
+%% extract data tables from obj 
 abfs = struct2table(bb.getabf.metadata) ;
 channels = struct2table(bb.getabf.getchannel.metadata) ;
 ins = struct2table(bb.getabf.getchannel.getin.metadata) ;
@@ -58,8 +57,7 @@ sweeps = struct2table(bb.getabf.getchannel.getin.getsweep.metadata) ;
 epochs = struct2table(bb.getabf.getchannel.getin.getsweep.getepoch.metadata) ;
 aps = struct2table(bb.getabf.getchannel.getin.getsweep.getepoch.getap.metadata) ;
 
-
-%% get instantaneous freq bins 
+% get instantaneous freq bins 
 edges = 1:10:201 ;
 aps.freqbin = discretize(aps.freq, edges) ;
 aps.freqbin(isnan(aps.freqbin)) = 0 ;
@@ -71,9 +69,9 @@ aps.updownratio = aps.maxdvdt./abs(aps.mindvdt) ;
 aps.onsetrapidity(aps.onsetrapidity > 100) = NaN ;
     
     
-    %% Make subset of data per abf file
+  % Make subset of data per abf file
     
-    abf = SubsetTable2struct(abfs,channels,ins,outs,sweeps,epochs,aps) ;
+ abf = SubsetTable2struct(abfs,channels,ins,outs,sweeps,epochs,aps) ;
     
    
 %% loop through abf files
@@ -336,8 +334,10 @@ for i = 1:bb.nrofabfs
          
         if length(sweep(frstspikeswp).ap) > 1
             isis_FS = [sweep(frstspikeswp).ap(2:end).isi];
+            isis_FS1 = [sweep(NrofSweeps).ap(2).isi];
         else 
             isis_FS = NaN ;
+           isis_FS1 = NaN ; 
            
         end
         
@@ -373,7 +373,7 @@ for i = 1:bb.nrofabfs
         Summary(index).NrOfAPsTrSwp       = NrOfAPsTrSwp ;
         Summary(index).NrofAPlastSwp      = NrofAPlastSwp ; 
         Summary(index).isis_FS            = isis_FS ;
-       % Summary(index).isis_FS1           = isis_FS1 ;
+        Summary(index).isis_FS1           = isis_FS1 ;
         Summary(index).ISIsTS             = ISIsTS ;
         Summary(index).ISIsTS1            = ISIsTS1 ;
         Summary(index).isis_LS            = isis_LS ;
@@ -393,10 +393,12 @@ for i = 1:bb.nrofabfs
         Summary(index).VmatSag            = MinVmResponse(sagswp,1) ;
         Summary(index).TauM               = nanmean(taus(taus~=0)) ;
         Summary(index).TauSD              = nanstd(taus(taus~=0)) ;
-        Summary(index).OnsetFrstAP        = NaN ;%sweep(frstspikeswp).ap(1).thresh_time - (sum(seconds({sweep(frstspikeswp).epoch(1:step-1).timespan}))*1000) ; 
+        Summary(index).curr_FrstAP        = sweep(frstspikeswp).ap(1).currinj ; 
+        Summary(index).OnsetFrstAP        = NaN %sweep(frstspikeswp).ap(1).thresh_time - (sum(seconds({sweep(frstspikeswp).epoch(1:step-1).timespan}))*1000) ; 
         Summary(index).ThreshFrstAP       = sweep(frstspikeswp).ap(1).thresh ; 
         Summary(index).FAPbasetothresh    = sweep(frstspikeswp).ap(1).thresh-sweep(frstspikeswp).vmbase ; 
         Summary(index).AmpFAPthresh       = sweep(frstspikeswp).ap(1).amp ;
+        Summary(index).PeakFrstAP         = sweep(frstspikeswp).ap(1).thresh + sweep(frstspikeswp).ap(1).amp ; 
         Summary(index).FAPpeaktoahp       = sweep(frstspikeswp).ap(1).ahp_time - sweep(frstspikeswp).ap(1).peak_time ;
         Summary(index).HalfWFrstAP        = sweep(frstspikeswp).ap(1).halfwidth ; 
         Summary(index).AHPFrstAP          = sweep(frstspikeswp).ap(1).relahp ;
@@ -503,7 +505,9 @@ clearvars -except Summary i
 
 
 
-
+%%
+Summary_T = struct2table(Summary) ; 
+writetable(Summary_T, 'summary_6.xlsx');
 
 
 

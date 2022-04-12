@@ -1,8 +1,8 @@
 % patient 117 hippocampus analysis  for resonance
-p1   = ('/Volumes/WD ELEMENTS/Human ephys/H20.29.182_F/cell3');
-fn1  = '2020_09_23_0019.abf';
+p1   = ('/Users/elinemertens/Downloads/ting/');
+fn1  = 'floating_poimt.abf';
 fp1  = fullfile(p1,fn1);
-ss  = load('/Users/elinemertens/Data/Morphys-master/Matlab/Abfanalysis/Setupsettings_INF.mat');
+ss  = load('/Users/elinemertens/Documents/CNCR/Data/Matlab Data/Morphys-master/Matlab/Abfanalysis/Setupsettings_INF.mat');
 ss  = ss.obj;
 zabf1 = Abffile(fp1,ss);
 

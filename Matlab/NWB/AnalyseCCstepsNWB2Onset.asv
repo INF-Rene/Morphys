@@ -349,10 +349,9 @@ figure(3)
    
         if length(sweep(frstspikeswp).ap) > 1
             isis_FS = [sweep(frstspikeswp).ap(2:end).isi];
-            isis_FS1 = [sweep(frstspikeswp).ap(2).isi];
+            isis_FS1 = [sweep(TrainSweep).ap(2).isi];
         else 
             isis_FS = NaN ;
-            isis_FS1 = NaN ; 
         end
         
          if length(sweep(TrainSweep).ap) > 1

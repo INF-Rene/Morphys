@@ -123,7 +123,7 @@ for i = 1:height(filelist)
 
         apcrit=0;
         for frstspikeswp = 1:NrofSweeps
-            if sweep(frstspikeswp).epoch(step).nrofaps > 0 && sweep(frstspikeswp).epoch(step).stepdiff > 0d
+            if sweep(frstspikeswp).epoch(step).nrofaps > 0 && sweep(frstspikeswp).epoch(step).stepdiff > 0
                 apcrit=1;
                 break
             end

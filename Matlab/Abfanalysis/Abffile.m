@@ -678,7 +678,7 @@ classdef Abffile < Sharedpaths & Setupsettings
                     end
 
                     % fix numbers...
-                    number_tmp = table(arrayfun(@(x) str2num(iotable{x,'number'}{:}),1:size(iotable,1))','VariableNames',{'number'});
+                   number_tmp = table(arrayfun(@(x) str2num(iotable{x,'number'}{:}),1:size(iotable,1))','VariableNames',{'number'},'un',0);
                     iotable(:,'number')=[];        % delete old
                     iotable=[iotable,number_tmp]; % append new (now as number instead of string)
 
