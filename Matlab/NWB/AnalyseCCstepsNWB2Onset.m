@@ -3,7 +3,7 @@
 close all, clear all
 
 %% Set path to load and save data; mat data load 
-basedir = '/Users/elinemertens/Data/ephys/Analyzed/batch_3' ;
+basedir = '/Users/elinemertens/Data/ephys/Analyzed/H22' ;
 savedir = '/Users/elinemertens/Data/ephys/Hippocampus/2022_Summary';
 savename = 'Summary_198' ;  
 
@@ -541,7 +541,7 @@ clearvars -except Summary i
 %%
 
 Summary_T = struct2table(Summary) ; 
-writetable(Summary_T, 'summary_195.xlsx');
+writetable(Summary_T, 'summary_22.xlsx');
 
 
 

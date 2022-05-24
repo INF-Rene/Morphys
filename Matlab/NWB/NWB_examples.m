@@ -12,26 +12,26 @@ for i = 1:numel(list.name)
  nwb = NWBfile(fn,[{'LP'} {'hresh'} {'Steps'} {'CC'} {'LSFINEST'} {'LSCOARSE'}]);
  obj =nwb.analyseNWB ;
  obj.savename = sprintf('NWB_%s.mat',obj.filename(1:end-4));
- saveme(obj,'/Users/elinemertens/Data/ephys/Analyzed/batch_3', obj.savename) 
+ saveme(obj,'/Users/elinemertens/Data/ephys/Analyzed/H22', obj.savename) 
 end
 
     
     %%
-fn= '/Users/elinemertens/Data/ephys/Human_nwb1/H20.29.186_T/2020_10_21_cell3-compressed.nwb'
+fn= '/Users/elinemertens/Data/ephys/Hippocampus/H22.29.209_H/eline/H22.29.209.21.62.01.nwb'
 
 %% let op of je wel of geen chirp wilt 
-nwb = NWBfile(fn,[{'TRIPLE'} {'LP'} {'hresh'} {'CC'} {'teps'} {'LSFINEST'} {'LSCOARSE'}]);
+nwb = NWBfile(fn,[{'LP'} {'hresh'} {'CC'} {'teps'} {'LSFINEST'} {'LSCOARSE'}]);
 
 %% ONLY CC
 nwb = NWBfile(fn,[{'CC'} {'Steps'} {'LSFINEST'} {'LSCOARSE'}]);
 
 %% everything
-nwb = NWBfile(fn,[{'X'} {'CC'} {'teps'}]);
+nwb = NWBfile(fn,[{'TRIPLE'}]); 
 %%
 obj=nwb.analyseNWB
 %%
 obj.savename = sprintf('NWB_%s.mat',obj.filename(1:end-4));
-saveme(obj,'/Users/elinemertens/Data/ephys/Analyzed/analyzed_batch', obj.savename) 
+saveme(obj,'/Users/elinemertens/Data/ephys/Analyzed/femke', obj.savename) 
 
 %%
 %%obj.saveme('/Users/elinemertens/Data/ephys/Human/H20.29.185.21.01/nwb analyzed','185_cell1.mat');

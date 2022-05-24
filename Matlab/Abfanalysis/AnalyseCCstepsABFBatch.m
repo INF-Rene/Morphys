@@ -6,7 +6,7 @@ close all, clear all
 % The Abfbatch object allows you to handle a collection of Abffiles. 
 % Use GUI to select abf/mat files to add to batch, and select an setup settings object
 
-    bb = Abfbatch('gui'); 
+bb = Abfbatch('gui'); 
  
 %% inspect
 bb = bb.inspectbatch;
@@ -95,12 +95,12 @@ for i = 1:bb.nrofabfs
         for j = 1:NrofSweeps
             sweep(j).vmbase = sweep(j).epoch(step-1).steadystate ;
             sweep(j).jitter = sweep(j).epoch(step-1).jitter ;
-            sweep(j).currinj = sweep(j).epoch(step).stepdiff ;
-            sweep(j).vmresponse = sweep(j).epoch(step).vstep ;
-            sweep(j).ap = sweep(j).epoch(step).ap ;
-            for ap = 1:length(sweep(j).epoch(step+1).ap)
+            sweep(j).currinj = sweep(j).epoch(5).stepdiff ;
+            sweep(j).vmresponse = sweep(j).epoch(5).vstep ;
+            sweep(j).ap = sweep(j).epoch(5).ap ;
+            for ap = 1:length(sweep(j).epoch(6).ap)
                 %if sweep(j).epoch(step+1).ap(ap).start_time > (sum(second({sweep(1).epoch(1:step).timespan}))*1000)+7 && sweep(j).epoch(step+1).ap(ap).start_time < (sum(second({sweep(1).epoch(1:step).timespan}))*1000)+300
-                    sweep(j).rbap(ap) = sweep(j).epoch(step+1).ap(ap) ;
+                    sweep(j).rbap(ap) = sweep(j).epoch(6).ap(ap) ;
                 %end
             end
         end
@@ -108,7 +108,7 @@ for i = 1:bb.nrofabfs
         % find rheobase sweep
         apcrit=0;
         for frstspikeswp = 1:NrofSweeps
-            if sweep(frstspikeswp).epoch(step).nrofaps > 0 && sweep(frstspikeswp).epoch(step).stepdiff > 0
+            if sweep(frstspikeswp).epoch(5).nrofaps > 0 && sweep(frstspikeswp).epoch(5).stepdiff > 0
                 apcrit=1;
                 break
             end
@@ -116,8 +116,8 @@ for i = 1:bb.nrofabfs
         
         idx1 = 1 ;
         for j = frstspikeswp:NrofSweeps           
-            for ii = 1:length(sweep(j).epoch(step).ap)
-                apguids(idx1) = {sweep(j).epoch(step).ap(ii).guid} ;
+            for ii = 1:length(sweep(j).epoch(5).ap)
+                apguids(idx1) = {sweep(j).epoch(5).ap(ii).guid} ;
                 idx1 = idx1 + 1 ;
             end
         end             
@@ -501,13 +501,13 @@ end
 save(fullfile(basedir, savename), 'Summary') ;
 
 %% do this only in the end, otherwise you'll remove the bb too
-clearvars -except Summary i 
+clearvars -except bb
 
 
 
 %%
 Summary_T = struct2table(Summary) ; 
-writetable(Summary_T, 'summary_6.xlsx');
+writetable(Summary_T, 'summary_Ting.xlsx');
 
 
 
