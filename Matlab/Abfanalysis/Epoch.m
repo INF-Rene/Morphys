@@ -228,7 +228,7 @@ classdef Epoch < Sharedmethods & Trace
                 obj = obj.analyseaps; 
             end
 
-            % 211116 removed this part due to errors with analyzing abf 
+            %211116 removed this part due to errors with analyzing abf 
             if ~isempty(prev_amp)
                 obj.stepdiff = obj.amplitude - prev_amp ;
             end

@@ -16,10 +16,11 @@ bb = bb.analysebatch;
 
 %% Thijs / Djai channel removal 
 %thijs
-bb.abfs(1).channels(1) = [];
+%bb.abfs(1).channels(1) = [];
 %bb.abfs(1).channels(3) = [];
-bb.abfs(1).channels = abfs(1).channels([2]); 
+%bb.abfs(1).channels = abfs(1).channels([2]); 
 %djai
+%bb.abfs(1).channels(1).analogins(1) = [] ; 
 
 %%
 %save bb 
@@ -92,15 +93,29 @@ for i = 1:bb.nrofabfs
                 break
             end
         end
-        for j = 1:NrofSweeps
+        %for djai files has to go 
+%         for j = 1:NrofSweeps
+%             sweep(j).vmbase = sweep(j).epoch(step-1).steadystate ;
+%             sweep(j).jitter = sweep(j).epoch(step-1).jitter ;
+%             sweep(j).currinj = sweep(j).epoch(5).stepdiff ;
+%             sweep(j).vmresponse = sweep(j).epoch(5).vstep ;
+%             sweep(j).ap = sweep(j).epoch(5).ap ;
+%             for ap = 1:length(sweep(j).epoch(6).ap)
+%                 %if sweep(j).epoch(step+1).ap(ap).start_time > (sum(second({sweep(1).epoch(1:step).timespan}))*1000)+7 && sweep(j).epoch(step+1).ap(ap).start_time < (sum(second({sweep(1).epoch(1:step).timespan}))*1000)+300
+%                     sweep(j).rbap(ap) = sweep(j).epoch(6).ap(ap) ;
+%                 %end
+%             end
+%         end
+  
+ for j = 1:NrofSweeps
             sweep(j).vmbase = sweep(j).epoch(step-1).steadystate ;
             sweep(j).jitter = sweep(j).epoch(step-1).jitter ;
-            sweep(j).currinj = sweep(j).epoch(5).stepdiff ;
-            sweep(j).vmresponse = sweep(j).epoch(5).vstep ;
-            sweep(j).ap = sweep(j).epoch(5).ap ;
-            for ap = 1:length(sweep(j).epoch(6).ap)
+            sweep(j).currinj = sweep(j).epoch(2).stepdiff ;
+            sweep(j).vmresponse = sweep(j).epoch(2).vstep ;
+            sweep(j).ap = sweep(j).epoch(2).ap ;
+            for ap = 1:length(sweep(j).epoch(2).ap)
                 %if sweep(j).epoch(step+1).ap(ap).start_time > (sum(second({sweep(1).epoch(1:step).timespan}))*1000)+7 && sweep(j).epoch(step+1).ap(ap).start_time < (sum(second({sweep(1).epoch(1:step).timespan}))*1000)+300
-                    sweep(j).rbap(ap) = sweep(j).epoch(6).ap(ap) ;
+                    sweep(j).rbap(ap) = sweep(j).epoch(2).ap(ap) ;
                 %end
             end
         end
@@ -108,7 +123,7 @@ for i = 1:bb.nrofabfs
         % find rheobase sweep
         apcrit=0;
         for frstspikeswp = 1:NrofSweeps
-            if sweep(frstspikeswp).epoch(5).nrofaps > 0 && sweep(frstspikeswp).epoch(5).stepdiff > 0
+            if sweep(frstspikeswp).epoch(2).nrofaps > 0 && sweep(frstspikeswp).epoch(2).stepdiff > 0
                 apcrit=1;
                 break
             end
@@ -116,8 +131,8 @@ for i = 1:bb.nrofabfs
         
         idx1 = 1 ;
         for j = frstspikeswp:NrofSweeps           
-            for ii = 1:length(sweep(j).epoch(5).ap)
-                apguids(idx1) = {sweep(j).epoch(5).ap(ii).guid} ;
+            for ii = 1:length(sweep(j).epoch(2).ap)
+                apguids(idx1) = {sweep(j).epoch(2).ap(ii).guid} ;
                 idx1 = idx1 + 1 ;
             end
         end             
@@ -173,7 +188,7 @@ for i = 1:bb.nrofabfs
 
         % find trainsweep 
         % Traincurr=rheobase+50 :
-        TrainCurr = sweep(frstspikeswp).epoch(step).stepdiff +50 ;
+        TrainCurr = sweep(frstspikeswp).epoch(step).stepdiff +250 ;
         for j = 1:NrofSweeps
             tmp(j) = abs(sweep(j).epoch(step).stepdiff - TrainCurr) ;
         end
@@ -186,7 +201,7 @@ for i = 1:bb.nrofabfs
                 stutterAP = [0 0 0 isis(3:end) > 3*isis(2:end-1)];
                 stutterISI= [0 0 isis(3:end) > 3*isis(2:end-1)];
                if length(sweep(TrainSweep).ap(~stutterAP)) > 3
-                CurrAbvRheo = sweep(TrainSweep).epoch(step).stepdiff - (TrainCurr-50) ;
+                CurrAbvRheo = sweep(TrainSweep).epoch(step).stepdiff - (TrainCurr-250) ;
                 TrSweepCrit=1;
                 break
                end
