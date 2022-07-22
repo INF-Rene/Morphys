@@ -2,11 +2,27 @@
 close all, clear all
 
 %% Load NWB file
-fn= 'C:\Users\tamar\Documents\Master\Internship I\Patch data\Human\H219\H22.29.219.11.72.03-compressed.nwb'
+fn= '/Users/elinemertens/Data/ephys/Hippocampus/H21.29.198.21/H21.29.198.21.01.01.nwb'
 %% 
 %%nwb = NWBfile(fn)
 %% Get triple protocol
 nwb = NWBfile(fn, [{'X6SQ_C2SSTRIPLE_DA_0'}])
+obj=nwb.analyseNWB
+
+
+%% need to figure this out 
+figure(1)
+        for j = 1:length(obj.stimsets.nwbchannels.sweeps)
+          if obj.stimsets.nwbchannels.sweeps(j).aps > 2 
+                obj.getstimset.getnwbchannel.getsweep.getepoch.getap(3).plot('superimpose','peak');
+                legend(filelist)
+                xlim([-5 10])
+              %  title('First AP')
+            %   ylabel('mV')
+            %    xlabel('ms')
+      end
+        end
+
 
 %% Plot all sweeps in different windows
 f1 = figure;

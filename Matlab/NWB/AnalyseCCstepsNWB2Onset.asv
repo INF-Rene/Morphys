@@ -3,7 +3,7 @@
 close all, clear all
 
 %% Set path to load and save data; mat data load 
-basedir = '/Users/elinemertens/Data/ephys/Hippocampus/nwb2_analyzed/209' ;
+basedir = '/Users/elinemertens/Data/Projects/NEW_Hippocampus_2022_07/Data/matlab/trainsweep/mat' ;
 savedir = '/Users/elinemertens/Data/ephys/Hippocampus/2022_Summary';
 savename = 'Summary_198' ;  
 
@@ -359,7 +359,6 @@ figure(3)
          if length(sweep(TrainSweep).ap) > 1
             isis_TS = [sweep(TrainSweep).ap(2:end).isi];
             isis_TS1 = [sweep(TrainSweep).ap(2).isi];
-            isis_TSend = [sweep(TrainSweep).ap(end).isi];
         else 
             isis_TS = NaN ;
             isis_TS1 = NaN  ;
@@ -438,7 +437,6 @@ figure(4)
         Summary(index).isis_TS1           = isis_TS1 ;
        % Summary(index).ISIsTS             = ISIsTS ;
 %         Summary(index).ISIsTS1            = ISIsTS1 ;
-        Summary(index).isis_TSend         = isis_TSend ; 
         Summary(index).isis_LS            = isis_LS ;
         Summary(index).isis_LS1           = isis_LS1 ;
         Summary(index).vmbaseM            = nanmean(vmbase) ;
