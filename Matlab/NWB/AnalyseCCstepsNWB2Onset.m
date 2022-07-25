@@ -344,9 +344,21 @@ figure(3)
         
          % Firstsweep and lastsweep ISIS EM edits
           % nr of APs first sweep (Eline Edit)
-         NrOfAPfrstSwp = length(sweep(frstspikeswp).ap) ;
-         NrofAPtrainSwp = length(sweep(TrainSweep).ap);
-         NrofAPlastSwp = length(sweep(NrofSweeps).ap);
+         NrOfAPfrstSwp = length(sweep(frstspikeswp).ap);
+         NrOfAPfrstSwp1 = length(sweep(frstspikeswp+1).ap) ;
+         NrOfAPfrstSwp2 = length(sweep(frstspikeswp+2).ap) ;
+         NrOfAPfrstSwp3 = length(sweep(frstspikeswp+3).ap); 
+         NrOfAPfrstSwp4 = length(sweep(frstspikeswp+24).ap);
+%          NrOfAPfrstSwp5 = length(sweep(frstspikeswp).ap)
+%          NrOfAPfrstSwp6 = length(sweep(frstspikeswp).ap)
+%          NrOfAPfrstSwp7 = length(sweep(frstspikeswp).ap)
+%          NrOfAPfrstSwp8 = length(sweep(frstspikeswp).ap)
+%          NrOfAPfrstSwp9 = length(sweep(frstspikeswp).ap)
+%          NrOfAPfrstSwp10 = length(sweep(frstspikeswp).ap)
+%          NrOfAPfrstSwp11 = length(sweep(frstspikeswp).ap)
+%          NrOfAPfrstSwp12 = length(sweep(frstspikeswp).ap)
+%          NrofAPtrainSwp13 = length(sweep(TrainSweep).ap);
+%          NrofAPlastSwp14 = length(sweep(NrofSweeps).ap);
    
         if length(sweep(frstspikeswp).ap) > 1
             isis_FS = [sweep(frstspikeswp).ap(2:end).isi];
@@ -408,7 +420,9 @@ figure(4)
 %             %    xlabel('ms')
 %             end
 %         end
-        
+
+
+end       
 
 
         %% Create summary  
@@ -564,7 +578,7 @@ figure(4)
         %clear variables assigned in "sweep" For loop
       %  clearvars -except Summary i basedir savedir savename filelist index
         index = index + 1 ;
-    end
+    %end
 %% save
 save(fullfile(savedir, savename), 'Summary') ;
 clearvars -except Summary i

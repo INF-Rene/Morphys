@@ -13,7 +13,7 @@ for i = 1:numel(list.name)
  nwb = NWBfile(fn,[{'LP'} {'hresh'} {'Steps'} {'CC'} {'LSFINEST'} {'LSCOARSE'}]);
  obj =nwb.analyseNWB ;
  obj.savename = sprintf('NWB_%s.mat',obj.filename(1:end-4));
- saveme(obj,'/Users/elinemertens/Data/Projects/NEW_Hippocampus_2022_07/Data/matlab/trainsweep', obj.savename) 
+ saveme(obj,'/Users/elinemertens/Data/ephys/Hippocampus/H21.29.198.21/analyzed', obj.savename) 
 end
 
     

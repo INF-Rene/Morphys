@@ -3,7 +3,7 @@
 close all, clear all
 
 %% Set path to load and save data; mat data load 
-basedir = '/Users/elinemertens/Data/Projects/NEW_Hippocampus_2022_07/Data/matlab/trainsweep/mat' ;
+basedir = '/Users/elinemertens/Data/ephys/Hippocampus/nwb2_analyzed/209' ;
 savedir = '/Users/elinemertens/Data/ephys/Hippocampus/2022_Summary';
 savename = 'Summary_198' ;  
 
@@ -344,9 +344,21 @@ figure(3)
         
          % Firstsweep and lastsweep ISIS EM edits
           % nr of APs first sweep (Eline Edit)
-         NrOfAPfrstSwp = length(sweep(frstspikeswp).ap) ;
-         NrofAPtrainSwp = length(sweep(TrainSweep).ap);
-         NrofAPlastSwp = length(sweep(NrofSweeps).ap);
+         NrOfAPfrstSwp = length(sweep(10).ap);
+         NrOfAPfrstSwp1 = length(sweep(11).ap) ;
+         NrOfAPfrstSwp2 = length(sweep(12).ap) ;
+         NrOfAPfrstSwp3 = length(sweep(13).ap); 
+         NrOfAPfrstSwp4 = (length(sweep(14).ap));
+%          NrOfAPfrstSwp5 = length(sweep(15).ap)
+%          NrOfAPfrstSwp6 = length(sweep(16).ap)
+%          NrOfAPfrstSwp7 = length(sweep(17).ap)
+%          NrOfAPfrstSwp8 = length(sweep(18).ap)
+%          NrOfAPfrstSwp9 = length(sweep(19).ap)
+%          NrOfAPfrstSwp10 = length(sweep(20).ap)
+%          NrOfAPfrstSwp11 = length(sweep(21).ap)
+%          NrOfAPfrstSwp12 = length(sweep(22).ap)
+%          NrofAPtrainSwp13 = length(sweep(TrainSweep).ap);
+%          NrofAPlastSwp14 = length(sweep(NrofSweeps).ap);
    
         if length(sweep(frstspikeswp).ap) > 1
             isis_FS = [sweep(frstspikeswp).ap(2:end).isi];
@@ -359,6 +371,7 @@ figure(3)
          if length(sweep(TrainSweep).ap) > 1
             isis_TS = [sweep(TrainSweep).ap(2:end).isi];
             isis_TS1 = [sweep(TrainSweep).ap(2).isi];
+            isis_TSend = [sweep(TrainSweep).ap(end).isi];
         else 
             isis_TS = NaN ;
             isis_TS1 = NaN  ;
@@ -407,7 +420,9 @@ figure(4)
 %             %    xlabel('ms')
 %             end
 %         end
-        
+
+
+end       
 
 
         %% Create summary  
@@ -437,6 +452,7 @@ figure(4)
         Summary(index).isis_TS1           = isis_TS1 ;
        % Summary(index).ISIsTS             = ISIsTS ;
 %         Summary(index).ISIsTS1            = ISIsTS1 ;
+        Summary(index).isis_TSend         = isis_TSend ; 
         Summary(index).isis_LS            = isis_LS ;
         Summary(index).isis_LS1           = isis_LS1 ;
         Summary(index).vmbaseM            = nanmean(vmbase) ;
@@ -562,7 +578,7 @@ figure(4)
         %clear variables assigned in "sweep" For loop
       %  clearvars -except Summary i basedir savedir savename filelist index
         index = index + 1 ;
-    end
+    %end
 %% save
 save(fullfile(savedir, savename), 'Summary') ;
 clearvars -except Summary i
