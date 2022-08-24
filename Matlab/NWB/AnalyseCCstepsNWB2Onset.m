@@ -3,7 +3,7 @@
 close all, clear all
 
 %% Set path to load and save data; mat data load 
-basedir = '/Users/elinemertens/Data/ephys/Hippocampus/nwb2_analyzed/209' ;
+basedir = '/Users/elinemertens/Data/ephys/Hippocampus/nwb2_analyzed/2022_NEW/198' ;
 savedir = '/Users/elinemertens/Data/ephys/Hippocampus/2022_Summary';
 savename = 'Summary_198' ;  
 
@@ -99,33 +99,33 @@ for i = 1:length(filelist)
 
          % if you want to plot all first AP sweeps, get the percentage away form
  % obj.getstimset and run this part via index
-%  figure(1)
-%         for j = 1:length(obj.stimsets)
-%             if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},firstsweepname))
-%                 %figure(); obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).plot
-%                  obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).getepoch(step).aps(1).plot('superimpose','peak');
-%                 legend(filelist)
-%                 xlim([-5 10])
-%               %  title('First AP')
-%             %   ylabel('mV')
-%             %    xlabel('ms')
-%             end
-%         end
-%        
-% figure(2)
-%         for j = 1:length(obj.stimsets)
-%             if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},firstsweepname))
-%                 %figure(); obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).plot
-%                  obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).plot;
-%                 legend(filelist)
-%                    grid off
-%                  set(gca, 'TickDir', 'out')
-%                  xlim([0 2000])
-%               %  title('First AP')
-%             %   ylabel('mV')
-%             %    xlabel('ms')
-%             end
-%         end
+ figure(1)
+        for j = 1:length(obj.stimsets)
+            if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},firstsweepname))
+                %figure(); obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).plot
+                 obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).getepoch(step).aps(1).plot('superimpose','peak');
+                legend(filelist)
+                xlim([-5 10])
+              %  title('First AP')
+            %   ylabel('mV')
+            %    xlabel('ms')
+            end
+        end
+       
+     figure(1)
+        for j = 1:length(obj.stimsets)
+            if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},firstsweepname))
+                %figure(); obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).plot
+                 obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).getepoch(step).aps(1).plot('superimpose','peak');
+                legend(filelist)
+                xlim([-5 10])
+              %  title('First AP')
+            %   ylabel('mV')
+            %    xlabel('ms')
+            end
+        end    
+        
+        
         
         idx1 = 1 ;
         for j = frstspikeswp:NrofSweeps  
@@ -263,6 +263,8 @@ for i = 1:length(filelist)
         else
             Rin=NaN;
         end
+        
+        
         % determine sweep for sag, (minimum voltage response closest to -100)
         tmp = abs(MinVmResponse+100) ;
         tmp = tmp(~isnan(tmp));
@@ -344,21 +346,6 @@ figure(3)
         
          % Firstsweep and lastsweep ISIS EM edits
           % nr of APs first sweep (Eline Edit)
-         NrOfAPfrstSwp = length(sweep(frstspikeswp).ap);
-         NrOfAPfrstSwp1 = length(sweep(frstspikeswp+1).ap) ;
-         NrOfAPfrstSwp2 = length(sweep(frstspikeswp+2).ap) ;
-         NrOfAPfrstSwp3 = length(sweep(frstspikeswp+3).ap); 
-         NrOfAPfrstSwp4 = length(sweep(frstspikeswp+24).ap);
-%          NrOfAPfrstSwp5 = length(sweep(frstspikeswp).ap)
-%          NrOfAPfrstSwp6 = length(sweep(frstspikeswp).ap)
-%          NrOfAPfrstSwp7 = length(sweep(frstspikeswp).ap)
-%          NrOfAPfrstSwp8 = length(sweep(frstspikeswp).ap)
-%          NrOfAPfrstSwp9 = length(sweep(frstspikeswp).ap)
-%          NrOfAPfrstSwp10 = length(sweep(frstspikeswp).ap)
-%          NrOfAPfrstSwp11 = length(sweep(frstspikeswp).ap)
-%          NrOfAPfrstSwp12 = length(sweep(frstspikeswp).ap)
-%          NrofAPtrainSwp13 = length(sweep(TrainSweep).ap);
-%          NrofAPlastSwp14 = length(sweep(NrofSweeps).ap);
    
         if length(sweep(frstspikeswp).ap) > 1
             isis_FS = [sweep(frstspikeswp).ap(2:end).isi];
@@ -405,7 +392,7 @@ figure(4)
             %    xlabel('ms')
             end
         end
-        
+
 
         
 %          figure(5)
@@ -420,12 +407,9 @@ figure(4)
 %             %    xlabel('ms')
 %             end
 %         end
+      
 
-
-end       
-
-
-        %% Create summary  
+        % Create summary  
         Summary(index).File               = stimset(1).filename ;
         Summary(index).Date               = obj.filetimestart ;
         Summary(index).UserID             = obj.userid ;
@@ -443,9 +427,9 @@ end
         Summary(index).FrstSpikeSwp       = frstspikeswp ; 
         Summary(index).TrainSwp           = TrainSweep ; 
         Summary(index).CurrAbvRheo        = CurrAbvRheo ;
-         Summary(index).NrofAPsFrstSwp     = NrOfAPfrstSwp ; 
-        Summary(index).NrOfAPsTrSwp       = NrOfAPsTrSwp ;
-        Summary(index).NrofAPlastSwp      = NrofAPlastSwp ; 
+         Summary(index).NrOfAPfrstSwp = length(sweep(frstspikeswp).ap) ;
+         Summary(index).NrofAPtrainSwp = length(sweep(TrainSweep).ap);
+         Summary(index).NrofAPlastSwp = length(sweep(NrofSweeps).ap);
         Summary(index).isis_FS            = isis_FS ;
         Summary(index).isis_FS1           = isis_FS1 ;
         Summary(index).isis_TS            = isis_TS ;
@@ -578,7 +562,7 @@ end
         %clear variables assigned in "sweep" For loop
       %  clearvars -except Summary i basedir savedir savename filelist index
         index = index + 1 ;
-    %end
+    end
 %% save
 save(fullfile(savedir, savename), 'Summary') ;
 clearvars -except Summary i
@@ -587,7 +571,7 @@ clearvars -except Summary i
 %%
 
 Summary_T = struct2table(Summary) ; 
-writetable(Summary_T, 'summary_hippexample.xlsx');
+writetable(Summary_T, 'summary_hipptrain.xlsx');
 
 
 

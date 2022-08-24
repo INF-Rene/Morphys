@@ -1,5 +1,5 @@
 %%Load in analyzed mat files 
-basedir = '/Users/elinemertens/Data/ephys/Hippocampus/nwb2_analyzed/198/ap' ;
+basedir = '/Users/elinemertens/Data/ephys/Hippocampus/nwb2_analyzed/Analysis AP' ;
 savedir = '/Users/elinemertens/Data/ephys/Summary/Human' ;
 savename = 'Summary_209' ;
 
@@ -21,7 +21,7 @@ for i=1:numel(filelist)
     % loop over stimsets
     for j = 1:nwb.nrofstimsets
         % select the one with cc step 
-        stimset = nwb.getstimset;
+        stimset = nwb.getstimset(1);
        % stimset = nwb.getstimset.name({'CC'}, {'CCSteps_DA_0'});
         swps = stimset.getnwbchannel.getsweep();
         
