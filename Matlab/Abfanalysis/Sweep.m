@@ -48,8 +48,8 @@ classdef Sweep < Sharedmethods & Trace
             
             % check/process inputs
             if nargin == 0, return % returns empty sweep
-            elseif mod(numel(varargin),2)~=0
-                error('Uneven number of name/value pairs.')
+            %elseif mod(numel(varargin),2)~=0
+              %  error('Uneven number of name/value pairs.')
             elseif ~all(cellfun(@ischar,varargin(1:2:end)))
                 error('All property names must be strings')
             else

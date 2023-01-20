@@ -1,8 +1,8 @@
 %% Resonance analysis  single files (raw nwb files)
 
-fn= '/Users/elinemertens/Downloads/H22.29.209.21.03.06-compressed(2).nwb'
+fn= '/Volumes/Ephys2/Ephys hipp/healthy/cluster3/H21.29.198.21.01.04.nwb'
 
-nwb = NWBfile(fn,[{'X8_C'}])
+nwb = NWBfile(fn,[{'CHIRP'}])
 
 
 %% Zorg dat hiervoor de traces individueel al bekeken zijn of ze vergelijkbaar zijn 
@@ -11,14 +11,15 @@ nwb = NWBfile(fn,[{'X8_C'}])
 % even de losse sweeps bekijken en dan de juiste sweeps selecteren
 % signal = nwb.getstimset.getnwbchannel.getsweep(1:3).avtrace
 % or signal = nwb.getstimset.getnwbchannel.getsweep([1:4 6:7]).avtrace;
- signal = nwb.getstimset.getnwbchannel.getsweep(1:4);
+ signal = nwb.getstimset.getnwbchannel.getsweep(1:3);
  
  plot(signal)
  
- %looks good? combine them 
+ %looks good? combine them  
+ 
 
 %%
-signal = nwb.getstimset.getnwbchannel.getsweep(1:4).avtrace;
+signal = nwb.getstimset.getnwbchannel.getsweep(1:3).avtrace;
 
 plot(signal)
 
@@ -28,7 +29,9 @@ signal = signal.low_pass_filter(1000);
 % if the first sweep is bad or incomplete, take getstimwave(2)
 signal=signal.resample(0:0.1:signal.TimeInfo.End).Data;
 %signal = lowpass(signal,1000,10000);
-
+time = nwb.getstimset.getnwbchannel.getsweep(2) ;
+time = time.low_pass_filter(1000) ; 
+time=time.resample(0:0.1:time.TimeInfo.End).Time;
 
 %%
 %   signal=normalize(mean(squeeze(data(:,1,:))'), 'range');

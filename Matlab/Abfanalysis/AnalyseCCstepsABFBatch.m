@@ -12,7 +12,7 @@ bb = Abfbatch('gui');
 bb = bb.inspectbatch;
 
 %% analyse all files from batch
-bb = bb.analysebatch; 
+bb = bb.analysebatch;  
 
 %% Thijs / Djai channel removal 
 %thijs
@@ -70,7 +70,7 @@ aps.updownratio = aps.maxdvdt./abs(aps.mindvdt) ;
 aps.onsetrapidity(aps.onsetrapidity > 100) = NaN ;
     
     
-  % Make subset of data per abf file
+  %% Make subset of data per abf file
     
  abf = SubsetTable2struct(abfs,channels,ins,outs,sweeps,epochs,aps) ;
     
@@ -110,12 +110,12 @@ for i = 1:bb.nrofabfs
  for j = 1:NrofSweeps
             sweep(j).vmbase = sweep(j).epoch(step-1).steadystate ;
             sweep(j).jitter = sweep(j).epoch(step-1).jitter ;
-            sweep(j).currinj = sweep(j).epoch(2).stepdiff ;
-            sweep(j).vmresponse = sweep(j).epoch(2).vstep ;
-            sweep(j).ap = sweep(j).epoch(2).ap ;
-            for ap = 1:length(sweep(j).epoch(2).ap)
+            sweep(j).currinj = sweep(j).epoch(step).stepdiff ;
+            sweep(j).vmresponse = sweep(j).epoch(step).vstep ;
+            sweep(j).ap = sweep(j).epoch(step).ap ;
+            for ap = 1:length(sweep(j).epoch(step).ap)
                 %if sweep(j).epoch(step+1).ap(ap).start_time > (sum(second({sweep(1).epoch(1:step).timespan}))*1000)+7 && sweep(j).epoch(step+1).ap(ap).start_time < (sum(second({sweep(1).epoch(1:step).timespan}))*1000)+300
-                    sweep(j).rbap(ap) = sweep(j).epoch(2).ap(ap) ;
+                    sweep(j).rbap(ap) = sweep(j).epoch(step).ap(ap) ;
                 %end
             end
         end
@@ -123,7 +123,7 @@ for i = 1:bb.nrofabfs
         % find rheobase sweep
         apcrit=0;
         for frstspikeswp = 1:NrofSweeps
-            if sweep(frstspikeswp).epoch(2).nrofaps > 0 && sweep(frstspikeswp).epoch(2).stepdiff > 0
+            if sweep(frstspikeswp).epoch(step).nrofaps > 0 && sweep(frstspikeswp).epoch(step).stepdiff > 0
                 apcrit=1;
                 break
             end
@@ -131,8 +131,8 @@ for i = 1:bb.nrofabfs
         
         idx1 = 1 ;
         for j = frstspikeswp:NrofSweeps           
-            for ii = 1:length(sweep(j).epoch(2).ap)
-                apguids(idx1) = {sweep(j).epoch(2).ap(ii).guid} ;
+            for ii = 1:length(sweep(j).epoch(step).ap)
+                apguids(idx1) = {sweep(j).epoch(step).ap(ii).guid} ;
                 idx1 = idx1 + 1 ;
             end
         end             
@@ -367,7 +367,7 @@ for i = 1:bb.nrofabfs
         
      
              
-        %% Create summary  
+        % Create summary  
         Summary(index).File               = abf(i).filename ;
         Summary(index).Date               = abf(i).filetimestart ;
         Summary(index).UserID             = abf(i).userid ;
@@ -408,21 +408,22 @@ for i = 1:bb.nrofabfs
         Summary(index).VmatSag            = MinVmResponse(sagswp,1) ;
         Summary(index).TauM               = nanmean(taus(taus~=0)) ;
         Summary(index).TauSD              = nanstd(taus(taus~=0)) ;
-        Summary(index).curr_FrstAP        = sweep(frstspikeswp).ap(1).currinj ; 
+    %    Summary(index).curr_FrstAP        = sweep(frstspikeswp).ap(1).currinj ; 
         Summary(index).OnsetFrstAP        = NaN %sweep(frstspikeswp).ap(1).thresh_time - (sum(seconds({sweep(frstspikeswp).epoch(1:step-1).timespan}))*1000) ; 
-        Summary(index).ThreshFrstAP       = sweep(frstspikeswp).ap(1).thresh ; 
-        Summary(index).FAPbasetothresh    = sweep(frstspikeswp).ap(1).thresh-sweep(frstspikeswp).vmbase ; 
-        Summary(index).AmpFAPthresh       = sweep(frstspikeswp).ap(1).amp ;
-        Summary(index).PeakFrstAP         = sweep(frstspikeswp).ap(1).thresh + sweep(frstspikeswp).ap(1).amp ; 
-        Summary(index).FAPpeaktoahp       = sweep(frstspikeswp).ap(1).ahp_time - sweep(frstspikeswp).ap(1).peak_time ;
-        Summary(index).HalfWFrstAP        = sweep(frstspikeswp).ap(1).halfwidth ; 
-        Summary(index).AHPFrstAP          = sweep(frstspikeswp).ap(1).relahp ;
-        Summary(index).AHPslowFrstAP      = sweep(frstspikeswp).ap(1).relahp_slow ;
-        Summary(index).UpStrkFrstAP       = sweep(frstspikeswp).ap(1).upstroke ;
-        Summary(index).DwnStrkFrstAP      = sweep(frstspikeswp).ap(1).downstroke ;
-        Summary(index).UpDwnStrkRatio     = abs(sweep(frstspikeswp).ap(1).upstroke) / abs(sweep(frstspikeswp).ap(1).downstroke) ;
-        Summary(index).MaxUpFrstAP        = sweep(frstspikeswp).ap(1).maxdvdt ;
-        Summary(index).MaxDwnFrstAP        = sweep(frstspikeswp).ap(1).mindvdt ;
+       % here I made it epoch(step) instead of epoch(4) EM 221005
+        Summary(index).ThreshFrstAP       = sweep(frstspikeswp).epoch(step).ap(1).thresh ; 
+        Summary(index).FAPbasetothresh    = sweep(frstspikeswp).epoch(step).ap(1).thresh-sweep(frstspikeswp).vmbase ; 
+        Summary(index).AmpFAPthresh       = sweep(frstspikeswp).epoch(step).ap(1).amp ;
+        Summary(index).PeakFrstAP         = sweep(frstspikeswp).epoch(step).ap(1).thresh + sweep(frstspikeswp).epoch(step).ap(1).amp ; 
+        Summary(index).FAPpeaktoahp       = sweep(frstspikeswp).epoch(step).ap(1).ahp_time - sweep(frstspikeswp).epoch(step).ap(1).peak_time ;
+        Summary(index).HalfWFrstAP        = sweep(frstspikeswp).epoch(step).ap(1).halfwidth ; 
+        Summary(index).AHPFrstAP          = sweep(frstspikeswp).epoch(step).ap(1).relahp ;
+        Summary(index).AHPslowFrstAP      = sweep(frstspikeswp).epoch(step).ap(1).relahp_slow ;
+        Summary(index).UpStrkFrstAP       = sweep(frstspikeswp).epoch(step).ap(1).upstroke ;
+        Summary(index).DwnStrkFrstAP      = sweep(frstspikeswp).epoch(step).ap(1).downstroke ;
+        Summary(index).UpDwnStrkRatio     = abs(sweep(frstspikeswp).epoch(step).ap(1).upstroke) / abs(sweep(frstspikeswp).epoch(step).ap(1).downstroke) ;
+        Summary(index).MaxUpFrstAP        = sweep(frstspikeswp).epoch(step).ap(1).maxdvdt ;
+        Summary(index).MaxDwnFrstAP        = sweep(frstspikeswp).epoch(step).ap(1).mindvdt ;
         Summary(index).OnsetTSFAP         = OnsetTSFAP ;  
         Summary(index).TSbasetothreshM    = mean(TSbasetothresh) ; 
         Summary(index).TSbasetothreshSD   = std(TSbasetothresh) ; 
@@ -510,8 +511,8 @@ for i = 1:bb.nrofabfs
         %clear variables assigned in "sweep" For loop
         %clearvars -except abf Summary i basedir savename abfs aps channels ins outs epochs sweeps index
         index = index + 1 ;
-    %end
-end   
+    end
+%end   
 %% save
 save(fullfile(basedir, savename), 'Summary') ;
 
@@ -521,8 +522,10 @@ clearvars -except bb
 
 
 %%
-Summary_T = struct2table(Summary) ; 
-writetable(Summary_T, 'summary_Ting.xlsx');
+%basedir = uigetdir  % specify path to analyzed abfBatch. File will be saved in this folder
+
+Summary_All = struct2table(Summary) ; 
+writetable(AllLayersEphys, 'summary_all_layers.xlsx');
 
 
 

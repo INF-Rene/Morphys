@@ -3,7 +3,7 @@
 close all, clear all
 
 %% Set path to load and save data; mat data load 
-basedir = '/Users/elinemertens/Data/ephys/Hippocampus/nwb2_analyzed/2022_NEW/198' ;
+basedir = '/Volumes/Ephys2/Ephys hipp/healthy/cluster3' ;
 savedir = '/Users/elinemertens/Data/ephys/Hippocampus/2022_Summary';
 savename = 'Summary_198' ;  
 
@@ -11,7 +11,7 @@ savename = 'Summary_198' ;
 fileinfo  = dir(fullfile(basedir,'*.mat'));
 filelist  = {fileinfo.name};
 
-%% Loop through abfs
+    %% Loop through abfs
 index = 1 ; 
 for i = 1:length(filelist)
     %% Make subset of data per abf file
@@ -103,23 +103,27 @@ for i = 1:length(filelist)
         for j = 1:length(obj.stimsets)
             if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},firstsweepname))
                 %figure(); obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).plot
-                 obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).getepoch(step).aps(1).plot('superimpose','peak');
+                obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).getepoch(step).aps(1).plot('superimpose','peak');
                 legend(filelist)
                 xlim([-5 10])
-              %  title('First AP')
+                title('First AP')
             %   ylabel('mV')
             %    xlabel('ms')
             end
         end
        
-     figure(1)
+% FirstAPData = (obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).getepoch(step).aps(1).timespan) ; 
+% Time = (obj.stimsets(1, 3).nwbchannels.sweeps(1, 12).Time) ;   
+%   % table1 = writetable(obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).getepoch(step).aps(1).metadata) ;
+    
+    figure(2)
         for j = 1:length(obj.stimsets)
             if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},firstsweepname))
                 %figure(); obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).plot
-                 obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).getepoch(step).aps(1).plot('superimpose','peak');
+                 obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).plot;
                 legend(filelist)
-                xlim([-5 10])
-              %  title('First AP')
+             %   xlim([-5 10])
+                title('First AP sweep')
             %   ylabel('mV')
             %    xlabel('ms')
             end
@@ -190,6 +194,7 @@ for i = 1:length(filelist)
         % find trainsweep 
         % Traincurr=rheobase+50 :
         step = find(strcmp({sweep(frstspikeswp).epoch.idxstr}, 'B'));
+       % changed this to 250 pA
         TrainCurr = sweep(frstspikeswp).epoch(step).amplitude +250 ;
         for j = 1:NrofSweeps
             step = find(strcmp({sweep(j).epoch.idxstr}, 'B'));
@@ -358,7 +363,7 @@ figure(3)
          if length(sweep(TrainSweep).ap) > 1
             isis_TS = [sweep(TrainSweep).ap(2:end).isi];
             isis_TS1 = [sweep(TrainSweep).ap(2).isi];
-            isis_TSend = [sweep(TrainSweep).ap(end).isi];
+          %  isis_TSend = [sweep(TrainSweep).ap(end).isi];
         else 
             isis_TS = NaN ;
             isis_TS1 = NaN  ;
@@ -380,14 +385,14 @@ figure(3)
 %end if you want to make a large summary, remove the end here 
 TrainSweep1 = sweep(TrainSweep).Name ; 
 
-figure(4)
+figure(5)
         for j = 1:length(obj.stimsets)
             if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},TrainSweep1)) 
                 %figure(); obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).plot
                  obj.getstimset(j).getnwbchannel.getsweep('Name',TrainSweep1).plot ;
                 legend(filelist)
                 xlim([-5 2000])
-              %  title('First AP')
+                title('trainsweep')
             %   ylabel('mV')
             %    xlabel('ms')
             end
@@ -436,7 +441,7 @@ figure(4)
         Summary(index).isis_TS1           = isis_TS1 ;
        % Summary(index).ISIsTS             = ISIsTS ;
 %         Summary(index).ISIsTS1            = ISIsTS1 ;
-        Summary(index).isis_TSend         = isis_TSend ; 
+%        Summary(index).isis_TSend         = isis_TSend ; 
         Summary(index).isis_LS            = isis_LS ;
         Summary(index).isis_LS1           = isis_LS1 ;
         Summary(index).vmbaseM            = nanmean(vmbase) ;
@@ -571,7 +576,7 @@ clearvars -except Summary i
 %%
 
 Summary_T = struct2table(Summary) ; 
-writetable(Summary_T, 'summary_hipptrain.xlsx');
+writetable(Summary_T, 'summary_hipp2h_all.xlsx');
 
 
 

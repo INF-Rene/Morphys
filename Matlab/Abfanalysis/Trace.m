@@ -181,7 +181,7 @@ classdef Trace < timeseries
             % timeseries objects. 
             %
             % See also: TIMERSERIES, GETSAMPLEUSINGTIME
-            for i=1:numel(obj), 
+            for i=1:numel(obj) 
                 obj(i) = getsampleusingtime@timeseries(obj(i),varargin{:}); 
             end
         end

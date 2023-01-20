@@ -1,7 +1,7 @@
-p1   = ('/Users/elinemertens/Data/ephys/Hippocampus/H17.29.117.21/H17.29.117.21_all_thijs');
-fn1  = '2017_03_29_0041.abf';
+p1   = ('/Volumes/Ephys2/Ephys hipp/healthy/cluster1/');
+fn1  = '2017_03_30_0100.abf';
 fp1  = fullfile(p1,fn1);
-ss  = load('/Users/elinemertens/Data/Morphys-master/Matlab/Abfanalysis/Setupsettings_INF.mat');
+ss  = load('/Users/elinemertens/Downloads/Morphys-master_2022/Morphys/Matlab/Abfanalysis/Setupsettings_INF.mat');
 ss  = ss.obj;
 abf = Abffile(fp1,ss);
 abf.plot

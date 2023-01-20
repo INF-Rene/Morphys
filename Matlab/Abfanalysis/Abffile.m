@@ -134,9 +134,9 @@ classdef Abffile < Sharedpaths & Setupsettings
             obj.proname      = path_and_file{2};
             
             % HACK ALERT!!! This is just for 2017-08-16 session, do not analyse bridge balance abfs!!!
-            if ismember(obj.proname,{'eCode_1_BridgeBalance','BridgeBalance','BB','BB2'})
-                error('Bridge balance error!')
-            end
+%             if ismember(obj.proname,{'eCode_1_BridgeBalance','BridgeBalance','BB','BB2'})
+%                 error('Bridge balance error!')
+%             end
             
             obj.prodirectory     = path_and_file{1};
             obj.operationmode    = h.nOperationMode;

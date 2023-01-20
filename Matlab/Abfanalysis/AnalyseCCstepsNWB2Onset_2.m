@@ -3,7 +3,7 @@
 close all, clear all
 
 %% Set path to load and save data; mat data load 
-basedir = '/Users/elinemertens/Data/ephys/Hippocampus/nwb2_analyzed/165_NWB2' ;
+basedir = '/Users/elinemertens/Data/ephys/Hippocampus/H21.29.198.21/mat/matmat' ;
 savedir = '/Users/elinemertens/Data/ephys/Hippocampus/2022_Summary' ;
 savename = 'Summary_184' ;
 

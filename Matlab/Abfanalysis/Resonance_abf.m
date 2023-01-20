@@ -3,82 +3,65 @@
 %  MATLAB version: 9.10.0.1602886 (R2021a)
 % -------------------------------------------------------------------
 
-p   = ('/Users/elinemertens/Data/ephys/CHIRP/174');
-fn  = '2020_03_04_0060.abf';
+p   = ('/Volumes/Ephys2/Ephys hipp/healthy/cluster2/chirp');
+fn  = 'hipp6_2017_03_29_0095.abf';
 fp  = fullfile(p,fn);
 ss  = load('/Users/elinemertens/Documents/CNCR/Data/Matlab Data/Morphys-master/Matlab/Abfanalysis/Setupsettings_INF.mat');
 ss  = ss.obj;
 zabf = Abffile(fp,ss);
-
-signal =  zabf.channels.analogins(1, 1).sweeps(1).avtrace ;
+%%
+signal =  zabf.channels(2).analogins(1, 1).sweeps(1:3).avtrace ;
 plot(signal)
+
+%%
 signal = signal.low_pass_filter(1000);
 data = abfload_pro(fp);
 stim = squeeze(data(:,2,1));
 signal=signal.resample(0:0.1:signal.TimeInfo.End).Data;
-
-
+stim = 
+% signal = signal.Data  ;
+% time = zabf.channels(2).analogins(1, 1).sweeps(1) ;
+% time = time.low_pass_filter(1000) ; 
+% time=time.resample(0:0.1:time.TimeInfo.End).Time;
 %%
  Fs = 10000;           % Sampling frequency
     L = length(signal);      % Signal length
     f = (0:L-1)*Fs/L;
-
     plot(signal)
     grid off
-    
                  ylabel('Voltage (mV)')
-              xlabel('Time (sec)')
-   
+              xlabel('Time (sec)')  
     signal_fft=fft(signal);
     stim_fft=fft(stim);
 
-    %plot
-
-%     %raw
+%% raw
+    figure(1)
     plot(f, abs((signal_fft)./abs(stim_fft)));
-    xlim([1.2 25])
+    xlim([1.0 25])
     hold on
-    
-    
-        %smoothed
-    smoothed=smooth(abs((signal_fft)./abs(stim_fft)),23,  'lowess');
+ %% smoothed
+   figure(2)
+   smoothed=smooth(abs((signal_fft)./abs(stim_fft)),23,  'lowess');
     plot(f, smoothed);
-    xlim([1.2 25])
-    
-    %% plot only smoothed 
-    
-    smoothed=smooth((abs(signal_fft)./abs(stim_fft)*1000),23,  'lowess');
-    plot(f, smoothed);
-    xlim([1.2 25])
-    grid off   
-            
- ylabel('MOhm')
-xlabel('Frequency (Hz)')
-set(gca, 'TickDir', 'out')
-    % Set the remaining axes properties
-
+    xlim([1.0 25])
+    % plot 3dB 
    [max_imp, loc] = max(smoothed(f>1.2 & f<25));
     f2 = f(f>1.2 & f<25);
     res_freq = f2(loc);
+    max_imp_mOhm = (1000 * max_imp) ; 
     
-   %% 3db cutoff
+   % 3db cutoff
    normalized = smoothed(f>1.2 & f<25)./max_imp;
    % when does normalized frequency response go below square root of 0.5?
    % This is the definition of 3 dB cutoff!
    cutoff_3db=f2(find(normalized>=sqrt(0.5), 1, 'last'));
-   figure
+   figure (3)
    plot(f2, normalized)
    hold on
    line(xlim,[sqrt(0.5), sqrt(0.5)],'linewidth',2,'lineStyle',':','color','k')
    %line([cutoff_3db, cutoff_3db],ylim,'linewidth',2,'lineStyle',':','color','k')
  ylim([0.1 1.2])
  set(gca, 'TickDir', 'out')
-
-
-
-
-
-
 
 
 %%
