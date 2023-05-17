@@ -1,22 +1,22 @@
 %% Resonance analysis single files (raw nwb files): first select only correct protocol
 % We use the script NWBfile to select this 
 
-    fn= '/Volumes/Ephys2/Ephys/H21.29.203_T/H21.29.203.01.07-compressed.nwb'
+fn= '/Users/elinemertens/Data/Projects/NEW_Hippocampus_2022_07/Data/mouse/M23.29.45994.21.61.01.nwb';
 
-nwb = NWBfile(fn,[{'X8_C'}])
+nwb = NWBfile(fn,[{'CHIRP'}]) ; 
 
 %% Look at the sweeps, are they comparable? 
- signal = nwb.getstimset.getnwbchannel.getsweep(1:3);
+ signal = nwb.getstimset.getnwbchannel.getsweep([4 6]);
  
  plot(signal)
  
-%% Only average the sweeps that look comparable 
-signal = nwb.getstimset.getnwbchannel.getsweep(1:3).avtrace;
+%% Only average the sweeps that look comparable
+signal = nwb.getstimset.getnwbchannel.getsweep([4 6]).avtrace;
 
 plot(signal)
 
 %check if you take correct stimwave(#) (after wash in this is diff)
-stim = nwb.getstimset.getnwbchannel.getstimwave(2).Data ;
+stim = nwb.getstimset.getnwbchannel.getstimwave(1).Data ;
 signal = signal.low_pass_filter(1000);
 % if the first sweep is bad or incomplete, take getstimwave(2)
 signal=signal.resample(0:0.1:signal.TimeInfo.End).Data;
@@ -40,7 +40,7 @@ set(gca, 'TickDir', 'out')
     stim_fft=fft(stim);
 
 figure(4)
-     smoothed=smooth((abs(signal_fft)./abs(stim_fft)*1000),23,  'lowess');
+ smoothed=smooth((abs(signal_fft)./abs(stim_fft)*1000),23,  'lowess');
     plot(f, smoothed);
     xlim([0.5 25])
     %ylim([0 100])

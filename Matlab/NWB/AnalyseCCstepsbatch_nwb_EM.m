@@ -3,7 +3,7 @@
 close all, clear all
 
 %% Set path to load and save data; mat data load 
-basedir = '/Users/elinemertens/Data/ephys/Analyzed/235' ;
+basedir = '/Users/elinemertens/Data/ephys/Analyzed/242' ;
 savedir = '/Users/elinemertens/Data/ephys/Hippocampus/2022_Summary';
 savename = 'Summary_198' ;  
 
@@ -67,7 +67,7 @@ for i = 1:length(filelist)
         % find current injection epoch and assign aps to sweep
 %         for step = 1:length(sweep(1).epoch)
 %             if sweep(1).epoch(step).amplitude ~= 0 && seconds(sweep(1).epoch(step).timespan) > 0.03
-%                 break
+%                 break 
 %             end
 %         end
         for j = 1:NrofSweeps
@@ -96,46 +96,7 @@ for i = 1:length(filelist)
                 break
             end
         end
-
-         % if you want to plot all first AP sweeps, get the percentage away form
- % obj.getstimset and run this part via index
- figure(1)
-        for j = 1:length(obj.stimsets)
-            if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},firstsweepname))
-                obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).getepoch(step).aps(1).plot('superimpose','peak');
-                legend(filelist)
-                xlim([-5 10])
-                title('First AP')
-            %   ylabel('mV')
-            %    xlabel('ms')
-            end
-        end
         
-       
- %FirstAP = obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).getepoch(step).aps(1).      
-% FirstAPData = (obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).getepoch(step).aps(1).timespan) ; 
-% Time = (obj.stimsets(1, 3).nwbchannels.sweeps(1, 12).Time) ;   
-%   % table1 = writetable(obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).getepoch(step).aps(1).metadata) ;
-    
-    figure(2)
-        for j = 1:length(obj.stimsets)
-            if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},firstsweepname))
-                %figure(); obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).plot
-                 obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).plot;
-                legend(filelist)
-             %   xlim([-5 10])
-                title('First AP sweep')
-            %   ylabel('mV')
-            %    xlabel('ms')
-            end
-        end    
-        
-%    figure(6) ;
-%    for j = 1:length(obj.stimsets)
-%    obj.getstimset(1).getnwbchannel.plot ;
-%    legend(filelist)
-%    end
-   
         idx1 = 1 ;
         for j = frstspikeswp:NrofSweeps  
             step = find(strcmp({sweep(frstspikeswp).epoch.idxstr}, 'B'));
@@ -210,16 +171,12 @@ for i = 1:length(filelist)
         CurrAbvRheo=NaN;
         for TrainSweep = TrSwp:NrofSweeps  
             step = find(strcmp({sweep(TrainSweep).epoch.idxstr}, 'B'));
-            if length(sweep(TrainSweep).ap) > 3
-                isis = [sweep(TrainSweep).ap(2:end).isi];
-                stutterAP = [0 0 0 isis(3:end) > 3*isis(2:end-1)];
-                stutterISI= [0 0 isis(3:end) > 3*isis(2:end-1)];
-               if length(sweep(TrainSweep).ap(~stutterAP)) > 3
-                CurrAbvRheo = sweep(TrainSweep).epoch(step).amplitude - (TrainCurr-50) ;
+            if length(sweep(TrainSweep).ap) > 1
                 TrSweepCrit=1;
+                CurrAbvRheo = sweep(TrainSweep).epoch(step).amplitude - (TrainCurr-50) ;               
                 break
                end
-            elseif TrainSweep==NrofSweeps
+            if TrainSweep==NrofSweeps
                 TrSweepCrit=0;
             end  
         end
@@ -257,30 +214,74 @@ for i = 1:length(filelist)
             OnsetTSFAP = NaN;
         end
 
+        % second try for trainsweep
        TrainCurr2 = sweep(frstspikeswp).epoch(step).amplitude +150 ;
-        for j = 1:NrofSweeps
-            step = find(strcmp({sweep(j).epoch.idxstr}, 'B'));
-            tmp2(j) = abs(sweep(j).epoch(step).amplitude - TrainCurr2) ;
+        for p = 1:NrofSweeps
+            step = find(strcmp({sweep(p).epoch.idxstr}, 'B'));
+            tmp7(p) = abs(sweep(p).epoch(step).amplitude - TrainCurr2) ;
         end
         
-        [TrSwp2 TrSwp2] = min(tmp2) ;
+         [TrSwp2 TrSwp2] = min(tmp7) ;
         CurrAbvRheo2=NaN;
         for TrainSweep2 = TrSwp2:NrofSweeps  
             step = find(strcmp({sweep(TrainSweep2).epoch.idxstr}, 'B'));
-            if length(sweep(TrainSweep2).ap) > 3
-                isis2 = [sweep(TrainSweep2).ap(2:end).isi];
-                stutterAP2 = [0 0 0 isis2(3:end) > 3*isis2(2:end-1)];
-                stutterISI2= [0 0 isis2(3:end) > 3*isis2(2:end-1)];
-               if length(sweep(TrainSweep2).ap(~stutterAP2)) > 3
-                CurrAbvRheo2 = sweep(TrainSweep2).epoch(step).amplitude - (TrainCurr-150) ;
-                TrSweepCrit2=1;
-                break
-               end
-            elseif TrainSweep2==NrofSweeps
+            if TrainSweep2==NrofSweeps
                 TrSweepCrit2=0;
+            elseif CurrAbvRheo2 == NaN
+                    TrSweepCrit2=0; 
+            if length(sweep(TrainSweep2).ap) > 1
+                TrSweepCrit2=1;
+                CurrAbvRheo2 = sweep(TrainSweep2).epoch(step).amplitude - (TrainCurr2-150) ;               
+                break
+            end
             end  
+            end
+        
+%        
+%          if ~isempty(sweep(TrainSweep2).ap)
+%             for l = 1:length(sweep(TrainSweep2).ap)   
+%                 HWsTS2=NaN ; 
+% %                 if ~isempty(sweep(TrainSweep2).ap(l,1).halfwidth)
+% %                     HWsTS2(l,1) = [sweep(TrainSweep2).ap(l,1).halfwidth] ;  
+%                 end      
+%         end
+        
+
+            TSbasetothresh2 = NaN;
+            TSpeaktoahp2 = NaN;
+            AmpsTSthresh2 = NaN;
+            HWsTS2 = NaN;
+            AHPsTS2 = NaN;
+            AHPslowTS2 = NaN;
+            ISIsTS2 = NaN;
+            FreqTrSwp2 = NaN;
+            NrOfAPsTrSwp2 = NaN;
+            OnsetTSFAP2 = NaN;
+        if TrSweepCrit2==1
+            TSbasetothresh2 = ([sweep(TrainSweep2).ap.thresh]-sweep(TrainSweep2).vmbase) ;
+            TSpeaktoahp2 = ([sweep(TrainSweep2).ap.ahp_time]-[sweep(TrainSweep2).ap.peak_time]); 
+            AmpsTSthresh2 = [sweep(TrainSweep2).ap.amp] ;
+            HWsTS2 = [sweep(TrainSweep2).ap.halfwidth] ; 
+            AHPsTS2 = [sweep(TrainSweep2).ap.relahp] ;
+            AHPslowTS2 = [sweep(TrainSweep2).ap.relahp_slow] ;
+            ISIsTS2 = [sweep(TrainSweep2).ap(2:end).isi] ;
+            FreqTrSwp2 = mean([sweep(TrainSweep2).ap(4:end).freq]) ;
+            NrOfAPsTrSwp2 = length(sweep(TrainSweep2).ap) ; 
+            OnsetTSFAP2 = sweep(TrainSweep2).ap(1).thresh_time - (seconds(sum([sweep(TrainSweep2).epoch(1:find(strcmp({sweep(TrainSweep2,1).epoch.idxstr}, 'A'))).timespan]))*1000) ;
+        else
+            TSbasetothresh2 = NaN;
+            TSpeaktoahp2 = NaN;
+            AmpsTSthresh2 = NaN;
+            HWsTS2 = NaN;
+            AHPsTS2 = NaN;
+            AHPslowTS2 = NaN;
+            ISIsTS2 = NaN;
+            FreqTrSwp2 = NaN;
+            NrOfAPsTrSwp2 = NaN;
+            OnsetTSFAP2 = NaN;
         end
-       
+        
+        
         % calculate input resistance     
         f_R=fittype('R*x+b');
         tmp=length(find(currInjections_R~=0 & ~isnan(voltageResponses)));
@@ -349,13 +350,13 @@ figure(3)
 
         % bursting & adaptation index
         if TrSweepCrit==1
-            isis=ISIsTS(~stutterISI); %exclude stuttering ISIs since that can mess with adaptation analysis
-            amps=AmpsTSthresh(~stutterAP);
-            hws=HWsTS(~stutterAP);
-        else
-            isis=ISIsTS;
+            isis=ISIsTS; %exclude stuttering ISIs since that can mess with adaptation analysis
             amps=AmpsTSthresh;
             hws=HWsTS;
+        else
+            isis=NaN;
+            amps=NaN;
+            hws=NaN;
         end
         if length(isis) > 2
             ISIRatio1toAll = mean(isis(2:end)) / mean(isis(1)) ;
@@ -412,13 +413,13 @@ figure(3)
             isis_TS1 = NaN  ;
          end
         
-         if length(sweep(TrainSweep2).ap) > 1
-            isis_TS2 = [sweep(TrainSweep2).ap(2:end).isi];
-            isis_TS2_1 = [sweep(TrainSweep2).ap(2).isi];
-        else 
-            isis_TS_2 = NaN ;
+      
+         if TrSweepCrit2 == 0
+           isis_TS_2 = NaN ;
            isis_TS2_1 = NaN ; 
-           
+         elseif length(sweep(TrainSweep2).ap) > 1
+            isis_TS2 = [sweep(TrainSweep2).ap(2:end).isi];
+            isis_TS2_1 = [sweep(TrainSweep2).ap(2).isi];          
          end
 
         if length(sweep(NrofSweeps).ap) > 1
@@ -434,8 +435,11 @@ figure(3)
         vals=lb.I0x2DClampHoldingLevel(~isnan(lb.I0x2DClampHoldingLevel)) ; 
         currentinj_avg = nanmean(vals) ; 
         
-%end if you want to make a large summary, remove the end here 
-TrainSweep1 = sweep(TrainSweep).Name ; 
+% %end if you want to make a large summary, remove the end here 
+% TrainSweep1 = sweep(TrainSweep).Name ; 
+if isempty(TrainSweep2)
+    TrainSweep2 = NaN;
+end
 
 figure(5)
         for j = 1:length(obj.stimsets)
@@ -485,9 +489,10 @@ figure(5)
         Summary(index).TrainSwp           = TrainSweep ; 
         Summary(index).TrainSwp2          = TrainSweep2 ; 
         Summary(index).CurrAbvRheo        = CurrAbvRheo ;
+        Summary(index).CurrAbvRheo2        = CurrAbvRheo2 ;
         Summary(index).NrOfAPfrstSwp = length(sweep(frstspikeswp).ap) ;
         Summary(index).NrofAPtrainSwp = length(sweep(TrainSweep).ap);
-        Summary(index).NrofAPtrainSwp = length(sweep(TrainSweep2).ap);
+        Summary(index).NrofAPtrainSwp2 = length(sweep(TrainSweep2).ap);
         Summary(index).NrofAPlastSwp = length(sweep(NrofSweeps).ap);
         Summary(index).isis_FS            = isis_FS ;
         Summary(index).isis_FS1           = isis_FS1 ;
@@ -533,6 +538,7 @@ figure(5)
         Summary(index).UpDwnStrkRatio     = abs(sweep(frstspikeswp).ap(1).upstroke) / abs(sweep(frstspikeswp).ap(1).downstroke) ;
         Summary(index).MaxUpStrkFrstAP       = sweep(frstspikeswp).ap(1).maxdvdt ;
         Summary(index).MaxDwnStrkFrstAP      = sweep(frstspikeswp).ap(1).mindvdt ;
+        Summary(index).TrSweepCrit        = TrSweepCrit ; 
         Summary(index).OnsetTSFAP         = OnsetTSFAP ;  
         Summary(index).TSbasetothreshM    = mean(TSbasetothresh) ; 
         Summary(index).TSbasetothreshSD   = std(TSbasetothresh) ; 
@@ -553,6 +559,20 @@ figure(5)
         Summary(index).AmpAccomTS         = AmpAccom ;
         Summary(index).HWAccomTS          = HWAccom ;
         Summary(index).ISIRatio1toAll     = ISIRatio1toAll ;
+         Summary(index).TrSweepCrit2        = TrSweepCrit2 ; 
+        Summary(index).OnsetTSFAP2         = OnsetTSFAP2 ;  
+        Summary(index).TSbasetothreshM2    = mean(TSbasetothresh2) ; 
+        Summary(index).TSbasetothreshSD2   = std(TSbasetothresh2) ; 
+        Summary(index).AmpTSthreshM2       = mean(AmpsTSthresh2) ; 
+        Summary(index).AmpTSthreshSD2     = std(AmpsTSthresh2) ; 
+        Summary(index).TSpeaktoahpM2      = nanmean(TSpeaktoahp2(TSpeaktoahp2~=0)) ; 
+        Summary(index).TSpeaktoahpSD2      = nanstd(TSpeaktoahp2(TSpeaktoahp2~=0)) ; 
+        Summary(index).HalfWTrSwpM2        = nanmean(HWsTS2(HWsTS2~=0)) ; 
+        Summary(index).HalfWTrSwpSD2       = nanstd(HWsTS2(HWsTS2~=0)) ; 
+        Summary(index).AHPTrSwpM2          = nanmean(AHPsTS2(AHPsTS2~=0)) ; 
+        Summary(index).AHPTrSwpSD2         = nanstd(AHPsTS2(AHPsTS2~=0)) ;
+        Summary(index).AHPslowTrSwpM2      = nanmean(AHPslowTS2(AHPslowTS2~=0)) ; 
+        Summary(index).AHPslowTrSwpSD2     = nanstd(AHPslowTS2(AHPslowTS2~=0)) 
         Summary(index).threshFB0     = nanmean(aps2.thresh(aps2.freqbin==0)) ;
         Summary(index).threshFB1     = nanmean(aps2.thresh(aps2.freqbin==1)) ;
         Summary(index).threshFB2     = nanmean(aps2.thresh(aps2.freqbin==2)) ;

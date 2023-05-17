@@ -13,26 +13,26 @@ for i = 1:numel(list.name)
  nwb = NWBfile(fn,[{'LP'} {'hresh'} {'Steps'} {'CC'} {'LSFINEST'} {'LSCOARSE'}]);
  obj =nwb.analyseNWB ;
  obj.savename = sprintf('NWB_%s.mat',obj.filename(1:end-4));
- saveme(obj,'/Volumes/Ephys2/Ephys hipp/healthy/analysed mat', obj.savename) 
+ saveme(obj,'/Users/elinemertens/Data/ephys/Analyzed/242', obj.savename) 
 end
 
     
     %%
-fn= '/Users/elinemertens/Data/ephys/Hippocampus/H21.29.198.21/mat/H21.29.198.21.01.01.nwb'
+fn= '/Users/elinemertens/Data/Projects/NEW_Hippocampus_2022_07/Data/mouse/test/M23.29.45995.21.01.02.nwb'
 
 %% let op of je wel of geen chirp wilt 
 nwb = NWBfile(fn,[{'LP'} {'hresh'} {'CC'} {'teps'} {'LSFINEST'} {'LSCOARSE'}]);
 
 %% ONLY CC
-nwb = NWBfile(fn,[{'CC'} {'Steps'} {'X6'} {'TRIPLE'} {'X6SQ'}]);
+nwb = NWBfile(fn,[{'CC'} {'teps'}]);
 
 %% everything
-nwb = NWBfile(fn,[{'TRIPLE'}]); 
+nwb = NWBfile(fn,[{'TRIPLE'} {'X6S'}]); 
 %%
 obj=nwb.analyseNWB
 %%
 obj.savename = sprintf('NWB_%s.mat',obj.filename(1:end-4));
-saveme(obj,'/Users/elinemertens/Data/ephys/Hippocampus/H21.29.198.21/mat/matmat', obj.savename) 
+saveme(obj,'/Users/elinemertens/Data/Projects/NEW_Hippocampus_2022_07/Data/mouse/mat analysed/new', obj.savename) 
 
 %%
 %%obj.saveme('/Users/elinemertens/Data/ephys/Human/H20.29.185.21.01/nwb analyzed','185_cell1.mat');
@@ -42,7 +42,7 @@ saveme(obj,'/Users/elinemertens/Data/ephys/Hippocampus/H21.29.198.21/mat/matmat'
 
 
 %% 01092021 
-fn= '/Users/elinemertens/Data/ephys/Human_nwb2/H21.29.205_T/using/H21.29.205.11.01.01-compressed.nwb'
+fn= '/Users/elinemertens/Data/Projects/NEW_Hippocampus_2022_07/Data/mouse/resonance/to be analysed/M23.29.45994.21.03.02_M-compressed.nwb'
 nwb = NWBfile(fn,[{'LP'} {'CCSteps_DA_0'}]);
 
 %%

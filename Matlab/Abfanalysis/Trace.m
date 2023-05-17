@@ -177,10 +177,10 @@ classdef Trace < timeseries
         end
         
         function obj = getsampleusingtime(obj,varargin)
-            % get section of sweep using time. Overload of TIMERSERIES' GETSAMPLEUSINGTIME method to operate on non-scalar
-            % timeseries objects. 
-            %
-            % See also: TIMERSERIES, GETSAMPLEUSINGTIME
+           % get section of sweep using time. Overload of TIMERSERIES' GETSAMPLEUSINGTIME method to operate on non-scalar
+          %  timeseries objects. 
+            
+         %   See also: TIMERSERIES, GETSAMPLEUSINGTIME
             for i=1:numel(obj) 
                 obj(i) = getsampleusingtime@timeseries(obj(i),varargin{:}); 
             end
@@ -493,18 +493,18 @@ classdef Trace < timeseries
                 isi        = obj.getsampleusingtime(obj.getap(i).peak_time,endpoint);               % get timeseries of data after AP
                 ahpwinstrt = find(isi.Data(1:end-snakelen+1)<isi.Data(snakelen:end),1);             % find start of ahp window
                 ahpwinend  = ahpwinstrt + snakelen;                                                 % get end window
-                if ~isempty(ahpwinstrt)
-                    ahpidx = find(isi.Data==min(isi.Data((ahpwinstrt-1:ahpwinend-1))),1);             % find index of minimum
-                    if isi.Time(ahpidx)-obj.getap(i).peak_time<5
-                    obj    = obj.updateap(i,'ahp',isi.Data(ahpidx),'ahp_time',isi.Time(ahpidx));    % update AP (only if AHP is fast enough)
-                    else
-                        cnt=cnt+1;
-                    end
-                else
-                    cnt=cnt+1;
-                end
-            end
-            if cnt>0, 
+%                 if ~isempty(ahpwinstrt)
+%                     ahpidx = find(isi.Data==min(isi.Data((ahpwinstrt-1:ahpwinend-1))),1);             % find index of minimum
+%                     if isi.Time(ahpidx)-obj.getap(i).peak_time<5
+%                     obj    = obj.updateap(i,'ahp',isi.Data(ahpidx),'ahp_time',isi.Time(ahpidx));    % update AP (only if AHP is fast enough)
+%                     else
+%                         cnt=cnt+1;
+                  %  end
+                %else
+                   % cnt=cnt+1;
+%                 end
+%             end
+%             if cnt>0, 
                 %fprintf('%d out of %d action potentials: no fast AHP.\n',cnt,obj.nrofaps); 
             end
         end

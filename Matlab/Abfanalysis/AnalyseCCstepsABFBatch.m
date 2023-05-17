@@ -70,11 +70,9 @@ aps.updownratio = aps.maxdvdt./abs(aps.mindvdt) ;
 aps.onsetrapidity(aps.onsetrapidity > 100) = NaN ;
     
     
-  %% Make subset of data per abf file
-    
+  %% Make subset of data per abf file   
  abf = SubsetTable2struct(abfs,channels,ins,outs,sweeps,epochs,aps) ;
-    
-   
+       
 %% loop through abf files
 index = 1 ;
 for i = 1:bb.nrofabfs
@@ -86,7 +84,7 @@ for i = 1:bb.nrofabfs
         %% Analyze
         %sweep = abf.channel([abf.channel.number] == chs).in(strcmp({abf.channel([abf.channel.number] == chs).in.signal},'primary')).sweep ;
         sweep = abf(i).channel(1).in(strcmp({abf(i).channel(1).in.signal},'primary')).sweep ;
-        NrofSweeps = length(sweep) ;  
+        NrofSweeps = length(sweep) ; 
         % find current injection epoch and assign aps to sweep
         for step = 1:length(sweep(1).epoch)
             if sweep(1).epoch(step).stepdiff ~= 0 && (sweep(1).epoch(step).stepdiff + sweep(1).epoch(step+1).stepdiff) == 0 && seconds(sweep(1).epoch(step).timespan) > 0.03
@@ -188,20 +186,43 @@ for i = 1:bb.nrofabfs
 
         % find trainsweep 
         % Traincurr=rheobase+50 :
-        TrainCurr = sweep(frstspikeswp).epoch(step).stepdiff +250 ;
+        TrainCurr1 = sweep(frstspikeswp).epoch(step).stepdiff +50 ;
         for j = 1:NrofSweeps
-            tmp(j) = abs(sweep(j).epoch(step).stepdiff - TrainCurr) ;
+            tmp(j) = abs(sweep(j).epoch(step).stepdiff - TrainCurr1) ;
         end
    
         [TrSwp TrSwp] = min(tmp) ;
-        CurrAbvRheo=NaN;
+        CurrAbvRheo1=NaN;
         for TrainSweep = TrSwp:NrofSweeps          
             if length(sweep(TrainSweep).ap) > 3
                 isis = [sweep(TrainSweep).ap(2:end).isi];
                 stutterAP = [0 0 0 isis(3:end) > 3*isis(2:end-1)];
                 stutterISI= [0 0 isis(3:end) > 3*isis(2:end-1)];
                if length(sweep(TrainSweep).ap(~stutterAP)) > 3
-                CurrAbvRheo = sweep(TrainSweep).epoch(step).stepdiff - (TrainCurr-250) ;
+                CurrAbvRheo1 = sweep(TrainSweep).epoch(step).stepdiff - (TrainCurr1-150) ;
+                TrSweepCrit=1;
+                break
+               end
+            elseif TrainSweep==NrofSweeps
+                TrSweepCrit=0;
+            end  
+        end
+        
+       %trainsweep 250 pA
+       TrainCurr2 = sweep(frstspikeswp).epoch(step).stepdiff +150 ;
+        for j = 1:NrofSweeps
+            tmp(j) = abs(sweep(j).epoch(step).stepdiff - TrainCurr2) ;
+        end
+   
+        [TrSwp2 TrSwp2] = min(tmp) ;
+        CurrAbvRheo2=NaN;
+        for TrainSweep2 = TrSwp2:NrofSweeps          
+            if length(sweep(TrainSweep2).ap) > 3
+                isis2 = [sweep(TrainSweep2).ap(2:end).isi];
+                stutterAP2 = [0 0 0 isis2(3:end) > 3*isis2(2:end-1)];
+                stutterISI2= [0 0 isis2(3:end) > 3*isis2(2:end-1)];
+               if length(sweep(TrainSweep2).ap(~stutterAP2)) > 3
+                CurrAbvRheo2 = sweep(TrainSweep2).epoch(step).stepdiff - (TrainCurr2-250) ;
                 TrSweepCrit=1;
                 break
                end
@@ -286,7 +307,16 @@ for i = 1:bb.nrofabfs
         % determine sweep for sag, (minimum voltage response closest to -100)
         tmp = abs(MinVmResponse+100) ;
         [sagswp sagswp] = min(tmp) ;
-
+        tmp2 = abs(MinVmResponse+90) ; 
+        [sagswp2 sagswp2] = min(tmp2) ;
+        tmp3 = abs(MinVmResponse+80) ;
+        [sagswp3 sagswp3] = min(tmp3) ; 
+         
+        Sag                = sweep(sagswp,1).epoch(step).sag / PkDeflect(sagswp,1) ;
+        Sag2               = sweep(sagswp2,1).epoch(step).sag / PkDeflect(sagswp2,1) ;
+        Sag3               = sweep(sagswp3,1).epoch(step).sag / PkDeflect(sagswp3,1) ;
+        SagMedian             = median([Sag Sag2 Sag3]) ; 
+        
         % calculate input frequency curve
         Freqs = Freqs(Freqs~=0) ;
         StimInts = StimInts(StimInts~=0) ;
@@ -345,17 +375,35 @@ for i = 1:bb.nrofabfs
           % nr of APs first sweep (Eline Edit)
          NrOfAPfrstSwp = length(sweep(frstspikeswp).ap) ;
          NrofAPtrainSwp = length(sweep(TrainSweep).ap);
+         NrofAPtrainSwp2 = length(sweep(TrainSweep2).ap);
          NrofAPlastSwp = length(sweep(NrofSweeps).ap);
          
         if length(sweep(frstspikeswp).ap) > 1
             isis_FS = [sweep(frstspikeswp).ap(2:end).isi];
-            isis_FS1 = [sweep(NrofSweeps).ap(2).isi];
+            isis_FS1 = [sweep(frstspikeswp).ap(2).isi];
         else 
             isis_FS = NaN ;
            isis_FS1 = NaN ; 
            
         end
         
+         if length(sweep(TrainSweep).ap) > 1
+            isis_TS = [sweep(TrainSweep).ap(2:end).isi];
+            isis_TS1 = [sweep(TrainSweep).ap(2).isi];
+        else 
+            isis_TS = NaN ;
+           isis_TS1 = NaN ; 
+           
+         end
+        
+         if length(sweep(TrainSweep2).ap) > 1
+            isis_TS2 = [sweep(TrainSweep2).ap(2:end).isi];
+            isis_TS2_1 = [sweep(TrainSweep2).ap(2).isi];
+        else 
+            isis_TS2 = NaN ;
+           isis_TS2_1 = NaN ; 
+           
+         end
     
         if length(sweep(NrofSweeps).ap) > 1
             isis_LS = [sweep(NrofSweeps).ap(2:end).isi];
@@ -376,21 +424,25 @@ for i = 1:bb.nrofabfs
         Summary(index).scalefactor        = abf(i).channel(1).out.scalefactor ;
         Summary(index).holdingcurrent     = abf(i).channel(1).out.holdingI ;
         Summary(index).holdingvoltage     = abf(i).channel(1).out.holdingV ;
-        Summary(index).NrofSweeps         = NrofSweeps ;
-        Summary(index).PDur               = seconds(sweep(1).epoch(step).timespan)*1000 ;
+       % Summary(index).NrofSweeps         = NrofSweeps ;
+       % Summary(index).PDur               = seconds(sweep(1).epoch(step).timespan)*1000 ;
         Summary(index).FrstP              = sweep(1).currinj ;
         Summary(index).DeltaP             = sweep(2).currinj - sweep(1).currinj ;
         Summary(index).Rheobase           = sweep(frstspikeswp).currinj ;
         Summary(index).FrstSpikeSwp       = frstspikeswp ;
         Summary(index).TrainSwp           = TrainSweep ; 
-        Summary(index).CurrAbvRheo        = CurrAbvRheo ;
+        Summary(index).TrainSwp2          = TrainSweep2 ;
+        Summary(index).CurrAbvRheo1       = CurrAbvRheo1 ;
         Summary(index).NrofAPsFrstSwp     = NrOfAPfrstSwp ; 
         Summary(index).NrOfAPsTrSwp       = NrOfAPsTrSwp ;
+        Summary(index).NrOfAPsTrSwp2      = length(sweep(TrainSweep2).ap) ;
         Summary(index).NrofAPlastSwp      = NrofAPlastSwp ; 
         Summary(index).isis_FS            = isis_FS ;
         Summary(index).isis_FS1           = isis_FS1 ;
-        Summary(index).ISIsTS             = ISIsTS ;
-        Summary(index).ISIsTS1            = ISIsTS1 ;
+        Summary(index).isis_TS            = isis_TS ;
+        Summary(index).isis_TS1           = isis_TS1 ;
+        Summary(index).isis_TS2           = isis_TS2 ;
+        Summary(index).isis_TS2_1         = isis_TS2_1 ;
         Summary(index).isis_LS            = isis_LS ;
         Summary(index).isis_LS1           = isis_LS1 ;
         Summary(index).vmbaseM            = nanmean(vmbase) ;
@@ -404,8 +456,13 @@ for i = 1:bb.nrofabfs
         Summary(index).FrqChngStimInt     = FrqChngStimInt ;
         Summary(index).NrofRBAPs          = sum(NrofRBAPs) ;
         Summary(index).NrofRBAPsM         = NrofRBAPsM ;
-        Summary(index).Sag                = sweep(sagswp,1).epoch(step).sag / PkDeflect(sagswp,1) ;
+        Summary(index).Sag                = Sag ;
+        Summary(index).Sag2               = Sag2 ; 
+        Summary(index).Sag3               = Sag3 ; 
+        Summary(index).SagMedian          = SagMedian ; 
         Summary(index).VmatSag            = MinVmResponse(sagswp,1) ;
+        Summary(index).VmatSag2           = MinVmResponse(sagswp2,1) ;
+        Summary(index).VmatSag3           = MinVmResponse(sagswp3,1) ;
         Summary(index).TauM               = nanmean(taus(taus~=0)) ;
         Summary(index).TauSD              = nanstd(taus(taus~=0)) ;
     %    Summary(index).curr_FrstAP        = sweep(frstspikeswp).ap(1).currinj ; 
@@ -424,6 +481,7 @@ for i = 1:bb.nrofabfs
         Summary(index).UpDwnStrkRatio     = abs(sweep(frstspikeswp).epoch(step).ap(1).upstroke) / abs(sweep(frstspikeswp).epoch(step).ap(1).downstroke) ;
         Summary(index).MaxUpFrstAP        = sweep(frstspikeswp).epoch(step).ap(1).maxdvdt ;
         Summary(index).MaxDwnFrstAP        = sweep(frstspikeswp).epoch(step).ap(1).mindvdt ;
+        Summary(index).TrSweepCrit        = TrSweepCrit ;
         Summary(index).OnsetTSFAP         = OnsetTSFAP ;  
         Summary(index).TSbasetothreshM    = mean(TSbasetothresh) ; 
         Summary(index).TSbasetothreshSD   = std(TSbasetothresh) ; 
@@ -522,10 +580,10 @@ clearvars -except bb
 
 
 %%
-%basedir = uigetdir  % specify path to analyzed abfBatch. File will be saved in this folder
+basedir = '/Users/elinemertens/Data/Projects/Regions/Data/Matlab/ayoub';  % specify path to analyzed abfBatch. File will be saved in this folder
 
 Summary_All = struct2table(Summary) ; 
-writetable(AllLayersEphys, 'summary_all_layers.xlsx');
+writetable(Summary_All, 'summary_ayoub1_ABF.xlsx');
 
 
 

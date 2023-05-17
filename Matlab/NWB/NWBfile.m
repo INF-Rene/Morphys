@@ -84,8 +84,7 @@ classdef NWBfile < Sharedpaths & Sharedmethods
                 nwbv=h5readatt(fn, '/', 'nwb_version');
             end
          %   nwbv=nwbv{1};
-            
-            
+                        
 %             if ~strcmp(nwbv, 'NWB-1.0.5')
 %                 warnmsg=sprintf('This script was designed for NWB-1.0.5. The loaded file has version %s \n', nwbv{1});
 %                 warning(warnmsg)

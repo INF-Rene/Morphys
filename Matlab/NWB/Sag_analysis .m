@@ -1,5 +1,5 @@
 %%Load in analyzed mat files 
-basedir = '/Users/elinemertens/Data/ephys/Hippocampus/nwb2_analyzed/209/eline' ;
+basedir = '/Users/elinemertens/Data/Projects/NEW_Hippocampus_2022_07/Data/mouse/mat analysed/new2' ;
 savedir = '/Users/elinemertens/Data/ephys/Summary/Human' ;
 savename = 'Summary_209' ;
 
@@ -14,11 +14,11 @@ filter_freq = 1000; % low pass filter frequency for sag traces (Hz)
 %t_all=table();
 table_initialize = false ;
 
-for i=1:numel(filelist)
+for i=1:length(filelist)
     %load file
     fn = fullfile(basedir, filelist{i});
     nwb = load(fn);
-    nwb = nwb.obj;
+   nwb = nwb.obj;
     
     % loop over stimsets
     for j = 1:nwb.nrofstimsets
@@ -52,7 +52,8 @@ for i=1:numel(filelist)
         swps 
         vstep = [swps.getepoch(stepepoch).vstep];
         rmp = [swps.getepoch(stepepoch-1).steadystate];
-        v_delta = vstep - rmp;
+        %rmp = [obj.stimsets.nwbchannels.sweeps(1, 31).Data(1)];  
+         v_delta = vstep - rmp;
         ss = [swps.getepoch(stepepoch).steadystate];
         ss_delta = ss - rmp;
         delta = ss - vstep;
