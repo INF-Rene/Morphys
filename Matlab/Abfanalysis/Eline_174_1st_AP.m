@@ -7,8 +7,8 @@
 % of the upcoming codes either. We will remove bb.getabf(1).plot and replace it
 % with abf.plot 
 
-p1   = ('/Users/elinemertens/Desktop/ting/');
-fn1  = 'Cell4_ccsteps.abf';
+p1   = ('/Users/elinemertens/Matlab Data/H20.29.174');
+fn1  = '2020_03_04_0002.abf';
 fp1  = fullfile(p1,fn1);
 ss  = load('/Users/elinemertens/Downloads/Morphys-master/Morphys/Data/Electrophysiology/SetupSettings/Setupsettings_INF.mat');
 ss  = ss.obj;
@@ -16,42 +16,42 @@ abf1 = Abffile(fp1,ss);
 
 %%
     
-p2   = ('/Users/elinemertens/Matlab Data/H20.29.174/cell2');
+p2   = ('/Users/elinemertens/Matlab Data/H20.29.174');
 fn2  = '2020_03_04_0021.abf';
 fp2  = fullfile(p2,fn2);
 ss  = load('/Users/elinemertens/Matlab Data/Morphys-master/Matlab/Abfanalysis/Setupsettings_INF.mat');
 ss  = ss.obj;
 abf2 = Abffile(fp2,ss);
 
-p3   = ('/Users/elinemertens/Matlab Data/H20.29.174/cell3');
+p3   = ('/Users/elinemertens/Matlab Data/H20.29.174');
 fn3  = '2020_03_04_0045.abf';
 fp3  = fullfile(p3,fn3);
 ss  = load('/Users/elinemertens/Matlab Data/Morphys-master/Matlab/Abfanalysis/Setupsettings_INF.mat');
 ss  = ss.obj;
 abf3 = Abffile(fp3,ss);
 
-p4   = ('/Users/elinemertens/Matlab Data/H20.29.174/cell4');
+p4   = ('/Users/elinemertens/Matlab Data/H20.29.174');
 fn4  = '2020_03_04_0064.abf';
 fp4  = fullfile(p4,fn4);
 ss  = load('/Users/elinemertens/Matlab Data/Morphys-master/Matlab/Abfanalysis/Setupsettings_INF.mat');
 ss  = ss.obj;
 abf4 = Abffile(fp4,ss);
 
-p5   = ('/Users/elinemertens/Matlab Data/H20.29.174/cell5');
+p5   = ('/Users/elinemertens/Matlab Data/H20.29.174');
 fn5  = '2020_03_05_0001.abf';
 fp5  = fullfile(p5,fn5);
 ss  = load('/Users/elinemertens/Matlab Data/Morphys-master/Matlab/Abfanalysis/Setupsettings_INF.mat');
 ss  = ss.obj;
 abf5 = Abffile(fp5,ss);
 
-p6   = ('/Users/elinemertens/Matlab Data/H20.29.174/cell6');
+p6   = ('/Users/elinemertens/Matlab Data/H20.29.174');
 fn6  = '2020_03_05_0021.abf';
 fp6  = fullfile(p6,fn6);
 ss  = load('/Users/elinemertens/Matlab Data/Morphys-master/Matlab/Abfanalysis/Setupsettings_INF.mat');
 ss  = ss.obj;
 abf6 = Abffile(fp6,ss);
 
-p7   = ('/Users/elinemertens/Matlab Data/H20.29.174/cell7');
+p7   = ('/Users/elinemertens/Matlab Data/H20.29.174');
 fn7  = '2020_03_05_0041.abf';
 fp7  = fullfile(p7,fn7);
 ss  = load('/Users/elinemertens/Matlab Data/Morphys-master/Matlab/Abfanalysis/Setupsettings_INF.mat');

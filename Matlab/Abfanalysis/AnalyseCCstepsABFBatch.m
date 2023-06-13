@@ -186,50 +186,36 @@ for i = 1:bb.nrofabfs
 
         % find trainsweep 
         % Traincurr=rheobase+50 :
-        TrainCurr1 = sweep(frstspikeswp).epoch(step).stepdiff +50 ;
+        TrainCurr = sweep(frstspikeswp).epoch(step).stepdiff +50 ;
         for j = 1:NrofSweeps
-            tmp(j) = abs(sweep(j).epoch(step).stepdiff - TrainCurr1) ;
+            tmp(j) = abs(sweep(j).epoch(step).stepdiff - TrainCurr) ;
         end
    
+        % find trainsweep 
+        % Traincurr=rheobase+50 :
+        step = find(strcmp({sweep(frstspikeswp).epoch.idxstr}, 'B'));
+       % changed this to 250 pA
+        TrainCurr = sweep(frstspikeswp).epoch(step).amplitude +50 ;
+        for j = 1:NrofSweeps
+            step = find(strcmp({sweep(j).epoch.idxstr}, 'B'));
+            tmp(j) = abs(sweep(j).epoch(step).amplitude - TrainCurr) ;
+        end
+        
         [TrSwp TrSwp] = min(tmp) ;
-        CurrAbvRheo1=NaN;
-        for TrainSweep = TrSwp:NrofSweeps          
-            if length(sweep(TrainSweep).ap) > 3
-                isis = [sweep(TrainSweep).ap(2:end).isi];
-                stutterAP = [0 0 0 isis(3:end) > 3*isis(2:end-1)];
-                stutterISI= [0 0 isis(3:end) > 3*isis(2:end-1)];
-               if length(sweep(TrainSweep).ap(~stutterAP)) > 3
-                CurrAbvRheo1 = sweep(TrainSweep).epoch(step).stepdiff - (TrainCurr1-150) ;
+        CurrAbvRheo=NaN;
+        for TrainSweep = TrSwp:NrofSweeps  
+            step = find(strcmp({sweep(TrainSweep).epoch.idxstr}, 'B'));
+            if length(sweep(TrainSweep).ap) > 1
                 TrSweepCrit=1;
+                CurrAbvRheo = sweep(TrainSweep).epoch(step).amplitude - (TrainCurr-50) ;               
                 break
                end
-            elseif TrainSweep==NrofSweeps
+            if TrainSweep==NrofSweeps
                 TrSweepCrit=0;
             end  
         end
         
-       %trainsweep 250 pA
-       TrainCurr2 = sweep(frstspikeswp).epoch(step).stepdiff +150 ;
-        for j = 1:NrofSweeps
-            tmp(j) = abs(sweep(j).epoch(step).stepdiff - TrainCurr2) ;
-        end
-   
-        [TrSwp2 TrSwp2] = min(tmp) ;
-        CurrAbvRheo2=NaN;
-        for TrainSweep2 = TrSwp2:NrofSweeps          
-            if length(sweep(TrainSweep2).ap) > 3
-                isis2 = [sweep(TrainSweep2).ap(2:end).isi];
-                stutterAP2 = [0 0 0 isis2(3:end) > 3*isis2(2:end-1)];
-                stutterISI2= [0 0 isis2(3:end) > 3*isis2(2:end-1)];
-               if length(sweep(TrainSweep2).ap(~stutterAP2)) > 3
-                CurrAbvRheo2 = sweep(TrainSweep2).epoch(step).stepdiff - (TrainCurr2-250) ;
-                TrSweepCrit=1;
-                break
-               end
-            elseif TrainSweep==NrofSweeps
-                TrSweepCrit=0;
-            end  
-        end
+      
         
 % Traincurr= sweep with AP freq (AP4:APend) closest to 15 Hz (and reasonable number of spikes):  
 %         TrSwp = find(abs(15-Freqs)<5);
@@ -286,6 +272,60 @@ for i = 1:bb.nrofabfs
             FreqTrSwp = NaN;
             NrOfAPsTrSwp = NaN;
             OnsetTSFAP = NaN;
+        end
+
+          % nwb based 150 pA above rheo
+         TrainCurr2 = sweep(frstspikeswp).epoch(step).amplitude +150 ;
+        for j = 1:NrofSweeps
+            step = find(strcmp({sweep(j).epoch.idxstr}, 'B'));
+            tmp(j) = abs(sweep(j).epoch(step).amplitude - TrainCurr2) ;
+        end
+        
+        [TrSwp2 TrSwp2] = min(tmp) ;
+        CurrAbvRheo2=NaN;
+        for TrainSweep2 = TrSwp2:NrofSweeps  
+            step = find(strcmp({sweep(TrainSweep2).epoch.idxstr}, 'B'));
+            if length(sweep(TrainSweep2).ap) > 1
+                TrSweepCrit2=1;
+                CurrAbvRheo2 = sweep(TrainSweep2).epoch(step).amplitude - (TrainCurr2-150) ;               
+                break
+               end
+            if TrainSweep2==NrofSweeps
+                TrSweepCrit2=0;
+            end  
+        end
+       
+        
+        if ~isempty(sweep(TrainSweep2).ap)
+            for l = 1:length(sweep(TrainSweep2).ap)           
+                if ~isempty(sweep(TrainSweep2).ap(l,1).halfwidth)
+                    HWsTS2(l,1) = [sweep(TrainSweep2).ap(l,1).halfwidth] ;  
+                end       
+            end
+        else
+            HWsTS2=NaN;
+        end
+        
+        if TrSweepCrit2==1
+            TSbasetothresh2 = ([sweep(TrainSweep2).ap.thresh]-sweep(TrainSweep2).vmbase) ;
+            TSpeaktoahp2 = ([sweep(TrainSweep2).ap.ahp_time]-[sweep(TrainSweep2).ap.peak_time]); 
+            AmpsTSthresh2 = [sweep(TrainSweep2).ap.amp] ;
+            AHPsTS2 = [sweep(TrainSweep2).ap.relahp] ;
+            AHPslowTS2 = [sweep(TrainSweep2).ap.relahp_slow] ;
+            ISIsTS2 = [sweep(TrainSweep2).ap(2:end).isi] ;
+            FreqTrSwp2 = mean([sweep(TrainSweep2).ap(4:end).freq]) ;
+            NrOfAPsTrSwp2 = length(sweep(TrainSweep2).ap) ; 
+            OnsetTSFAP2 = sweep(TrainSweep2).ap(1).thresh_time - (seconds(sum([sweep(TrainSweep2).epoch(1:find(strcmp({sweep(TrainSweep2,1).epoch.idxstr}, 'A'))).timespan]))*1000) ;
+        else
+            TSbasetothresh2 = NaN;
+            TSpeaktoahp2 = NaN;
+            AmpsTSthresh2 = NaN;
+            AHPsTS2 = NaN;
+            AHPslowTS2 = NaN;
+            ISIsTS2 = NaN;
+            FreqTrSwp2 = NaN;
+            NrOfAPsTrSwp2 = NaN;
+            OnsetTSFAP2 = NaN;
         end
 
         % calculate input resistance     

@@ -48,8 +48,8 @@ classdef Sweep < Sharedmethods & Trace
             
             % check/process inputs
             if nargin == 0, return % returns empty sweep
-            %elseif mod(numel(varargin),2)~=0
-              %  error('Uneven number of name/value pairs.')
+            elseif mod(numel(varargin),2)~=0
+               error('Uneven number of name/value pairs.')
             elseif ~all(cellfun(@ischar,varargin(1:2:end)))
                 error('All property names must be strings')
             else
@@ -140,10 +140,10 @@ classdef Sweep < Sharedmethods & Trace
                     
                     %get stim data to read input current for "step" epoch;
                     %hotfix for EM data
-                    if strcmp(epochtab.idxstr, 'B')
-                        stimdata=h5read(fn, [obj.stimdataloc '/data'], double(epochtab.strttime*1e-3*obj.samplefreq),double(epochtab.duration*1e-3*obj.samplefreq));
-                        epochtab.firstlevel = nanmedian(stimdata);
-                    end
+%                     if strcmp(epochtab.idxstr, 'B')
+%                         stimdata=h5read(fn, [obj.stimdataloc '/data'], double(epochtab.strttime*1e-3*obj.samplefreq),double(epochtab.duration*1e-3*obj.samplefreq));
+%                         epochtab.firstlevel = nanmedian(stimdata);
+%                     end
 
                     %add the epoch to the sweep
                     obj=obj.addepoch(epochtab);
@@ -373,12 +373,12 @@ classdef Sweep < Sharedmethods & Trace
                         'pulseperiod',  0;
                         'pulsewidth',   0;
                         'maxfrequency', 0;
-                        'deltascaled',  0; % let op
+                        'deltascaled',  0; % let op, kijk dit na
                         };
             template = struct2table(cell2struct(template(:,2),template(:,1)));
 
             % add leading epoch
-            if obj.sweeplagpnts > 0;
+            if obj.sweeplagpnts > 0
                 t = template;
                 t.timespan = milliseconds(obj.sweeplagtime);
                 t.idxstr   = '<'; 

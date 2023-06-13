@@ -3,7 +3,7 @@
 %summary_patientnummer_regionletter
 %Summary_177_F for example 
 
-basedir = '/Users/elinemertens/Data/ephys/Summary/Human' ;
+basedir = '/Users/elinemertens/Data/ephys/abf/Human/2023/matlab/good' ;
 fileinfo  = dir(fullfile(basedir,'*.mat'));
 filelist  = {fileinfo.name};
 
@@ -11,7 +11,7 @@ for i = 1:length(filelist)
     load(fullfile(basedir,filelist{i})) ;
     for j = 1:length(Summary)
         Summary(j).subject_ID = ['H0' filelist{i}(9:11)] ;
-        Summary(j).region = filelist{i}(13) ;
+        Summary(j).patcher = filelist{i}(13) ;
     end
     temp = struct2table(Summary) ;
     
@@ -22,11 +22,16 @@ for i = 1:length(filelist)
     end
 end
 
-save(fullfile(basedir, 'MasterSummary'),'Summ') ;
+save(fullfile(basedir, 'MasterSummary'),'Summary') ;
 
 %% only works on windows
 fileName = 'Summary_excel.xlsx' ;
 xlwrite(Summ,fileName);
+
+%%
+ writetable(Summ, 'Summary_all.xlsx');
+
+
 %%
 save(fullfile(basedir, fileName)) 
 

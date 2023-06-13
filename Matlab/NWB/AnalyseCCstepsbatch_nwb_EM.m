@@ -3,7 +3,7 @@
 close all, clear all
 
 %% Set path to load and save data; mat data load 
-basedir = '/Users/elinemertens/Data/ephys/Analyzed/242' ;
+basedir = '/Users/elinemertens/Data/ephys/Analyzed/242 new' ;
 savedir = '/Users/elinemertens/Data/ephys/Hippocampus/2022_Summary';
 savename = 'Summary_198' ;  
 
@@ -154,17 +154,66 @@ for i = 1:length(filelist)
         else
             NrofRBAPsM = 0 ;
         end
+       
+
         
+%         % Get the total number of stimsets
+% numStimsets = numel(obj.stimsets());
+% 
+% % Iterate over each stimset
+% for v = 1:numStimsets
+%     % Get the total number of sweeps for the current stimset
+%     numSweeps = numel(obj.stimsets(v).nwbchannels.sweeps());
+%     
+%     % Iterate over each sweep
+%     for w = 1:numSweeps
+%         % Check if downstroke is NaN for the current sweep
+%         if obj.stimsets(v).nwbchannels.sweeps(w).aps(1, 1).downstroke == NaN
+%             % Remove the entire row of sweeps for the current sweep
+%             obj.stimsets(v).nwbchannels.sweeps(w) = [];
+%             
+%             % Decrement the sweep counter to adjust for the removed sweep
+%             j = j - 1;
+%             
+%             % Update the total number of sweeps
+%             numSweeps = numSweeps - 1;
+%         end
+%     end
+% end
+%         
+%         % Create a logical index for rows containing NaN in the specified variable
+% dsproblem = ismissing(aps.downstroke);
+% dsproblem = ismissing(aps2.downstroke);
+% 
+% % Remove rows where the specified variable is NaN
+% aps(dsproblem, :) = [];
+% aps2(dsproblem, :) = [];
+% 
+
+% if isnan(obj.stimsets().nwbchannels.sweeps().aps(1, 1).downstroke)
+%     % Remove the entire row of sweeps
+%     obj.stimsets().nwbchannels.sweeps = [];
+% end
+% 
+% for t = 1:NrofSweeps 
+% if isnan(sweep(t).ap(1).downstroke)
+%     sweep(t).ap(1) = [] ;
+% end
+% end
+
 
 
         % find trainsweep 
         % Traincurr=rheobase+50 :
         step = find(strcmp({sweep(frstspikeswp).epoch.idxstr}, 'B'));
-       % changed this to 250 pA
+       % changed this to 50 pA
         TrainCurr = sweep(frstspikeswp).epoch(step).amplitude +50 ;
         for j = 1:NrofSweeps
             step = find(strcmp({sweep(j).epoch.idxstr}, 'B'));
             tmp(j) = abs(sweep(j).epoch(step).amplitude - TrainCurr) ;
+%          if isnan(sweep(j).ap(1).downstroke)
+%                   sweep(j).ap(1) = [] ;
+%          end
         end
         
         [TrSwp TrSwp] = min(tmp) ;
@@ -172,16 +221,21 @@ for i = 1:length(filelist)
         for TrainSweep = TrSwp:NrofSweeps  
             step = find(strcmp({sweep(TrainSweep).epoch.idxstr}, 'B'));
             if length(sweep(TrainSweep).ap) > 1
-                TrSweepCrit=1;
-                CurrAbvRheo = sweep(TrainSweep).epoch(step).amplitude - (TrainCurr-50) ;               
+                 TrSweepCrit=1;
+                CurrAbvRheo = sweep(TrainSweep).epoch(step).amplitude - (TrainCurr-50) ;     
+%                 if isnan(sweep(TrainSweep).ap(1).downstroke)
+%                     TrainSweep = TrainSweep + 1 ;  
+%                     if isnan(aps.downstroke(TrainSweep))
+%                     TrainSweep = TrainSweep + 2 ; 
                 break
                end
             if TrainSweep==NrofSweeps
                 TrSweepCrit=0;
             end  
         end
-       
-        
+        %    end
+%         end
+%         
         if ~isempty(sweep(TrainSweep).ap)
             for l = 1:length(sweep(TrainSweep).ap)           
                 if ~isempty(sweep(TrainSweep).ap(l,1).halfwidth)
@@ -213,7 +267,7 @@ for i = 1:length(filelist)
             NrOfAPsTrSwp = NaN;
             OnsetTSFAP = NaN;
         end
-        
+%         
         % third try
          TrainCurr2 = sweep(frstspikeswp).epoch(step).amplitude +150 ;
         for j = 1:NrofSweeps
@@ -266,76 +320,7 @@ for i = 1:length(filelist)
             FreqTrSwp2 = NaN;
             NrOfAPsTrSwp2 = NaN;
             OnsetTSFAP2 = NaN;
-        end
-
-
-%         % second try for trainsweep
-%        TrainCurr2 = sweep(frstspikeswp).epoch(step).amplitude +150 ;
-%         for p = 1:NrofSweeps
-%             step = find(strcmp({sweep(p).epoch.idxstr}, 'B'));
-%             tmp7(p) = abs(sweep(p).epoch(step).amplitude - TrainCurr2) ;
-%         end
-%         
-%          [TrSwp2 TrSwp2] = min(tmp7) ;
-%         CurrAbvRheo2=NaN;
-%         for TrainSweep2 = TrSwp2:NrofSweeps  
-%             step = find(strcmp({sweep(TrainSweep2).epoch.idxstr}, 'B'));
-%             if TrainSweep2==NrofSweeps
-%                 TrSweepCrit2=0;
-%             elseif CurrAbvRheo2 == NaN
-%                     TrSweepCrit2=0; 
-%             if length(sweep(TrainSweep2).ap) > 1
-%                 TrSweepCrit2=1;
-%                 CurrAbvRheo2 = sweep(TrainSweep2).epoch(step).amplitude - (TrainCurr2-150) ;               
-%                 break
-%             end
-%             end  
-%             end
-%         
-% %        
-% %          if ~isempty(sweep(TrainSweep2).ap)
-% %             for l = 1:length(sweep(TrainSweep2).ap)   
-% %                 HWsTS2=NaN ; 
-% % %                 if ~isempty(sweep(TrainSweep2).ap(l,1).halfwidth)
-% % %                     HWsTS2(l,1) = [sweep(TrainSweep2).ap(l,1).halfwidth] ;  
-% %                 end      
-% %         end
-%         
-% 
-%             TSbasetothresh2 = NaN;
-%             TSpeaktoahp2 = NaN;
-%             AmpsTSthresh2 = NaN;
-%             HWsTS2 = NaN;
-%             AHPsTS2 = NaN;
-%             AHPslowTS2 = NaN;
-%             ISIsTS2 = NaN;
-%             FreqTrSwp2 = NaN;
-%             NrOfAPsTrSwp2 = NaN;
-%             OnsetTSFAP2 = NaN;
-%         if TrSweepCrit2==1
-%             TSbasetothresh2 = ([sweep(TrainSweep2).ap.thresh]-sweep(TrainSweep2).vmbase) ;
-%             TSpeaktoahp2 = ([sweep(TrainSweep2).ap.ahp_time]-[sweep(TrainSweep2).ap.peak_time]); 
-%             AmpsTSthresh2 = [sweep(TrainSweep2).ap.amp] ;
-%             HWsTS2 = [sweep(TrainSweep2).ap.halfwidth] ; 
-%             AHPsTS2 = [sweep(TrainSweep2).ap.relahp] ;
-%             AHPslowTS2 = [sweep(TrainSweep2).ap.relahp_slow] ;
-%             ISIsTS2 = [sweep(TrainSweep2).ap(2:end).isi] ;
-%             FreqTrSwp2 = mean([sweep(TrainSweep2).ap(4:end).freq]) ;
-%             NrOfAPsTrSwp2 = length(sweep(TrainSweep2).ap) ; 
-%             OnsetTSFAP2 = sweep(TrainSweep2).ap(1).thresh_time - (seconds(sum([sweep(TrainSweep2).epoch(1:find(strcmp({sweep(TrainSweep2,1).epoch.idxstr}, 'A'))).timespan]))*1000) ;
-%         else
-%             TSbasetothresh2 = NaN;
-%             TSpeaktoahp2 = NaN;
-%             AmpsTSthresh2 = NaN;
-%             HWsTS2 = NaN;
-%             AHPsTS2 = NaN;
-%             AHPslowTS2 = NaN;
-%             ISIsTS2 = NaN;
-%             FreqTrSwp2 = NaN;
-%             NrOfAPsTrSwp2 = NaN;
-%             OnsetTSFAP2 = NaN;
-%         end
-        
+        end      
         
         % calculate input resistance     
         f_R=fittype('R*x+b');
@@ -372,7 +357,7 @@ for i = 1:length(filelist)
         Sag                = sweep(sagswp,1).epoch(step).sag / PkDeflect(sagswp,1) ;
         Sag2               = sweep(sagswp2,1).epoch(step).sag / PkDeflect(sagswp2,1) ;
         Sag3               = sweep(sagswp3,1).epoch(step).sag / PkDeflect(sagswp3,1) ;
-        SagMedian             = median([Sag Sag2 Sag3]) ; 
+        SagMedian             = nanmedian([Sag Sag2 Sag3]) ; 
         
  
 %  if you want to plot all sag sweeps, get the percentage away form
@@ -403,6 +388,9 @@ for i = 1:length(filelist)
 %             FrqChngStimInt = NaN ;   
 %         end
 
+
+
+
         % bursting & adaptation index
         if TrSweepCrit==1
             isis=ISIsTS; %exclude stuttering ISIs since that can mess with adaptation analysis
@@ -424,6 +412,7 @@ for i = 1:length(filelist)
             ISIRatio1toAll = NaN;
             AdaptIdx = NaN;
         end
+        
         
         % Amplitude accomodation
         if TrSweepCrit==1
@@ -580,112 +569,59 @@ end
         Summary(index).TauM               = nanmean(taus(taus~=0)) ;
         Summary(index).TauSD              = nanstd(taus(taus~=0)) ;
        % Summary(index).curr_FrstAP        = sweep(frstspikeswp).ap(1).currinj ;
-        Summary(index).OnsetFrstAP        = sweep(frstspikeswp).ap(1).thresh_time - (seconds(sum([sweep(frstspikeswp).epoch(1:find(strcmp({sweep(frstspikeswp,1).epoch.idxstr}, 'A'))).timespan]))*1000) ; 
-        Summary(index).ThreshFrstAP       = sweep(frstspikeswp).ap(1).thresh ; 
+        Summary(index).OnsetFAP        = sweep(frstspikeswp).ap(1).thresh_time - (seconds(sum([sweep(frstspikeswp).epoch(1:find(strcmp({sweep(frstspikeswp,1).epoch.idxstr}, 'A'))).timespan]))*1000) ; 
+        Summary(index).ThreshFAP       = sweep(frstspikeswp).ap(1).thresh ; 
         Summary(index).FAPbasetothresh    = sweep(frstspikeswp).ap(1).thresh-sweep(frstspikeswp).vmbase ; 
         Summary(index).AmpFAPthresh       = sweep(frstspikeswp).ap(1).amp ;
+        Summary(index).PeakFrstAP         = sweep(frstspikeswp).ap(1).thresh + sweep(frstspikeswp).ap(1).amp ; 
         Summary(index).FAPpeaktoahp       = sweep(frstspikeswp).ap(1).ahp_time - sweep(frstspikeswp).ap(1).peak_time ;
-        Summary(index).HalfWFrstAP        = sweep(frstspikeswp).ap(1).halfwidth ; 
-        Summary(index).AHPFrstAP          = sweep(frstspikeswp).ap(1).relahp ;
-        Summary(index).AHPslowFrstAP      = sweep(frstspikeswp).ap(1).relahp_slow ;
-        Summary(index).UpStrokeFrstAP       = sweep(frstspikeswp).ap(1).upstroke ;
-        Summary(index).DwnStrokeFrstAP      = sweep(frstspikeswp).ap(1).downstroke ;
-        Summary(index).UpDwnStrkRatio     = abs(sweep(frstspikeswp).ap(1).upstroke) / abs(sweep(frstspikeswp).ap(1).downstroke) ;
-        Summary(index).MaxUpStrkFrstAP       = sweep(frstspikeswp).ap(1).maxdvdt ;
-        Summary(index).MaxDwnStrkFrstAP      = sweep(frstspikeswp).ap(1).mindvdt ;
-        Summary(index).TrSweepCrit        = TrSweepCrit ; 
-        Summary(index).OnsetTSFAP         = OnsetTSFAP ;  
-        Summary(index).TSbasetothreshM    = mean(TSbasetothresh) ; 
-        Summary(index).TSbasetothreshSD   = std(TSbasetothresh) ; 
-        Summary(index).AmpTSthreshM       = mean(AmpsTSthresh) ; 
-        Summary(index).AmpTSthreshSD      = std(AmpsTSthresh) ; 
-        Summary(index).TSpeaktoahpM       = nanmean(TSpeaktoahp(TSpeaktoahp~=0)) ; 
-        Summary(index).TSpeaktoahpSD      = nanstd(TSpeaktoahp(TSpeaktoahp~=0)) ; 
-        Summary(index).HalfWTrSwpM        = nanmean(HWsTS(HWsTS~=0)) ; 
-        Summary(index).HalfWTrSwpSD       = nanstd(HWsTS(HWsTS~=0)) ; 
-        Summary(index).AHPTrSwpM          = nanmean(AHPsTS(AHPsTS~=0)) ; 
-        Summary(index).AHPTrSwpSD         = nanstd(AHPsTS(AHPsTS~=0)) ;
-        Summary(index).AHPslowTrSwpM      = nanmean(AHPslowTS(AHPslowTS~=0)) ; 
-        Summary(index).AHPslowTrSwpSD     = nanstd(AHPslowTS(AHPslowTS~=0)) ;        
-        Summary(index).ISITrSwpM          = mean(ISIsTS(ISIsTS~=0)) ;
-        Summary(index).ISITrSwpSD         = std(ISIsTS(ISIsTS~=0)) ;
-        Summary(index).ISITrSwpCV         = (std(ISIsTS(ISIsTS~=0)) / mean(ISIsTS(ISIsTS~=0))) ; %coefficient of variation
+        Summary(index).HalfWFAP        = sweep(frstspikeswp).ap(1).halfwidth ; 
+        Summary(index).AHPFAP          = sweep(frstspikeswp).ap(1).relahp ;
+        Summary(index).AHPslowFAP      = sweep(frstspikeswp).ap(1).relahp_slow ;
+        Summary(index).UpStrokeFAP       = sweep(frstspikeswp).ap(1).upstroke ;
+        Summary(index).DwnStrokeFAP      = sweep(frstspikeswp).ap(1).downstroke ;
+        Summary(index).UpDwnStrkRatioFAP     = abs(sweep(frstspikeswp).ap(1).upstroke) / abs(sweep(frstspikeswp).ap(1).downstroke) ;
+        Summary(index).MaxUpStrkFAP       = sweep(frstspikeswp).ap(1).maxdvdt ;
+        Summary(index).MaxDwnStrkFAP      = sweep(frstspikeswp).ap(1).mindvdt ;
+        Summary(index).OnsetTSAP        = sweep(TrainSweep).ap(1).thresh_time - (seconds(sum([sweep(TrainSweep).epoch(1:find(strcmp({sweep(TrainSweep,1).epoch.idxstr}, 'A'))).timespan]))*1000) ; 
+        Summary(index).ThreshTSAP       = sweep(TrainSweep).ap(1).thresh ; 
+        Summary(index).TSAPbasetothresh    = sweep(TrainSweep).ap(1).thresh-sweep(TrainSweep).vmbase ; 
+        Summary(index).AmpTSAPthresh       = sweep(TrainSweep).ap(1).amp ;
+        Summary(index).HalfWTSAP        = sweep(TrainSweep).ap(1).halfwidth ; 
+        Summary(index).AHPTSAP          = nanmean(sweep(TrainSweep).ap(1).relahp) ;
+        Summary(index).AHPslowTSAP      = nanmean(sweep(TrainSweep).ap(1).relahp_slow) ;
+        Summary(index).UpStrokeTSAP       = sweep(TrainSweep).ap(1).upstroke ;
+        Summary(index).DwnStrokeTSAP      = sweep(TrainSweep).ap(1).downstroke ;
+        Summary(index).UpDwnStrkRatioTSAP     = abs(sweep(TrainSweep).ap(1).upstroke) / abs(sweep(TrainSweep).ap(1).downstroke) ;
+        Summary(index).MaxUpStrkTSAP       = sweep(TrainSweep).ap(1).maxdvdt ;
+        Summary(index).MaxDwnStrkTSAP      = sweep(TrainSweep).ap(1).mindvdt ;
+        Summary(index).OnsetTSAP2        = sweep(TrainSweep2).ap(1).thresh_time - (seconds(sum([sweep(TrainSweep2).epoch(1:find(strcmp({sweep(TrainSweep2,1).epoch.idxstr}, 'A'))).timespan]))*1000) ; 
+        Summary(index).ThreshTSAP2       = sweep(TrainSweep2).ap(1).thresh ; 
+        Summary(index).TSAP2basetothresh    = sweep(TrainSweep2).ap(1).thresh-sweep(TrainSweep2).vmbase ; 
+        Summary(index).AmpTSAP2thresh       = sweep(TrainSweep2).ap(1).amp ;
+        Summary(index).TSAP2peaktoahp       = sweep(TrainSweep2).ap(1).ahp_time - sweep(TrainSweep2).ap(1).peak_time ;
+        Summary(index).HalfWTSAP2        = sweep(TrainSweep2).ap(1).halfwidth ; 
+        Summary(index).AHPTSAP2          = sweep(TrainSweep2).ap(1).relahp ;
+        Summary(index).AHPslowTSAP2      = sweep(TrainSweep2).ap(1).relahp_slow ;
+        Summary(index).UpStrokeTSAP2       = sweep(TrainSweep2).ap(1).upstroke ;
+        Summary(index).DwnStrokeTSAP2      = sweep(TrainSweep2).ap(1).downstroke ;
+        Summary(index).UpDwnStrkRatioTSAP2     = abs(sweep(TrainSweep2).ap(1).upstroke) / abs(sweep(TrainSweep2).ap(1).downstroke) ;
+        Summary(index).MaxUpStrkTSAP2       = sweep(TrainSweep2).ap(1).maxdvdt ;
+        Summary(index).MaxDwnStrkTSAP2      = sweep(TrainSweep2).ap(1).mindvdt ;
         Summary(index).AdaptIndexTS       = AdaptIdx ;
         Summary(index).AmpAccomTS         = AmpAccom ;
         Summary(index).HWAccomTS          = HWAccom ;
         Summary(index).ISIRatio1toAll     = ISIRatio1toAll ;
-         Summary(index).TrSweepCrit2        = TrSweepCrit2 ; 
-        Summary(index).OnsetTSFAP2         = OnsetTSFAP2 ;  
-        Summary(index).TSbasetothreshM2    = mean(TSbasetothresh2) ; 
-        Summary(index).TSbasetothreshSD2   = std(TSbasetothresh2) ; 
-        Summary(index).AmpTSthreshM2       = mean(AmpsTSthresh2) ; 
-        Summary(index).AmpTSthreshSD2     = std(AmpsTSthresh2) ; 
-        Summary(index).TSpeaktoahpM2      = nanmean(TSpeaktoahp2(TSpeaktoahp2~=0)) ; 
-        Summary(index).TSpeaktoahpSD2      = nanstd(TSpeaktoahp2(TSpeaktoahp2~=0)) ; 
-        Summary(index).HalfWTrSwpM2        = nanmean(HWsTS2(HWsTS2~=0)) ; 
-        Summary(index).HalfWTrSwpSD2       = nanstd(HWsTS2(HWsTS2~=0)) ; 
-        Summary(index).AHPTrSwpM2          = nanmean(AHPsTS2(AHPsTS2~=0)) ; 
-        Summary(index).AHPTrSwpSD2         = nanstd(AHPsTS2(AHPsTS2~=0)) ;
-        Summary(index).AHPslowTrSwpM2      = nanmean(AHPslowTS2(AHPslowTS2~=0)) ; 
-        Summary(index).AHPslowTrSwpSD2     = nanstd(AHPslowTS2(AHPslowTS2~=0)) 
-        Summary(index).threshFB0     = nanmean(aps2.thresh(aps2.freqbin==0)) ;
-        Summary(index).threshFB1     = nanmean(aps2.thresh(aps2.freqbin==1)) ;
-        Summary(index).threshFB2     = nanmean(aps2.thresh(aps2.freqbin==2)) ;
-        Summary(index).threshFB3     = nanmean(aps2.thresh(aps2.freqbin==3)) ;
-        Summary(index).threshFB4     = nanmean(aps2.thresh(aps2.freqbin==4)) ;
-        Summary(index).threshFB5     = nanmean(aps2.thresh(aps2.freqbin==5)) ;    
-        Summary(index).HalfWFB0     = nanmean(aps2.halfwidth(aps2.freqbin==0)) ;
-        Summary(index).HalfWFB1     = nanmean(aps2.halfwidth(aps2.freqbin==1)) ;
-        Summary(index).HalfWFB2     = nanmean(aps2.halfwidth(aps2.freqbin==2)) ;
-        Summary(index).HalfWFB3     = nanmean(aps2.halfwidth(aps2.freqbin==3)) ;
-        Summary(index).HalfWFB4     = nanmean(aps2.halfwidth(aps2.freqbin==4)) ;
-        Summary(index).HalfWFB5     = nanmean(aps2.halfwidth(aps2.freqbin==5)) ;
-        Summary(index).upstrokeFB0     = nanmean(aps2.maxdvdt(aps2.freqbin==0)) ;
-        Summary(index).upstrokeFB1     = nanmean(aps2.maxdvdt(aps2.freqbin==1)) ;
-        Summary(index).upstrokeFB2     = nanmean(aps2.maxdvdt(aps2.freqbin==2)) ;
-        Summary(index).upstrokeFB3     = nanmean(aps2.maxdvdt(aps2.freqbin==3)) ;
-        Summary(index).upstrokeFB4     = nanmean(aps2.maxdvdt(aps2.freqbin==4)) ;
-        Summary(index).upstrokeFB5     = nanmean(aps2.maxdvdt(aps2.freqbin==5)) ;      
-        Summary(index).downstrokeFB0     = nanmean(aps2.mindvdt(aps2.freqbin==0)) ;
-        Summary(index).downstrokeFB1     = nanmean(aps2.mindvdt(aps2.freqbin==1)) ;
-        Summary(index).downstrokeFB2     = nanmean(aps2.mindvdt(aps2.freqbin==2)) ;
-        Summary(index).downstrokeFB3     = nanmean(aps2.mindvdt(aps2.freqbin==3)) ;
-        Summary(index).downstrokeFB4     = nanmean(aps2.mindvdt(aps2.freqbin==4)) ;
-        Summary(index).downstrokeFB5     = nanmean(aps2.mindvdt(aps2.freqbin==5)) ; 
-        Summary(index).onsetrapFB0     = nanmean(aps2.onsetrapidity(aps2.freqbin==0)) ;
-        Summary(index).onsetrapFB1     = nanmean(aps2.onsetrapidity(aps2.freqbin==1)) ;
-        Summary(index).onsetrapFB2     = nanmean(aps2.onsetrapidity(aps2.freqbin==2)) ;
-        Summary(index).onsetrapFB3     = nanmean(aps2.onsetrapidity(aps2.freqbin==3)) ;
-        Summary(index).onsetrapFB4     = nanmean(aps2.onsetrapidity(aps2.freqbin==4)) ;
-        Summary(index).onsetrapFB5     = nanmean(aps2.onsetrapidity(aps2.freqbin==5)) ;  
-        Summary(index).ampFB0     = nanmean(aps2.amp(aps2.freqbin==0)) ;
-        Summary(index).ampFB1     = nanmean(aps2.amp(aps2.freqbin==1)) ;
-        Summary(index).ampFB2     = nanmean(aps2.amp(aps2.freqbin==2)) ;
-        Summary(index).ampFB3     = nanmean(aps2.amp(aps2.freqbin==3)) ;
-        Summary(index).ampFB4     = nanmean(aps2.amp(aps2.freqbin==4)) ;
-        Summary(index).ampFB5     = nanmean(aps2.amp(aps2.freqbin==5)) ;  
-        Summary(index).ahpFB0     = nanmean(aps2.relahp(aps2.freqbin==0)) ;
-        Summary(index).ahpFB1     = nanmean(aps2.relahp(aps2.freqbin==1)) ;
-        Summary(index).ahpFB2     = nanmean(aps2.relahp(aps2.freqbin==2)) ;
-        Summary(index).ahpFB3     = nanmean(aps2.relahp(aps2.freqbin==3)) ;
-        Summary(index).ahpFB4     = nanmean(aps2.relahp(aps2.freqbin==4)) ;
-        Summary(index).ahpFB5     = nanmean(aps2.relahp(aps2.freqbin==5)) ; 
-        Summary(index).updwnratioFB0     = nanmean(aps2.updownratio(aps2.freqbin==0)) ;
-        Summary(index).updwnratioFB1     = nanmean(aps2.updownratio(aps2.freqbin==1)) ;
-        Summary(index).updwnratioFB2     = nanmean(aps2.updownratio(aps2.freqbin==2)) ;
-        Summary(index).updwnratioFB3     = nanmean(aps2.updownratio(aps2.freqbin==3)) ;
-        Summary(index).updwnratioFB4     = nanmean(aps2.updownratio(aps2.freqbin==4)) ;
-        Summary(index).updwnratioFB5     = nanmean(aps2.updownratio(aps2.freqbin==5)) ;
         Summary(index).amp1to20  = nanmean(aps2.amp(aps2.freqbin>=1 & aps2.freqbin<=2)) ; 
-        Summary(index).upstroke1to20  = nanmean(aps2.maxdvdt(aps2.freqbin>=1 & aps2.freqbin<=2)) ;    
-        Summary(index).downstroke1to20  = nanmean(aps2.mindvdt(aps2.freqbin>=1 & aps2.freqbin<=2)) ;    
+        Summary(index).upstroke1to20  = nanmean(aps2.upstroke(aps2.freqbin>=1 & aps2.freqbin<=2)) ;    
+        Summary(index).downstroke1to20  = nanmean(aps2.downstroke(aps2.freqbin>=1 & aps2.freqbin<=2)) ;    
         Summary(index).HalfW1to20  = nanmean(aps2.halfwidth(aps2.freqbin>=1 & aps2.freqbin<=2)) ;    
         Summary(index).thresh1to20  = nanmean(aps2.thresh(aps2.freqbin>=1 & aps2.freqbin<=2)) ; 
         Summary(index).onsetrap1to20  = nanmean(aps2.onsetrapidity(aps2.freqbin>=1 & aps2.freqbin<=2)) ;
         Summary(index).updwnratio1to20  = nanmean(aps2.updownratio(aps2.freqbin>=1 & aps2.freqbin<=2)) ;   
         Summary(index).amp21to40  = nanmean(aps2.amp(aps2.freqbin>=3 & aps2.freqbin<=4)) ; 
-        Summary(index).upstroke21to40  = nanmean(aps2.maxdvdt(aps2.freqbin>=3 & aps2.freqbin<=4)) ;    
-        Summary(index).downstroke21to40  = nanmean(aps2.mindvdt(aps2.freqbin>=3 & aps2.freqbin<=4)) ;    
+        Summary(index).upstroke21to40  = nanmean(aps2.upstroke(aps2.freqbin>=3 & aps2.freqbin<=4)) ;    
+        Summary(index).downstroke21to40  = nanmean(aps2.downstroke(aps2.freqbin>=3 & aps2.freqbin<=4)) ;    
         Summary(index).HalfW21to40  = nanmean(aps2.halfwidth(aps2.freqbin>=3 & aps2.freqbin<=4)) ;    
         Summary(index).thresh21to40  = nanmean(aps2.thresh(aps2.freqbin>=3 & aps2.freqbin<=4)) ; 
         Summary(index).onsetrap21to40  = nanmean(aps2.onsetrapidity(aps2.freqbin>=3 & aps2.freqbin<=4)) ;

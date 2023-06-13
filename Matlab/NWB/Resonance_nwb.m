@@ -1,6 +1,6 @@
 %% Resonance analysis  single files (raw nwb files)
 
-fn= '/Users/elinemertens/Data/Projects/NEW_Hippocampus_2022_07/Data/mouse/M23.29.45994.21.61.02.nwb';
+fn= '/Users/elinemertens/Downloads/H21.29.198.21.01.04.nwb';
 
 nwb = NWBfile(fn,[{'CHIRP'}]);
 
@@ -11,7 +11,7 @@ nwb = NWBfile(fn,[{'CHIRP'}]);
 % even de losse sweeps bekijken en dan de juiste sweeps selecteren
 % signal = nwb.getstimset.getnwbchannel.getsweep(1:3).avtrace
 % or signal = nwb.getstimset.getnwbchannel.getsweep([1:4 6:7]).avtrace;
- signal = nwb.getstimset.getnwbchannel.getsweep([2 3 5 10]);
+ signal = nwb.getstimset.getnwbchannel.getsweep([1:3]);
  
  plot(signal) ; 
  
@@ -19,19 +19,21 @@ nwb = NWBfile(fn,[{'CHIRP'}]);
  
 
 %%
-signal = nwb.getstimset.getnwbchannel.getsweep([2 3 5 10]).avtrace;
+signal = nwb.getstimset.getnwbchannel.getsweep([1:3]).avtrace;
 
 plot(signal)
 %%
 %check if you take correct stimwave(#) (after wash in this is diff)
-stim = nwb.getstimset.getnwbchannel.getstimwave(4).Data ;
+stim = nwb.getstimset.getnwbchannel.getstimwave(2).Data ;
 signal = signal.low_pass_filter(1000);
 % if the first sweep is bad or incomplete, take getstimwave(2)
 signal=signal.resample(0:0.1:signal.TimeInfo.End).Data;
 %signal = lowpass(signal,1000,10000);
-% time = nwb.getstimset.getnwbchannel.getsweep(2) ;
-% time = time.low_pass_filter(1000) ; 
-% time=time.resample(0:0.1:time.TimeInfo.End).Time;
+%%
+Time = nwb.getstimset.getnwbchannel.getstimwave(2).Time ; 
+ %time = nwb.getstimset.getnwbchannel.getsweep(2) ;
+%  time = time.low_pass_filter(1000) ; 
+%  time=time.resample(0:0.1:time.TimeInfo.End).Time;
 
     %%
     Fs = 10000;           % Sampling frequency

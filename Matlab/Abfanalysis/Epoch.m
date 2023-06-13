@@ -108,6 +108,7 @@ classdef Epoch < Sharedmethods & Trace
             obj.datetimestart= epochtab.datetimestart;
             obj.datetimeend  = epochtab.datetimeend;
             obj.samplefreq   = epochtab.samplefreq;
+ 
             
             % epoch specification
             obj.type         = epochtab.type;  
@@ -118,6 +119,9 @@ classdef Epoch < Sharedmethods & Trace
             obj.pulseperiod  = epochtab.pulseperiod;   %RWS
             obj.jitter       = nanstd(obj.Data); %DBH
             obj.meansignal   = nanmean(obj.Data); %DBH
+obj.vstep = epochtab.scalefactor * 20 ; %EJM
+%obj.stepsize = 
+ 
             if nargin == 2, obj.initlevel = initlevel; end
             
             if ~isempty(obj.typestr)
@@ -224,14 +228,18 @@ classdef Epoch < Sharedmethods & Trace
             if nargin == 2, prev_steadystate = []; prev_amp = []; end
             
             % analyse action potentials
-            if apsaswell == 1,
+            if apsaswell == 1
                 obj = obj.analyseaps; 
             end
 
             %211116 removed this part due to errors with analyzing abf 
-            if ~isempty(prev_amp)
-                obj.stepdiff = obj.amplitude - prev_amp ;
-            end
+             if ~isempty(prev_amp)
+                 obj.stepdiff = obj.amplitude - prev_amp ;
+%obj.stepdiff = 20 * obj.abf.channel.out.scalefactor ;  
+% else 
+% obj.stefdiff = obj.abf.channel.out.scalefactor *  obj.amplitude ;
+
+             end
             
             % analyse passive properties
             if obj.nrofaps == 0 
