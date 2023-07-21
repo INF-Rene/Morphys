@@ -112,7 +112,9 @@ classdef Sweep < Sharedmethods & Trace
                 epochtable.firstlevel=epochtable.firstlevel.*scalefactor;
             end
             
-            obj.nrinset=obj.nrinset(end);
+            %obj.nrinset=obj.nrinset(end); this was in the new version the
+            %case but the old one has (1)
+            obj.nrinset=obj.nrinset(1);
             if any(any(epochtable.deltas(:,:)))>0
                 epochtable.duration=epochtable.duration+epochtable.deltas(:,1).*(obj.nrinset-1);
                 epochtable.firstlevel=epochtable.firstlevel+epochtable.deltas(:,2).*(obj.nrinset-1);
@@ -140,9 +142,17 @@ classdef Sweep < Sharedmethods & Trace
                     
                     %get stim data to read input current for "step" epoch;
                     %hotfix for EM data
+                    % on 28062023 i commented this again since the read was
+                    % not good 
 %                     if strcmp(epochtab.idxstr, 'B')
 %                         stimdata=h5read(fn, [obj.stimdataloc '/data'], double(epochtab.strttime*1e-3*obj.samplefreq),double(epochtab.duration*1e-3*obj.samplefreq));
 %                         epochtab.firstlevel = nanmedian(stimdata);
+%                         %epochtab.deltalevel = epochtab.deltalevel * scalefactor ;
+%                     end
+
+                    
+%                     if strcmp(epochtab.deltalevel, '20')
+%                         epochtab.deltalevel = epochtab.deltalevel * scalefactor ; 
 %                     end
 
                     %add the epoch to the sweep
@@ -260,7 +270,9 @@ classdef Sweep < Sharedmethods & Trace
                 prev_steadystate = [];
                 prev_amp = [];
                 for ii=1:obj(i).nrofepochs
-                    if ii>1, prev_steadystate = obj(i).getepoch(ii-1).steadystate; prev_amp = obj(i).getepoch(ii-1).amplitude; end % collect previous baseline
+                    if ii>1, prev_steadystate = obj(i).getepoch(ii-1).steadystate; 
+                        prev_amp = obj(i).getepoch(ii-1).amplitude; 
+                    end % collect previous baseline
                     obj(i).epochs(ii) = obj(i).getepoch(ii).analyseepoch(apsaswell,prev_steadystate,prev_amp);
                 end
             end
@@ -373,7 +385,7 @@ classdef Sweep < Sharedmethods & Trace
                         'pulseperiod',  0;
                         'pulsewidth',   0;
                         'maxfrequency', 0;
-                        'deltascaled',  0; % let op, kijk dit na
+                        %'deltascaled',  0; % let op, kijk dit na
                         };
             template = struct2table(cell2struct(template(:,2),template(:,1)));
 
@@ -396,6 +408,9 @@ classdef Sweep < Sharedmethods & Trace
                 t.number   = max(swptab.number)+1;
                 swptab = [swptab;t]; % append
             end
+            
+            % attempt fixing delta problems
+          %  t.deltascaled = 20 * obj.getabf.getchannel.getout.getscalefactor  ;            
 
             epochdatetimestart = obj.datetimestart;
             for i = 1:height(swptab)               

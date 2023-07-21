@@ -3,7 +3,7 @@
 close all, clear all
 
 %% Set path to load and save data; mat data load 
-basedir = '/Users/elinemertens/Data/ephys/Analyzed/235' ;
+basedir = '/Users/elinemertens/Data/ephys/Analyzed/245_2' ;
 savedir = '/Users/elinemertens/Data/ephys/Hippocampus/2022_Summary';
 savename = 'Summary_198' ;  
 
@@ -304,7 +304,7 @@ for i = 1:length(filelist)
 %         tmp = abs(MinVmResponse+100) ;
 %         tmp = tmp(~isnan(tmp));
 %         [sagswp sagswp] = min(tmp)  ;
-  sagsweepname = sweep(sagswp).Name ;
+%  sagsweepname = sweep(sagswp).Name ;
  
   tmp = abs(MinVmResponse+100) ;
         [sagswp sagswp] = min(tmp) ;
@@ -321,20 +321,20 @@ for i = 1:length(filelist)
  
 %  if you want to plot all sag sweeps, get the percentage away form
 %  obj.getstimset and run this part via index 
-figure(3)
- for j = 1:length(obj.stimsets)
-            if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},sagsweepname))
-                %%figure(); obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).plot
-                obj.getstimset(j).getnwbchannel.getsweep('Name',sagsweepname).plot;
-                legend(filelist)
-                xlim([0 1800])
-                title('Sag')
-                grid off
-                 set(gca, 'TickDir', 'out')
-                 ylabel('mV')
-              xlabel('ms')
-            end
-        end
+% figure(3)
+%  for j = 1:length(obj.stimsets)
+%             if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},sagsweepname))
+%                 %%figure(); obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).plot
+%                 obj.getstimset(j).getnwbchannel.getsweep('Name',sagsweepname).plot;
+%                 legend(filelist)
+%                 xlim([0 1800])
+%                 title('Sag')
+%                 grid off
+%                  set(gca, 'TickDir', 'out')
+%                  ylabel('mV')
+%               xlabel('ms')
+%             end
+%         end
 
         % calculate input frequency curve
        % this caused problems after fixing the input resistance 
@@ -632,7 +632,7 @@ clearvars -except Summary i
 %%
 
 Summary_T = struct2table(Summary) ; 
-writetable(Summary_T, 'summary_h235_test.xlsx');
+writetable(Summary_T, 'summary_h244_anna_eline.xlsx');
 
 
 

@@ -167,7 +167,7 @@ classdef Trace < timeseries
                 dvdt   = obj(i).getdvdt(n);
                 obj(i) = obj(i).delsample('Index',obj(i).Length-(n-1):obj(i).Length); % shorten timeseries
                 obj(i).Data = dvdt;
-                % fix units.
+                fix units.
                 if strcmp(obj(i).DataInfo.Units,'mV') && n==1
                     obj(i).DataInfo.Units = 'mV/ms';
                 else
@@ -177,10 +177,10 @@ classdef Trace < timeseries
         end
         
         function obj = getsampleusingtime(obj,varargin)
-           % get section of sweep using time. Overload of TIMERSERIES' GETSAMPLEUSINGTIME method to operate on non-scalar
-          %  timeseries objects. 
+           get section of sweep using time. Overload of TIMERSERIES' GETSAMPLEUSINGTIME method to operate on non-scalar
+           timeseries objects. 
             
-         %   See also: TIMERSERIES, GETSAMPLEUSINGTIME
+           See also: TIMERSERIES, GETSAMPLEUSINGTIME
             for i=1:numel(obj) 
                 obj(i) = getsampleusingtime@timeseries(obj(i),varargin{:}); 
             end
@@ -215,11 +215,11 @@ classdef Trace < timeseries
         end
         
         function obj = medianfilter(obj,filtwin,varargin)
-            % apply a one dimensional median filter on timeseries data.
-            % This function acts as a running median filter, using a window of size filtwin (milliseconds). The varargin 
-            % optional input can be used to access other features of the medfilt1 function. 
-            %
-            % See also MEDFILT1, GETDATA, TIMESERIES.
+%             apply a one dimensional median filter on timeseries data.
+%             This function acts as a running median filter, using a window of size filtwin (milliseconds). The varargin 
+%             optional input can be used to access other features of the medfilt1 function. 
+%             
+         %   See also MEDFILT1, GETDATA, TIMESERIES.
             for i = 1:numel(obj)
                 if nargin == 1, obj(i) = obj(i).set('Data',medfilt1(obj.getdata));
                 else
@@ -471,8 +471,8 @@ classdef Trace < timeseries
                     cnt=cnt+1;
                 end
             end
-            if cnt>0, 
-                %fprintf('%d out of %d action potentials: no slow AHP.\n',cnt,obj.nrofaps); 
+            if cnt>0
+                fprintf('%d out of %d action potentials: no slow AHP.\n',cnt,obj.nrofaps); 
             end
         end
  
@@ -494,15 +494,15 @@ classdef Trace < timeseries
                 ahpwinstrt = find(isi.Data(1:end-snakelen+1)<isi.Data(snakelen:end),1);             % find start of ahp window
                 ahpwinend  = ahpwinstrt + snakelen;                                                 % get end window
                 if ~isempty(ahpwinstrt)
-                    ahpidx = find(isi.Data==min(isi.Data((ahpwinstrt-1:ahpwinend-1))),1);             % find index of minimum
-                    if isi.Time(ahpidx)-obj.getap(i).peak_time<5
-                    obj    = obj.updateap(i,'ahp',isi.Data(ahpidx),'ahp_time',isi.Time(ahpidx));    % update AP (only if AHP is fast enough)
-                    else
+%                    ahpidx = find(isi.Data==min(isi.Data((ahpwinstrt-1:ahpwinend-1))),1);             % find index of minimum
+%                     if isi.Time(ahpidx)-obj.getap(i).peak_time<5
+%                     obj    = obj.updateap(i,'ahp',isi.Data(ahpidx),'ahp_time',isi.Time(ahpidx));    % update AP (only if AHP is fast enough)
+%                     else
                         cnt=cnt+1;
                    end
-                else
-                   cnt=cnt+1;
-                end
+                %else
+                 %  cnt=cnt+1;
+                %end
             end
             if cnt>0
                 fprintf('%d out of %d action potentials: no fast AHP.\n',cnt,obj.nrofaps); 

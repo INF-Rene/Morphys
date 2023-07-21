@@ -3,15 +3,15 @@
 %summary_patientnummer_regionletter
 %Summary_177_F for example 
 
-basedir = '/Users/elinemertens/Data/ephys/abf/Human/2023/matlab/good' ;
+basedir = '/Users/elinemertens/Data/ephys/abf/Human/2023 summary' ;
 fileinfo  = dir(fullfile(basedir,'*.mat'));
 filelist  = {fileinfo.name};
 
 for i = 1:length(filelist)
     load(fullfile(basedir,filelist{i})) ;
     for j = 1:length(Summary)
-        Summary(j).subject_ID = ['H0' filelist{i}(9:11)] ;
-        Summary(j).patcher = filelist{i}(13) ;
+        Summary(j).subject_ID = ['H0' filelist{i}(9:end)] ;
+        %Summary(j).patcher = filelist{i}(13) ;
     end
     temp = struct2table(Summary) ;
     

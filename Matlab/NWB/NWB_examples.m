@@ -13,12 +13,12 @@ for i = 1:numel(list.name)
  nwb = NWBfile(fn,[{'LP'} {'hresh'} {'Steps'} {'CC'} {'LSFINEST'} {'LSCOARSE'}]);
  obj =nwb.analyseNWB ;
  obj.savename = sprintf('NWB_%s.mat',obj.filename(1:end-4));
- saveme(obj,'/Users/elinemertens/Data/ephys/Analyzed/242 new', obj.savename) 
+ saveme(obj,'/Users/elinemertens/Data/ephys/Analyzed/245_2', obj.savename) 
 end
 
     
     %%
-fn= '/Users/elinemertens/Data/Projects/NEW_Hippocampus_2022_07/Data/mouse/resonance/M23.29.45995.21.01.01.nwb'
+fn= '/Users/elinemertens/Downloads/H23.29.245.21.01.01.nwb'
 
 %% let op of je wel of geen chirp wilt 
 nwb = NWBfile(fn,[{'LP'} {'hresh'} {'CC'} {'teps'} {'LSFINEST'} {'LSCOARSE'}]);

@@ -1,6 +1,6 @@
 %% Resonance analysis  single files (raw nwb files)
 
-fn= '/Users/elinemertens/Downloads/H21.29.198.21.01.04.nwb';
+fn= '/Users/elinemertens/Downloads/H23.29.245.21.11.01.nwb';
 
 nwb = NWBfile(fn,[{'CHIRP'}]);
 
@@ -11,7 +11,7 @@ nwb = NWBfile(fn,[{'CHIRP'}]);
 % even de losse sweeps bekijken en dan de juiste sweeps selecteren
 % signal = nwb.getstimset.getnwbchannel.getsweep(1:3).avtrace
 % or signal = nwb.getstimset.getnwbchannel.getsweep([1:4 6:7]).avtrace;
- signal = nwb.getstimset.getnwbchannel.getsweep([1:3]);
+ signal = nwb.getstimset.getnwbchannel.getsweep([1:7]);
  
  plot(signal) ; 
  
@@ -19,7 +19,7 @@ nwb = NWBfile(fn,[{'CHIRP'}]);
  
 
 %%
-signal = nwb.getstimset.getnwbchannel.getsweep([1:3]).avtrace;
+signal = nwb.getstimset.getnwbchannel.getsweep([2:3 5:7]).avtrace;
 
 plot(signal)
 %%
@@ -29,7 +29,7 @@ signal = signal.low_pass_filter(1000);
 % if the first sweep is bad or incomplete, take getstimwave(2)
 signal=signal.resample(0:0.1:signal.TimeInfo.End).Data;
 %signal = lowpass(signal,1000,10000);
-%%
+%%%
 Time = nwb.getstimset.getnwbchannel.getstimwave(2).Time ; 
  %time = nwb.getstimset.getnwbchannel.getsweep(2) ;
 %  time = time.low_pass_filter(1000) ; 
@@ -39,13 +39,12 @@ Time = nwb.getstimset.getnwbchannel.getstimwave(2).Time ;
     Fs = 10000;           % Sampling frequency
     L = length(signal);      % Signal length
     f = (0:L-1)*Fs/L;
-   
      
     plot(signal)
     grid off
 set(gca, 'TickDir', 'out')
    % ylim([-80 -60]);
-xlim([5 220000]);
+%xlim([5 220000]);
     ylabel('Voltage (mV)','FontSize',12)
    xlabel('Time (sec)', 'FontSize',12)
    

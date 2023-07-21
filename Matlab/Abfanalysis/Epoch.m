@@ -73,7 +73,8 @@ classdef Epoch < Sharedmethods & Trace
         sswin           = nan; 
         sag             = nan; 
         rinput          = nan;   % input resisitance, in MOhm.
-        vstep           = nan;   % voltage at max deflection
+        vstep           = nan;% voltage at max deflection
+
     end
     
 %####################################################### METHODS ############################################################
@@ -112,6 +113,11 @@ classdef Epoch < Sharedmethods & Trace
             
             % epoch specification
             obj.type         = epochtab.type;  
+%                  if strcmp(obj.idxstr, 'B')
+%                         obj.typestr =  'step' ; 
+%                  else
+%                      obj.typestr = 'nonstep' ;
+%                 end
             obj.typestr      = epochtab.typestr;
             obj.amplitude    = epochtab.firstlevel;
             obj.maxfrequency = epochtab.maxfrequency;
@@ -119,7 +125,7 @@ classdef Epoch < Sharedmethods & Trace
             obj.pulseperiod  = epochtab.pulseperiod;   %RWS
             obj.jitter       = nanstd(obj.Data); %DBH
             obj.meansignal   = nanmean(obj.Data); %DBH
-obj.vstep = epochtab.scalefactor * 20 ; %EJM
+%obj.vstep = epochtab.scalefactor * 20 ; %EJM
 %obj.stepsize = 
  
             if nargin == 2, obj.initlevel = initlevel; end
@@ -233,14 +239,21 @@ obj.vstep = epochtab.scalefactor * 20 ; %EJM
             end
 
             %211116 removed this part due to errors with analyzing abf 
-             if ~isempty(prev_amp)
-                 obj.stepdiff = obj.amplitude - prev_amp ;
-%obj.stepdiff = 20 * obj.abf.channel.out.scalefactor ;  
-% else 
-% obj.stefdiff = obj.abf.channel.out.scalefactor *  obj.amplitude ;
-
-             end
+%             if ~isempty(prev_amp)
+%                  obj.stepdiff = obj.amplitude - prev_amp ;  
+                   %obj.stepdiff = obj.amplitude -   ;
+% %obj.stepdiff = 20 * obj.abf.channel.out.scalefactor ;  
+% % else 
+% % obj.stefdiff = obj.abf.channel.out.scalefactor *  obj.amplitude ;
+% 
+%              end
             
+
+%211116 removed this part due to errors with analyzing abf 
+            if ~isempty(prev_amp)
+                  obj.stepdiff = obj.amplitude - prev_amp ;  
+              end
+
             % analyse passive properties
             if obj.nrofaps == 0 
                 [obj.steadystate, obj.sswin] = obj.getsteadystate;

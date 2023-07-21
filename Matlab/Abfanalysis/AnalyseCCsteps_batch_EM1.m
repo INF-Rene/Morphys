@@ -125,16 +125,16 @@ for i = 1:bb.nrofabfs
  end
   
  
- Nrofabfs = length(abf) ;
-        for l = 1:Nrofabfs
-            scalefactor = abf(l).channel.out.scalefactor ;
-            %currentstep = scalefactor * 20 ; 
-          % abftemp =  abf(l).channel.in(1).sweep ;
-           firstlevel = abf(l).channel.in(1).sweep(1).epoch(2).amplitude ;
-           for k = 2:NrofSweeps
-               abf(l).channel.in(1).sweep(k).epoch(2).amplitude = firstlevel + ((k-1)*(scalefactor*20));
-           end
-        end
+%  Nrofabfs = length(abf) ;
+%         for l = 1:Nrofabfs
+%             scalefactor = abf(l).channel.out.scalefactor ;
+%             %currentstep = scalefactor * 20 ; 
+%           % abftemp =  abf(l).channel.in(1).sweep ;
+%            firstlevel = abf(l).channel.in(1).sweep(1).epoch(2).amplitude ;
+%            for k = 2:NrofSweeps
+%                abf(l).channel.in(1).sweep(k).epoch(2).amplitude = firstlevel + ((k-1)*(scalefactor*20));
+%            end
+%         end
          % abf(l).channel.in(1).sweep(k).epoch.amplitude =  firstlevel + (scalefactor * 20);
             
             
@@ -561,9 +561,9 @@ for i = 1:bb.nrofabfs
         Summary(index).HalfWFrstAP        = sweep(frstspikeswp).ap(1).halfwidth ; 
         Summary(index).AHPFrstAP          = sweep(frstspikeswp).ap(1).relahp ;
         Summary(index).AHPslowFrstAP      = sweep(frstspikeswp).ap(1).relahp_slow ;
-        Summary(index).UpStrkFrstAP       = sweep(frstspikeswp).ap(1).upstroke ;
-        Summary(index).DwnStrkFrstAP      = sweep(frstspikeswp).ap(1).downstroke ;
-        Summary(index).UpDwnStrkRatio     = abs(sweep(frstspikeswp).ap(1).upstroke) / abs(sweep(frstspikeswp).ap(1).downstroke) ;
+       Summary(index).UpStrkFrstAP       = sweep(frstspikeswp).ap(1).upstroke ;
+       Summary(index).DwnStrkFrstAP      = sweep(frstspikeswp).ap(1).downstroke ;
+       Summary(index).UpDwnStrkRatio     = abs(sweep(frstspikeswp).ap(1).upstroke) / abs(sweep(frstspikeswp).ap(1).downstroke) ;
         Summary(index).MaxUpFrstAP        = sweep(frstspikeswp).ap(1).maxdvdt ;
         Summary(index).MaxDwnFrstAP        = sweep(frstspikeswp).ap(1).mindvdt ;
       %  Summary(index).TrSweepCrit        = TrSweepCrit ;
@@ -574,9 +574,9 @@ for i = 1:bb.nrofabfs
         Summary(index).HalfWTSAP        = sweep(TrainSweep).ap(1).halfwidth ; 
         Summary(index).AHPTSAP          = nanmean(sweep(TrainSweep).ap(1).relahp) ;
         Summary(index).AHPslowTSAP      = nanmean(sweep(TrainSweep).ap(1).relahp_slow) ;
-        Summary(index).UpStrokeTSAP       = sweep(TrainSweep).ap(1).upstroke ;
-        Summary(index).DwnStrokeTSAP      = sweep(TrainSweep).ap(1).downstroke ;
-        Summary(index).UpDwnStrkRatioTSAP     = abs(sweep(TrainSweep).ap(1).upstroke) / abs(sweep(TrainSweep).ap(1).downstroke) ;
+%         Summary(index).UpStrokeTSAP       = sweep(TrainSweep).ap(1).upstroke ;
+%         Summary(index).DwnStrokeTSAP      = sweep(TrainSweep).ap(1).downstroke ;
+%         Summary(index).UpDwnStrkRatioTSAP     = abs(sweep(TrainSweep).ap(1).upstroke) / abs(sweep(TrainSweep).ap(1).downstroke) ;
         Summary(index).MaxUpStrkTSAP       = sweep(TrainSweep).ap(1).maxdvdt ;
         Summary(index).MaxDwnStrkTSAP      = sweep(TrainSweep).ap(1).mindvdt ;
         Summary(index).OnsetTSAP2        = sweep(TrainSweep2).ap(1).thresh_time - (seconds(sum([sweep(TrainSweep2).epoch(1:find(strcmp({sweep(TrainSweep2,1).epoch.idxstr}, 'A'))).timespan]))*1000) ; 
@@ -587,10 +587,10 @@ for i = 1:bb.nrofabfs
         Summary(index).HalfWTSAP2        = sweep(TrainSweep2).ap(1).halfwidth ; 
         Summary(index).AHPTSAP2          = sweep(TrainSweep2).ap(1).relahp ;
         Summary(index).AHPslowTSAP2      = sweep(TrainSweep2).ap(1).relahp_slow ;
-        Summary(index).UpStrokeTSAP2       = sweep(TrainSweep2).ap(1).upstroke ;
-        Summary(index).DwnStrokeTSAP2      = sweep(TrainSweep2).ap(1).downstroke ;
-        Summary(index).UpDwnStrkRatioTSAP2     = abs(sweep(TrainSweep2).ap(1).upstroke) / abs(sweep(TrainSweep2).ap(1).downstroke) ;
-        Summary(index).MaxUpStrkTSAP2       = sweep(TrainSweep2).ap(1).maxdvdt ;
+%         Summary(index).UpStrokeTSAP2       = sweep(TrainSweep2).ap(1).upstroke ;
+%         Summary(index).DwnStrokeTSAP2      = sweep(TrainSweep2).ap(1).downstroke ;
+%         Summary(index).UpDwnStrkRatioTSAP2     = abs(sweep(TrainSweep2).ap(1).upstroke) / abs(sweep(TrainSweep2).ap(1).downstroke) ;
+         Summary(index).MaxUpStrkTSAP2       = sweep(TrainSweep2).ap(1).maxdvdt ;
         Summary(index).MaxDwnStrkTSAP2      = sweep(TrainSweep2).ap(1).mindvdt ;
         Summary(index).AdaptIndexTS       = AdaptIdx ;
         Summary(index).AmpAccomTS         = AmpAccom ;
