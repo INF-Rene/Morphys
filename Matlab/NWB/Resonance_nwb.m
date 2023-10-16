@@ -1,6 +1,6 @@
 %% Resonance analysis  single files (raw nwb files)
 
-fn= '/Users/elinemertens/Downloads/H23.29.245.21.11.01.nwb';
+fn= '/Volumes/Expansion/Ephys from 226/H23.29.244.01_6 /H23.29.244.11.01.01.nwb';
 
 nwb = NWBfile(fn,[{'CHIRP'}]);
 
@@ -11,7 +11,7 @@ nwb = NWBfile(fn,[{'CHIRP'}]);
 % even de losse sweeps bekijken en dan de juiste sweeps selecteren
 % signal = nwb.getstimset.getnwbchannel.getsweep(1:3).avtrace
 % or signal = nwb.getstimset.getnwbchannel.getsweep([1:4 6:7]).avtrace;
- signal = nwb.getstimset.getnwbchannel.getsweep([1:7]);
+ signal = nwb.getstimset.getnwbchannel.getsweep([1:5]);
  
  plot(signal) ; 
  
@@ -19,7 +19,7 @@ nwb = NWBfile(fn,[{'CHIRP'}]);
  
 
 %%
-signal = nwb.getstimset.getnwbchannel.getsweep([2:3 5:7]).avtrace;
+signal = nwb.getstimset.getnwbchannel.getsweep([1:5]).avtrace;
 
 plot(signal)
 %%
@@ -80,7 +80,7 @@ set(gca, 'TickDir', 'out')
 
               
     [max_imp, loc] = max(smoothed(f>1 & f<25));
-    f2 = f(f>1.1 & f<25);
+    f2 = f(f>0.5 & f<25);
     res_freq = f2(loc);
     
     

@@ -1,7 +1,7 @@
-p1   = ('/Volumes/Eline M/');
-fn1  = 'cell4_ccsteps2.abf';
+p1   = ('/Users/elinemertens/Data/ephys/Hippocampus/Ting');
+fn1  = 'Cell6_ccsteps.abf';
 fp1  = fullfile(p1,fn1);
-ss  = load('/Users/elinemertens/Downloads/Morphys-master/Morphys/Data/Electrophysiology/SetupSettings/Setupsettings_INF.mat');
+%ss  = load('/Users/elinemertens/Downloads/Morphys-master_2022/Setupsettings_Allen.mat');
 ss  = ss.obj;
 abf = Abffile(fp1,ss);
 abf.plot

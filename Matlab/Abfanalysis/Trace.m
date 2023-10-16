@@ -163,7 +163,7 @@ classdef Trace < timeseries
             % See also GETDVDT, TIMESERIES, DELSAMPLE.
             if nargin==1, n=1; end
             
-            for i=1:numel(obj)
+            for i=1:numel(obj);
                 dvdt   = obj(i).getdvdt(n);
                 obj(i) = obj(i).delsample('Index',obj(i).Length-(n-1):obj(i).Length); % shorten timeseries
                 obj(i).Data = dvdt;
@@ -177,11 +177,11 @@ classdef Trace < timeseries
         end
         
         function obj = getsampleusingtime(obj,varargin)
-           get section of sweep using time. Overload of TIMERSERIES' GETSAMPLEUSINGTIME method to operate on non-scalar
-           timeseries objects. 
-            
-           See also: TIMERSERIES, GETSAMPLEUSINGTIME
-            for i=1:numel(obj) 
+%            get section of sweep using time. Overload of TIMERSERIES' GETSAMPLEUSINGTIME method to operate on non-scalar
+%            timeseries objects. 
+%             
+%            See also: TIMERSERIES, GETSAMPLEUSINGTIME
+            for i=1:numel(obj) ;
                 obj(i) = getsampleusingtime@timeseries(obj(i),varargin{:}); 
             end
         end
@@ -208,7 +208,7 @@ classdef Trace < timeseries
             % runmean function. 
             %
             % See also RUNMEAN, GETDATA, TIMESERIES. 
-            for i=1:numel(obj);  
+            for i=1:numel(obj);
                 runwin = floor(runwin/(1e3/obj(i).samplefreq));
                 obj(i) = obj(i).set('Data',runmean(obj(i).getdata, runwin, varargin{:}));
             end

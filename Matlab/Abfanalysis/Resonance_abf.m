@@ -3,8 +3,8 @@
 %  MATLAB version: 9.10.0.1602886 (R2021a)
 % -------------------------------------------------------------------
 
-p   = ('/Volumes/Ephys2/Ephys hipp/healthy/cluster1/chirp');
-fn  = 'hipp4_2017_03_29_0312.abf';
+p   = ('/Volumes/Expansion/Data from other INFs/Thijs/chirps 2023/');
+fn  = '2012_09_19Cel12_0004.abf';
 fp  = fullfile(p,fn);
 ss  = load('/Users/elinemertens/Documents/CNCR/Data/Matlab Data/Morphys-master/Matlab/Abfanalysis/Setupsettings_INF.mat');
 ss  = ss.obj;
@@ -12,6 +12,9 @@ zabf = Abffile(fp,ss);
 %%
 signal =  zabf.channels(2).analogins(1, 1).sweeps(1:3).avtrace ;
 plot(signal)
+%%
+signal = zabf.channels.analogins.sweeps.Data ;  
+stim = 
 
 %% Thijs werkend
 signal = signal.low_pass_filter(1000);

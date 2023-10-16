@@ -144,11 +144,11 @@ classdef Sweep < Sharedmethods & Trace
                     %hotfix for EM data
                     % on 28062023 i commented this again since the read was
                     % not good 
-%                     if strcmp(epochtab.idxstr, 'B')
-%                         stimdata=h5read(fn, [obj.stimdataloc '/data'], double(epochtab.strttime*1e-3*obj.samplefreq),double(epochtab.duration*1e-3*obj.samplefreq));
-%                         epochtab.firstlevel = nanmedian(stimdata);
+                    if strcmp(epochtab.idxstr, 'B')
+                        stimdata=h5read(fn, [obj.stimdataloc '/data'], double(epochtab.strttime*1e-3*obj.samplefreq),double(epochtab.duration*1e-3*obj.samplefreq));
+                        epochtab.firstlevel = nanmedian(stimdata);
 %                         %epochtab.deltalevel = epochtab.deltalevel * scalefactor ;
-%                     end
+                     end
 
                     
 %                     if strcmp(epochtab.deltalevel, '20')
@@ -385,7 +385,7 @@ classdef Sweep < Sharedmethods & Trace
                         'pulseperiod',  0;
                         'pulsewidth',   0;
                         'maxfrequency', 0;
-                        %'deltascaled',  0; % let op, kijk dit na
+                        'deltascaled',  0; % let op, kijk dit na
                         };
             template = struct2table(cell2struct(template(:,2),template(:,1)));
 

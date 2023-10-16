@@ -3,7 +3,7 @@
 close all, clear all
 
 %% Set path to load and save data; mat data load 
-basedir = '/Users/elinemertens/Data/ephys/Hippocampus/H21.29.198.21/mat/matmat' ;
+basedir = '/Users/elinemertens/Data/ephys/Hippocampus/Cadmium/analysed' ;
 savedir = '/Users/elinemertens/Data/ephys/Hippocampus/2022_Summary' ;
 savename = 'Summary_184' ;
 
@@ -488,7 +488,7 @@ for i = 1:length(filelist)
        
         %end %if at line 64 
         %clear variables assigned in "sweep" For loop
-        clearvars -except Summary i basedir savedir savename filelist index
+        clearvars -except Summary i basedir savedir savename filelist index Summary1
         index = index + 1 ;
     end
 %% save

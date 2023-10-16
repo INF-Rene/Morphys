@@ -3,9 +3,9 @@
 close all, clear all
 
 %% Set path to load and save data; mat data load 
-basedir = '/Users/elinemertens/Data/ephys/Analyzed/245_2' ;
+basedir = '/Users/elinemertens/Data/ephys/Analyzed/245_2/2' ;
 savedir = '/Users/elinemertens/Data/ephys/Hippocampus/2022_Summary';
-savename = 'Summary_198' ;  
+savename = 'Summary_198' ;   
 
 %% load file list
 fileinfo  = dir(fullfile(basedir,'*.mat'));
@@ -30,7 +30,8 @@ for i = 1:length(filelist)
     epochs = struct2table(obj.getstimsets.getnwbchannel.getsweep.getepoch.metadata) ;
     aps = struct2table(obj.getstimsets.getnwbchannel.getsweep.getepoch.getap.metadata) ;
     % remove incomplete sweeps
-    sweeps(sweeps.nrofepochs < 3,:) = [] ;
+   % sweeps(sweeps.nrofepochs < 3,:) = [] ;
+    
     %% get freqbins
     edges = 1:10:201 ;
     aps.freqbin = discretize(aps.freq, edges) ;
@@ -65,11 +66,11 @@ for i = 1:length(filelist)
         sweep = sweeps2 ;
         NrofSweeps = length(sweep) ;  
         % find current injection epoch and assign aps to sweep
-%         for step = 1:length(sweep(1).epoch)
-%             if sweep(1).epoch(step).amplitude ~= 0 && seconds(sweep(1).epoch(step).timespan) > 0.03
-%                 break
-%             end
-%         end
+        for step = 1:length(sweep(1).epoch)
+            if sweep(1).epoch(step).amplitude ~= 0 && seconds(sweep(1).epoch(step).timespan) > 0.03
+                break
+            end
+        end
         for j = 1:NrofSweeps
             step = find(strcmp({sweep(j).epoch.idxstr}, 'B'));
             sweep(j).vmbase = sweep(j).epoch(step-1).steadystate ;

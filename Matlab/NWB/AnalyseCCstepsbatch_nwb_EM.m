@@ -3,7 +3,7 @@
 close all, clear all
 
 %% Set path to load and save data; mat data load 
-basedir = '/Volumes/ELINE/244/244' ;
+basedir = '/Volumes/Expansion/Ch3.data/ephys/231016/analysed' ;
 savedir = '/Users/elinemertens/Data/ephys/Hippocampus/2022_Summary';
 savename = 'Summary_198' ;  
 
@@ -11,7 +11,7 @@ savename = 'Summary_198' ;
 fileinfo  = dir(fullfile(basedir,'*.mat'));
 filelist  = {fileinfo.name};
 
-    %% Loop through abfs
+    %% Loop through abfs 
 index = 1 ; 
 for i = 1:length(filelist)
     %% Make subset of data per abf file
@@ -65,11 +65,11 @@ for i = 1:length(filelist)
         sweep = sweeps2 ;
         NrofSweeps = length(sweep) ;  
         % find current injection epoch and assign aps to sweep
-%         for step = 1:length(sweep(1).epoch)
-%             if sweep(1).epoch(step).amplitude ~= 0 && seconds(sweep(1).epoch(step).timespan) > 0.03
-%                 break 
-%             end
-%         end
+        for step = 1:length(sweep(1).epoch)
+            if sweep(1).epoch(step).amplitude ~= 0 && seconds(sweep(1).epoch(step).timespan) > 0.03
+                break 
+            end
+        end
         for j = 1:NrofSweeps
             step = find(strcmp({sweep(j).epoch.idxstr}, 'B'));
             sweep(j).vmbase = sweep(j).epoch(step-1).steadystate ;
@@ -154,55 +154,7 @@ for i = 1:length(filelist)
         else
             NrofRBAPsM = 0 ;
         end
-       
-
-        
-%         % Get the total number of stimsets
-% numStimsets = numel(obj.stimsets());
-% 
-% % Iterate over each stimset
-% for v = 1:numStimsets
-%     % Get the total number of sweeps for the current stimset
-%     numSweeps = numel(obj.stimsets(v).nwbchannels.sweeps());
-%     
-%     % Iterate over each sweep
-%     for w = 1:numSweeps
-%         % Check if downstroke is NaN for the current sweep
-%         if obj.stimsets(v).nwbchannels.sweeps(w).aps(1, 1).downstroke == NaN
-%             % Remove the entire row of sweeps for the current sweep
-%             obj.stimsets(v).nwbchannels.sweeps(w) = [];
-%             
-%             % Decrement the sweep counter to adjust for the removed sweep
-%             j = j - 1;
-%             
-%             % Update the total number of sweeps
-%             numSweeps = numSweeps - 1;
-%         end
-%     end
-% end
-%         
-%         % Create a logical index for rows containing NaN in the specified variable
-% dsproblem = ismissing(aps.downstroke);
-% dsproblem = ismissing(aps2.downstroke);
-% 
-% % Remove rows where the specified variable is NaN
-% aps(dsproblem, :) = [];
-% aps2(dsproblem, :) = [];
-% 
-
-% if isnan(obj.stimsets().nwbchannels.sweeps().aps(1, 1).downstroke)
-%     % Remove the entire row of sweeps
-%     obj.stimsets().nwbchannels.sweeps = [];
-% end
-% 
-% for t = 1:NrofSweeps 
-% if isnan(sweep(t).ap(1).downstroke)
-%     sweep(t).ap(1) = [] ;
-% end
-% end
-
-
-
+      
         % find trainsweep 
         % Traincurr=rheobase+50 :
         step = find(strcmp({sweep(frstspikeswp).epoch.idxstr}, 'B'));
@@ -343,39 +295,30 @@ for i = 1:length(filelist)
         % determine sweep for sag, (minimum voltage response closest to -100)
         %commented on 04-05-2023 by deduction from abf of lower part
 %         tmp = abs(MinVmResponse+100) ;
-%         tmp = tmp(~isnan(tmp));
-%         [sagswp sagswp] = min(tmp)  ;
-%  sagsweepname = sweep(sagswp).Name ;
+%        tmp = tmp(~isnan(tmp));
+%          [sagswp sagswp] = min(tmp)  ;
+ % sagsweepname = sweep(sagswp).Name ;
  
   tmp = abs(MinVmResponse+100) ;
+  % tmp = tmp(~isnan(tmp));
         [sagswp sagswp] = min(tmp) ;
-        tmp2 = abs(MinVmResponse+90) ; 
-        [sagswp2 sagswp2] = min(tmp2) ;
-        tmp3 = abs(MinVmResponse+80) ;
-        [sagswp3 sagswp3] = min(tmp3) ; 
-         
+        tmp = abs(MinVmResponse+90) ; 
+         %tmp2 = tmp2(~isnan(tmp2));
+        [sagswp2 sagswp2] = min(tmp) ;
+        tmp = abs(MinVmResponse+80) ;
+        % tmp3 = tmp3(~isnan(tmp3));
+        [sagswp3 sagswp3] = min(tmp) ; 
+        
+          
+        step = find(strcmp({sweep(sagswp).epoch.idxstr}, 'B'));
+            
         Sag                = sweep(sagswp,1).epoch(step).sag / PkDeflect(sagswp,1) ;
         Sag2               = sweep(sagswp2,1).epoch(step).sag / PkDeflect(sagswp2,1) ;
         Sag3               = sweep(sagswp3,1).epoch(step).sag / PkDeflect(sagswp3,1) ;
         SagMedian             = nanmedian([Sag Sag2 Sag3]) ; 
         
  
-%  if you want to plot all sag sweeps, get the percentage away form
-%  obj.getstimset and run this part via index 
-% figure(3)
-%  for j = 1:length(obj.stimsets)
-%             if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},sagsweepname))
-%                 %%figure(); obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).plot
-%                 obj.getstimset(j).getnwbchannel.getsweep('Name',sagsweepname).plot;
-%                 legend(filelist)
-%                 xlim([0 1800])
-%                 title('Sag')
-%                 grid off
-%                  set(gca, 'TickDir', 'out')
-%                  ylabel('mV')
-%               xlabel('ms')
-%             end
-%         end
+
 
         % calculate input frequency curve
        % this caused problems after fixing the input resistance 
@@ -387,9 +330,6 @@ for i = 1:length(filelist)
 %         else  
 %             FrqChngStimInt = NaN ;   
 %         end
-
-
-
 
         % bursting & adaptation index
         if TrSweepCrit==1
@@ -485,31 +425,46 @@ if isempty(TrainSweep2)
     TrainSweep2 = NaN;
 end
 
-% figure(5)
-%         for j = 1:length(obj.stimsets)
-%             if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},TrainSweep1)) 
-%                 %figure(); obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).plot
-%                  obj.getstimset(j).getnwbchannel.getsweep('Name',TrainSweep1).plot ;
-%                 legend(filelist)
-%                 xlim([-5 2000])
-%                 title('trainsweep')
-%             %   ylabel('mV')
-%             %    xlabel('ms')
-%             end
-%         end
-
-
+ figure(1)
+        for j = 1:length(obj.stimsets)
+            if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},firstsweepname))
+                obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).getepoch(step).aps(1).plot('superimpose','peak');
+                legend(filelist)
+                xlim([-5 10])
+                title('First AP')
+            %   ylabel('mV')
+            %    xlabel('ms')
+            end
+        end
+      
         
-%          figure(5)
-%         for j = 1:length(obj.stimsets)
-%             if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},TrainSweep)) 
-%                 %figure(); obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).plot
-%                  obj.getstimset(j).getnwbchannel.getsweep('Name',TrainSweep).getepoch(step).aps(1).plot('superimpose','peak');
+ trainsweepname  = sweep(TrainSweep).Name ;   
+ trainsweep2name = sweep(TrainSweep2).Name ; 
+figure(5)
+        for j = 1:length(obj.stimsets)
+            if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},trainsweepname)) 
+                 obj.getstimset(j).getnwbchannel.getsweep('Name',trainsweepname).plot ;
+                legend(filelist)
+                xlim([-5 2000])
+                title('trainsweep')
+            %   ylabel('mV')
+            %    xlabel('ms')
+            end
+        end
+
+
+%   sagsweepname  = sweep(sagswp).Name    ;    
+% figure(3)
+%  for j = 1:length(obj.stimsets)
+%             if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},sagsweepname))
+%                 obj.getstimset(j).getnwbchannel.getsweep('Name',sagsweepname).plot;
 %                 legend(filelist)
-%                 xlim([-5 10])
-%               %  title('First AP')
-%             %   ylabel('mV')
-%             %    xlabel('ms')
+%                 xlim([0 1800])
+%                 title('Sag')
+%                 grid off
+%                  set(gca, 'TickDir', 'out')
+%                  ylabel('mV')
+%               xlabel('ms')
 %             end
 %         end
       
@@ -643,7 +598,7 @@ clearvars -except Summary i
 %%
 
 Summary_T = struct2table(Summary) ; 
-writetable(Summary_T, 'summary_h235_test.xlsx');
+writetable(Summary_T, 'summary_h245_test.xlsx');
 
 
 
