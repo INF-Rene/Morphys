@@ -8,8 +8,8 @@ savedir = '/Users/elinemertens/Matlab Data/Analyzed' ; % specify path for saving
 savename = 'CellSummary_Par1'; % specify filename to be saved
 
 %%
-p   = ('/Users/elinemertens/Data/ephys/Hippocampus/Ting/');
-fn  = 'Cell4_ccsteps.abf';
+p   = ('/Users/elinemertens/Data/Projects/L5_project/Ayoub_data');
+fn  = '2019_01_15_0001.abf';
 fp  = fullfile(p,fn);
 ss  = load('/Users/elinemertens/Documents/CNCR/Data/Matlab Data/Morphys-master/Matlab/Abfanalysis/Setupsettings_INF.mat');
 ss  = ss.obj;

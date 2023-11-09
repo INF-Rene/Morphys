@@ -318,6 +318,18 @@ for i = 1:length(filelist)
         SagMedian             = nanmedian([Sag Sag2 Sag3]) ; 
         
  
+Freqs = Freqs(~isnan(Freqs));
+StimInts = StimInts(~isnan(StimInts));
+Freqs = Freqs(Freqs~=0) ;
+StimInts = StimInts(StimInts~=0) ;
+
+if length(Freqs) > 1
+    [fitFi] = fit(StimInts, Freqs, f_R, 'StartPoint', [0 0]); 
+    FrqChngStimInt = fitFi.R;
+else  
+    FrqChngStimInt = NaN;   
+end
+        
 
 
         % calculate input frequency curve

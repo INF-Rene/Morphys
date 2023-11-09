@@ -231,7 +231,7 @@ classdef Trace < timeseries
         
         function obj = low_pass_filter(obj, freq)
             for i=1:numel(obj)
-                Wn = [(freq/(obj(i).samplefreq/2))];
+                Wn = ((freq/(obj(i).samplefreq/2)));
                 [B,A] = butter(2,Wn, 'low');
                 obj(i).Data = filtfilt(B,A,double(obj(i).Data));
             end

@@ -459,7 +459,7 @@ classdef Epoch < Sharedmethods & Trace
                 hold on
                     obj(i).plotapevents
                     obj(i).addtau2plot
-                    %obj.addsag2plot
+                    obj.addsag2plot
                     obj(i).addss2plot
                 hold off
             end

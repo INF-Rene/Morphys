@@ -1,6 +1,6 @@
 %% Resonance analysis  single files (raw nwb files)
 
-fn= '/Volumes/Expansion/Ephys from 226/H23.29.244.01_6 /H23.29.244.11.01.01.nwb';
+fn= '/Volumes/Expansion/Ephys 173-224/h21.29.199_t/H21.29.199_T_01_06-compressed.nwb';
 
 nwb = NWBfile(fn,[{'CHIRP'}]);
 
@@ -11,7 +11,7 @@ nwb = NWBfile(fn,[{'CHIRP'}]);
 % even de losse sweeps bekijken en dan de juiste sweeps selecteren
 % signal = nwb.getstimset.getnwbchannel.getsweep(1:3).avtrace
 % or signal = nwb.getstimset.getnwbchannel.getsweep([1:4 6:7]).avtrace;
- signal = nwb.getstimset.getnwbchannel.getsweep([1:5]);
+ signal = nwb.getstimset.getnwbchannel.getsweep([1:3]);
  
  plot(signal) ; 
  
@@ -19,7 +19,7 @@ nwb = NWBfile(fn,[{'CHIRP'}]);
  
 
 %%
-signal = nwb.getstimset.getnwbchannel.getsweep([1:5]).avtrace;
+signal = nwb.getstimset.getnwbchannel.getsweep([1:3]).avtrace;
 
 plot(signal)
 %%
@@ -80,12 +80,12 @@ set(gca, 'TickDir', 'out')
 
               
     [max_imp, loc] = max(smoothed(f>1 & f<25));
-    f2 = f(f>0.5 & f<25);
+    f2 = f(f>1 & f<25);
     res_freq = f2(loc);
     
     
     %% 3db cutoff 
-   normalized = smoothed(f>1.1 & f<25)./max_imp;
+   normalized = smoothed(f>1 & f<25)./max_imp;
    
    % when does normalized frequency response go below square root of 0.5?
    % This is the definition of 3 dB cutoff!
@@ -95,7 +95,7 @@ set(gca, 'TickDir', 'out')
    hold on
    line(xlim,[sqrt(0.5), sqrt(0.5)],'linewidth',2,'lineStyle',':','color','k')
    %line([cutoff_3db, cutoff_3db],ylim,'linewidth',2,'lineStyle',':','color','k')
- %ylim([0.1 1.2])
+ ylim([0.1 1.2])
  box off
  set(gca, 'TickDir', 'out')
  ylabel('Impedance (normalized)','FontSize',12)

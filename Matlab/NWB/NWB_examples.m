@@ -18,7 +18,7 @@ end
 
     
     %%
-fn= '/Volumes/Expansion/Ephys from 226/H23.29.244.01_6 /H23.29.244.11.01.07.nwb'
+fn= '2020_10_21_cell1.nwb'
 
 
 %% let op of je wel of geen chirp wilt 

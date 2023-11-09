@@ -3,7 +3,7 @@
 close all, clear all
 
 %% Set path to load and save data; mat data load 
-basedir = '/Users/elinemertens/Data/ephys/Analyzed/245_2/2' ;
+basedir = '/Users/elinemertens/Data/ephys/Analyzed/245_3' ;
 savedir = '/Users/elinemertens/Data/ephys/Hippocampus/2022_Summary';
 savename = 'Summary_198' ;   
 
@@ -337,16 +337,21 @@ for i = 1:length(filelist)
 %             end
 %         end
 
-        % calculate input frequency curve
-       % this caused problems after fixing the input resistance 
-%         Freqs = Freqs(Freqs~=0) ;
-%         StimInts = StimInts(StimInts~=0) ;
-%         if length(Freqs) > 1
-%             [fitFi]=fit(StimInts,Freqs,f_R, 'StartPoint', [0 0]); 
-%             FrqChngStimInt = fitFi.R ;
-%         else  
-%             FrqChngStimInt = NaN ;   
-%         end
+%         calculate input frequency curve
+%        this caused problems after fixing the input resistance 
+
+Freqs = Freqs(~isnan(Freqs));
+StimInts = StimInts(~isnan(StimInts));
+Freqs = Freqs(Freqs~=0) ;
+StimInts = StimInts(StimInts~=0) ;
+
+if length(Freqs) > 1
+    [fitFi] = fit(StimInts, Freqs, f_R, 'StartPoint', [0 0]); 
+    FrqChngStimInt = fitFi.R;
+else  
+    FrqChngStimInt = NaN;   
+end
+        
 
         % bursting & adaptation index
         if TrSweepCrit==1
