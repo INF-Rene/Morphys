@@ -13,12 +13,12 @@ for i = 1:numel(list.name)
  nwb = NWBfile(fn,[{'LP'} {'hresh'} {'CC'} {'teps'} {'LSFINEST'} {'LSCOARSE'}]);
  obj =nwb.analyseNWB ;
  obj.savename = sprintf('NWB_%s.mat',obj.filename(1:end-4));
- saveme(obj,'/Volumes/Expansion/Ch3.data/ephys/231016/analysed', obj.savename) 
+ saveme(obj,'/Volumes/Expansion/L2L3 T/downstrokes', obj.savename) 
 end
 
     
     %%
-fn= '2020_10_21_cell1.nwb'
+fn= '/Users/elinemertens/Data/Projects/Ch3.Method section/Figures/H21.29.199_T_01_06-compressed.nwb'
 
 
 %% let op of je wel of geen chirp wilt 

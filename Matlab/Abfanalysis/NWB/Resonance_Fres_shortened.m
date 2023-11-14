@@ -1,9 +1,9 @@
 %% Resonance analysis single files (raw nwb files): first select only correct protocol
 % We use the script NWBfile to select this 
-fn= '/Volumes/Expansion/Ephys 173-224/H22.29.217_F/H22.29.217.11.01.04-compressed.nwb';
+fn= '/Volumes/Expansion/L2L3 T/FreqStim/H23.29.239.11.01.02.nwb';
 nwb = NWBfile(fn,[{'CHIRP'}]) ; 
 %% Look at the sweeps, are they comparable? 
- signal = nwb.getstimset.getnwbchannel.getsweep([2]);
+ signal = nwb.getstimset.getnwbchannel.getsweep([1:3]);
  plot(signal)
 %% Only average the sweeps that look comparable
 signal = nwb.getstimset.getnwbchannel.getsweep([1:3]).avtrace;

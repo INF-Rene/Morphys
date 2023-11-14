@@ -3,25 +3,24 @@
 %  MATLAB version: 9.10.0.1602886 (R2021a)
 % -------------------------------------------------------------------
 
-p   = ('/Volumes/Expansion/Data from other INFs/Thijs/chirps 2023/');
-fn  = '2012_09_19Cel12_0004.abf';
+p   = ('/Volumes/Expansion/Ephys 173-224/H20.29.177_T/cell1/');
+fn  = '2020_06_24_0016.abf';
 fp  = fullfile(p,fn);
 ss  = load('/Users/elinemertens/Documents/CNCR/Data/Matlab Data/Morphys-master/Matlab/Abfanalysis/Setupsettings_INF.mat');
 ss  = ss.obj;
 zabf = Abffile(fp,ss);
-%%
-signal =  zabf.channels(2).analogins(1, 1).sweeps(1:3).avtrace ;
+%
+signal =  zabf.channels(1).analogins(1, 1).sweeps(1).avtrace ;
 plot(signal)
 %%
-signal = zabf.channels.analogins.sweeps.Data ;  
-stim = 
+signal = zabf.channels(1).analogins(1).sweeps(1).Data ;  
 
 %% Thijs werkend
-signal = signal.low_pass_filter(1000);
+%signal = signal.low_pass_filter(1000);
 % data = abfload_pro(fp);
 % stim = squeeze(data(:,2,1));
-signal=signal.resample(0:0.1:signal.TimeInfo.End).Data;
-stim = zabf.channels(1).analogins(2).sweeps(1).Data   ;
+%signal=signal.resample(0:0.1:signal.TimeInfo.End).Data;
+stim = zabf.channels(1).analogins(1).sweeps(1).Data   ;
 % signal = signal.Data  ;
 % time = zabf.channels(2).analogins(1, 1).sweeps(1) ;
 % time = time.low_pass_filter(1000) ; 
@@ -40,14 +39,16 @@ stim = zabf.channels(1).analogins(2).sweeps(1).Data   ;
 %% raw
     figure(1)
     plot(f, abs((signal_fft)./abs(stim_fft)));
-    xlim([1.0 25])
-    hold on
+ %   xlim([1.0 25]);
+   % ylim([0, max(f, abs((signal_fft)./abs(stim_fft)));
+  
+ 
  %% smoothed
    figure(2)
-   smoothed=smooth(abs((signal_fft)./abs(stim_fft)),23,  'lowess');
+   smoothed = smooth(abs((signal_fft)./abs(stim_fft)),23,  'lowess');
     plot(f, smoothed);
-    xlim([1.0 25])
-    % plot 3dB 
+ %   ylim([0 300])
+    %% plot 3dB 
    [max_imp, loc] = max(smoothed(f>1.2 & f<25));
     f2 = f(f>1.2 & f<25);
     res_freq = f2(loc);

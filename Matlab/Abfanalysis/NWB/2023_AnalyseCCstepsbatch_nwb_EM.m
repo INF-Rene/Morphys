@@ -2,13 +2,34 @@
 % Written by D.B. Heyer !
 close all, clear all
 
+%% select folder to analyze 
+folder = uigetdir 
+cd (folder);
+%make a list with all nwbsephys
+
+    list = dir();
+list = struct2table(list);
+list = list(list.bytes>10000,:); %only files with actual data
+
+%% USE THIS nwb2: 
+for i = 1:numel(list.name) 
+    fn =cell2mat(list.name(i));
+ nwb = NWBfile(fn,[{'LP'} {'hresh'} {'CC'} {'teps'} {'LSFINEST'} {'LSCOARSE'}]);
+ obj =nwb.analyseNWB ;
+ obj.savename = sprintf('NWB_%s.mat',obj.filename(1:end-4));
+ saveme(obj,'/Users/elinemertens/Data/Projects/Ch3.Method section/Figures/199.01.06', obj.savename) 
+end
+
 %% Set path to load and save data; mat data load 
-basedir = '/Volumes/Expansion/Ch3.data/ephys/231016/analysed' ;
+basedir = '/Users/elinemertens/Data/ephys/Analyzed/242 new' ;
 savedir = '/Users/elinemertens/Data/ephys/Hippocampus/2022_Summary';
-savename = 'Summary_198' ;  
+savename = 'Summary_198' ; 
 
 %% load file list
 fileinfo  = dir(fullfile(basedir,'*.mat'));
+ fileinfo = struct2table(fileinfo);
+ fileinfo = fileinfo(fileinfo.bytes>10000,:);
+ fileinfo = table2struct(fileinfo) ; 
 filelist  = {fileinfo.name};
 
     %% Loop through abfs 
@@ -18,13 +39,6 @@ for i = 1:length(filelist)
     fprintf('Looking for CC-step protocols: file nr %1.0f \n', i);
     load(fullfile(basedir,filelist{i})) ;
     
-   % either run through all protocols, if it can't resolve this, remove %
-   % on line 22-24 and put it at 24. It will now loop through stimsets to
-   % find ccsteps 
-%    
-%      stimnms={obj.getstimsets.name};
-%      CCsteploc=cellfun(@(x) contains(x, 'teps'), stimnms);
-%    stimsets = struct2table(obj.getstimsets(CCsteploc).metadata, 'AsArray', true) ;
     stimsets = struct2table(obj.getstimsets.metadata, 'AsArray', true) ;
     sweeps = struct2table(obj.getstimsets.getnwbchannel.getsweep.metadata) ;
     epochs = struct2table(obj.getstimsets.getnwbchannel.getsweep.getepoch.metadata) ;
@@ -59,8 +73,7 @@ for i = 1:length(filelist)
     end
 
     %% If abf is a stepprotocol: continue with analysis
-
-        fprintf('Retrieving analysis parameters from CC-step file %1.0f \n', index);
+fprintf('Retrieving analysis parameters from CC-step file %1.0f \n', index);
         %% Analyze
         sweep = sweeps2 ;
         NrofSweeps = length(sweep) ;  
@@ -144,10 +157,28 @@ for i = 1:length(filelist)
             end
 
             if length(sweep(j).ap) >= 4 && sweep(j,1).currinj > 0
-                Freqs(j,1) =  mean([sweep(j).ap(4:end).freq]) ;
-                StimInts(j,1) = [sweep(j,1).currinj] ;
-            end         
+               Freqs(j,1) =  mean([sweep(j).ap(4:end).freq]) ;
+                StimInts(j,1) = [sweep(j,1).currinj] ;                
+            end 
+                         
+%input output curve
+            if length(sweep(j).nrofaps) >= 1 
+                    Freq (j,1) = sweep(j).nrofaps; 
+                    Freq = Freq(~isnan(Freq));
+                    Freq = Freq(Freq~=0) ;
+                    Stim(j,1) = [sweep(j,1).currinj];
+                    Stim = Stim(~isnan(Stim));
+                    Stim(Stim == 0) = [];
+            end
+                
         end
+%         
+    if length(Freq) > 1
+     [fitFit] = fit(Stim, Freq, f_R, 'StartPoint', [0 0]); 
+     FIslope = fitFit.R;
+ else  
+     FIslope = NaN;   
+end     
 
         if sum(NrofRBAPs) > 0
             NrofRBAPsM = mean(NrofRBAPs(NrofRBAPs~=0)) ;
@@ -330,20 +361,29 @@ else
     FrqChngStimInt = NaN;   
 end
         
-
-
-        % calculate input frequency curve
-       % this caused problems after fixing the input resistance 
-%         Freqs = Freqs(Freqs~=0) ;
-%         StimInts = StimInts(StimInts~=0) ;
-%         if length(Freqs) > 1
-%             [fitFi]=fit(StimInts,Freqs,f_R, 'StartPoint', [0 0]); 
-%             FrqChngStimInt = fitFi.R ;
-%         else  
-%             FrqChngStimInt = NaN ;   
-%         end
-
         % bursting & adaptation index
+        if TrSweepCrit2==1
+            isis2=ISIsTS2; %exclude stuttering ISIs since that can mess with adaptation analysis
+            amps2=AmpsTSthresh2;
+            hws2=HWsTS2;
+        else
+            isis2=NaN;
+            amps2=NaN;
+            hws2=NaN;
+        end
+        if length(isis2) > 2
+            ISIRatio1toAll2 = mean(isis2(2:end)) / mean(isis2(1)) ;
+            N = length(isis2)-1 ;
+            for n = 1:N
+                ISIchanges2(n,1) = (isis2(n+1)-isis2(n)) / (isis2(n+1)+isis2(n));
+            end
+            AdaptIdx2 = (1/N)*sum(ISIchanges2) ;        
+        else
+            ISIRatio1toAll2 = NaN;
+            AdaptIdx2 = NaN;
+        end
+       
+          % bursting & adaptation index
         if TrSweepCrit==1
             isis=ISIsTS; %exclude stuttering ISIs since that can mess with adaptation analysis
             amps=AmpsTSthresh;
@@ -436,50 +476,10 @@ end
 if isempty(TrainSweep2)
     TrainSweep2 = NaN;
 end
-
- figure(1)
-        for j = 1:length(obj.stimsets)
-            if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},firstsweepname))
-                obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).getepoch(step).aps(1).plot('superimpose','peak');
-                legend(filelist)
-                xlim([-5 10])
-                title('First AP')
-            %   ylabel('mV')
-            %    xlabel('ms')
-            end
-        end
-      
         
  trainsweepname  = sweep(TrainSweep).Name ;   
  trainsweep2name = sweep(TrainSweep2).Name ; 
-figure(5)
-        for j = 1:length(obj.stimsets)
-            if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},trainsweepname)) 
-                 obj.getstimset(j).getnwbchannel.getsweep('Name',trainsweepname).plot ;
-                legend(filelist)
-                xlim([-5 2000])
-                title('trainsweep')
-            %   ylabel('mV')
-            %    xlabel('ms')
-            end
-        end
 
-
-%   sagsweepname  = sweep(sagswp).Name    ;    
-% figure(3)
-%  for j = 1:length(obj.stimsets)
-%             if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},sagsweepname))
-%                 obj.getstimset(j).getnwbchannel.getsweep('Name',sagsweepname).plot;
-%                 legend(filelist)
-%                 xlim([0 1800])
-%                 title('Sag')
-%                 grid off
-%                  set(gca, 'TickDir', 'out')
-%                  ylabel('mV')
-%               xlabel('ms')
-%             end
-%         end
-      
 
         % Create summary  
         Summary(index).File               = stimset(1).filename ;
@@ -522,8 +522,8 @@ figure(5)
         Summary(index).NrOfAPsMax         = max(NrofAPs) ;
         Summary(index).FreqTrSwp          = FreqTrSwp ;
         %Summary(index).NrOfAPsTrSwp       = NrOfAPsTrSwp ; 
-      %  Summary(index).FrqChngStimInt     = FrqChngStimInt ;
-        Summary(index).FrqChngStimInt     = NaN ;
+        Summary(index).FrqChngStimInt     = FrqChngStimInt ;
+        %Summary(index).FrqChngStimInt     = NaN ;
         Summary(index).NrofRBAPs          = sum(NrofRBAPs) ;
         Summary(index).NrofRBAPsM         = NrofRBAPsM ;
         Summary(index).Sag                = Sag ;
@@ -593,10 +593,12 @@ figure(5)
         Summary(index).thresh21to40  = nanmean(aps2.thresh(aps2.freqbin>=3 & aps2.freqbin<=4)) ; 
         Summary(index).onsetrap21to40  = nanmean(aps2.onsetrapidity(aps2.freqbin>=3 & aps2.freqbin<=4)) ;
         Summary(index).updwnratio21to40  = nanmean(aps2.updownratio(aps2.freqbin>=3 & aps2.freqbin<=4)) ;
-       
-        
-        
-        
+        Summary(index).AdaptIndexTS2       = AdaptIdx2 ;
+      %  Summary(index).AmpAccomTS2         = AmpAccom2 ;
+       % Summary(index).HWAccomTS2          = HWAccom2 ;
+        Summary(index).ISIRatio1toAll2     = ISIRatio1toAll2 ;
+        Summary(index).inputoutput         = FIslope ; 
+                
         %end %if at line 64 
         %clear variables assigned in "sweep" For loop
       %  clearvars -except Summary i basedir savedir savename filelist index
