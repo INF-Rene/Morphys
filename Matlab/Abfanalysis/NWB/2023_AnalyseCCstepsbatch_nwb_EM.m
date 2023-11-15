@@ -1,13 +1,10 @@
 %% Analysis script
-% Written by D.B. Heyer !
 close all, clear all
-
 %% select folder to analyze 
 folder = uigetdir 
 cd (folder);
 %make a list with all nwbsephys
-
-    list = dir();
+list = dir();
 list = struct2table(list);
 list = list(list.bytes>10000,:); %only files with actual data
 
@@ -17,11 +14,11 @@ for i = 1:numel(list.name)
  nwb = NWBfile(fn,[{'LP'} {'hresh'} {'CC'} {'teps'} {'LSFINEST'} {'LSCOARSE'}]);
  obj =nwb.analyseNWB ;
  obj.savename = sprintf('NWB_%s.mat',obj.filename(1:end-4));
- saveme(obj,'/Users/elinemertens/Data/Projects/Ch3.Method section/Figures/199.01.06', obj.savename) 
+ saveme(obj,'/Volumes/Expansion/Temp_database/analyzed', obj.savename) 
 end
 
 %% Set path to load and save data; mat data load 
-basedir = '/Users/elinemertens/Data/ephys/Analyzed/242 new' ;
+basedir = '/Volumes/Expansion/Temp_database/analyzed/batch2' ;
 savedir = '/Users/elinemertens/Data/ephys/Hippocampus/2022_Summary';
 savename = 'Summary_198' ; 
 
@@ -130,7 +127,7 @@ fprintf('Retrieving analysis parameters from CC-step file %1.0f \n', index);
         taus= NaN(NrofSweeps,1);
         for j = 1:NrofSweeps       
             step = find(strcmp({sweep(j).epoch.idxstr}, 'B'));
-            if sweep(j,1).currinj >= -100 && sweep(j,1).currinj < 0
+            if sweep(j,1).currinj >= -100 && sweep(j,1).currinj < 0 % only add this when Rinput is negative && sweep(j,1).vmbase < -67
                 voltageResponses(j,1) = sweep(j,1).vmresponse ; 
                 currInjections_R(j,1) = sweep(j,1).currinj ;
                 if sweep(j,1).epoch(step).tau < 100 && sweep(j,1).epoch(step).tau > 0 && sweep(j,1).epoch(step).gof > 0.95
@@ -138,7 +135,8 @@ fprintf('Retrieving analysis parameters from CC-step file %1.0f \n', index);
                 else
                     taus(j,1) = NaN;
                 end
-            end       
+            end 
+        end
 
             if ~isempty(sweep(j,1).vmresponse) 
                 MinVmResponse(j,1) = sweep(j,1).vmresponse ;
@@ -161,19 +159,23 @@ fprintf('Retrieving analysis parameters from CC-step file %1.0f \n', index);
                 StimInts(j,1) = [sweep(j,1).currinj] ;                
             end 
                          
-%input output curve
-            if length(sweep(j).nrofaps) >= 1 
-                    Freq (j,1) = sweep(j).nrofaps; 
+%input output curve: NOT PERFECTED YET. AP CANNOT BE CALLED UPON WITHIN
+%SWEEP. FIGURE THIS OUT FIRST
+ f_R=fittype('R*x+b'); 
+  Freq= NaN(NrofSweeps,1) ;
+   Stim= NaN(NrofSweeps,1) ;
+   
+            if length(sweep(j,1).ap) > 1 && sweep(j,1).currinj > 0
+                    Freq = [sweep(j,1).nrofaps]; 
                     Freq = Freq(~isnan(Freq));
                     Freq = Freq(Freq~=0) ;
                     Stim(j,1) = [sweep(j,1).currinj];
                     Stim = Stim(~isnan(Stim));
                     Stim(Stim == 0) = [];
-            end
-                
-        end
-%         
-    if length(Freq) > 1
+                    Stim(Stim < 0) = [];            
+            end         
+        
+    if length(Freq) > 1 & ~isnan(Freq) 
      [fitFit] = fit(Stim, Freq, f_R, 'StartPoint', [0 0]); 
      FIslope = fitFit.R;
  else  
@@ -307,8 +309,8 @@ end
         
         % calculate input resistance     
         f_R=fittype('R*x+b');
-        tmp=length(find(currInjections_R~=0 & ~isnan(voltageResponses)));
-        if tmp > 1         
+        tmp=length(find(currInjections_R~=0 & ~isnan(voltageResponses)));            
+             if tmp > 1         
             [fitR]=fit(currInjections_R(currInjections_R~=0 & voltageResponses~=0 & ~isnan(voltageResponses)),voltageResponses(currInjections_R~=0 & voltageResponses~=0 & ~isnan(voltageResponses)),f_R, 'StartPoint', [0 0]); 
             Rin=fitR.R*1e3; % In mOhm
         elseif tmp ==1  % If there is only one point, use baseline Vm to determine input resistance:
@@ -322,7 +324,7 @@ end
             Rin=NaN;
         end
         
-        
+              
         % determine sweep for sag, (minimum voltage response closest to -100)
         %commented on 04-05-2023 by deduction from abf of lower part
 %         tmp = abs(MinVmResponse+100) ;

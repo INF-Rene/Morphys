@@ -167,7 +167,7 @@ classdef Trace < timeseries
                 dvdt   = obj(i).getdvdt(n);
                 obj(i) = obj(i).delsample('Index',obj(i).Length-(n-1):obj(i).Length); % shorten timeseries
                 obj(i).Data = dvdt;
-                fix units.
+               % fix units.
                 if strcmp(obj(i).DataInfo.Units,'mV') && n==1
                     obj(i).DataInfo.Units = 'mV/ms';
                 else
@@ -208,7 +208,7 @@ classdef Trace < timeseries
             % runmean function. 
             %
             % See also RUNMEAN, GETDATA, TIMESERIES. 
-            for i=1:numel(obj);
+            for i=1:numel(obj)
                 runwin = floor(runwin/(1e3/obj(i).samplefreq));
                 obj(i) = obj(i).set('Data',runmean(obj(i).getdata, runwin, varargin{:}));
             end
@@ -466,13 +466,11 @@ classdef Trace < timeseries
                     end
                 else
                     cnt=cnt+1;
-                end
-                else
-                    cnt=cnt+1;
+                end              
                 end
             end
             if cnt>0
-                fprintf('%d out of %d action potentials: no slow AHP.\n',cnt,obj.nrofaps); 
+               % fprintf('%d out of %d action potentials: no slow AHP.\n',cnt,obj.nrofaps); 
             end
         end
  
@@ -494,15 +492,15 @@ classdef Trace < timeseries
                 ahpwinstrt = find(isi.Data(1:end-snakelen+1)<isi.Data(snakelen:end),1);             % find start of ahp window
                 ahpwinend  = ahpwinstrt + snakelen;                                                 % get end window
                 if ~isempty(ahpwinstrt)
-%                    ahpidx = find(isi.Data==min(isi.Data((ahpwinstrt-1:ahpwinend-1))),1);             % find index of minimum
-%                     if isi.Time(ahpidx)-obj.getap(i).peak_time<5
-%                     obj    = obj.updateap(i,'ahp',isi.Data(ahpidx),'ahp_time',isi.Time(ahpidx));    % update AP (only if AHP is fast enough)
-%                     else
+                   ahpidx = find(isi.Data==min(isi.Data((ahpwinstrt-1:ahpwinend-1))),1);             % find index of minimum
+                    if isi.Time(ahpidx)-obj.getap(i).peak_time<5
+                    obj    = obj.updateap(i,'ahp',isi.Data(ahpidx),'ahp_time',isi.Time(ahpidx));    % update AP (only if AHP is fast enough)
+                    else
                         cnt=cnt+1;
                    end
-                %else
-                 %  cnt=cnt+1;
-                %end
+                else
+                  cnt=cnt+1;
+                end
             end
             if cnt>0
                 fprintf('%d out of %d action potentials: no fast AHP.\n',cnt,obj.nrofaps); 

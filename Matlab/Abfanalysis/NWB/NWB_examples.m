@@ -13,12 +13,12 @@ for i = 1:numel(list.name)
  nwb = NWBfile(fn,[{'LP'} {'hresh'} {'CC'} {'teps'} {'LSFINEST'} {'LSCOARSE'}]);
  obj =nwb.analyseNWB ;
  obj.savename = sprintf('NWB_%s.mat',obj.filename(1:end-4));
- saveme(obj,'/Volumes/Expansion/L2L3 T/downstrokes', obj.savename) 
+ saveme(obj,'/Volumes/Expansion/Temp_database/analyzed', obj.savename) 
 end
 
     
     %%
-fn= '/Users/elinemertens/Data/Projects/Ch3.Method section/Figures/H21.29.199_T_01_06-compressed.nwb'
+fn= '/Volumes/Expansion/Temp_database/H19.29.166.11.11.02.nwb'
 
 
 %% let op of je wel of geen chirp wilt 
@@ -28,7 +28,7 @@ nwb = NWBfile(fn,[{'LP'} {'hresh'} {'CC'} {'teps'}]);
 obj=nwb.analyseNWB
 %%
 obj.savename = sprintf('NWB_%s.mat',obj.filename(1:end-4));
-saveme(obj,'/Volumes/Expansion/Ephys from 226/H23.29.244.01_6 /analysed', obj.savename) 
+saveme(obj,'/Volumes/Expansion/Temp_database/analyzed/batch2', obj.savename) 
 
 %%
 %%obj.saveme('/Users/elinemertens/Data/ephys/Human/H20.29.185.21.01/nwb analyzed','185_cell1.mat');

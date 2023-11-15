@@ -1,9 +1,24 @@
 %% Analysis script
-% Written by D.B. Heyer !
 close all, clear all
+%%
+folder = uigetdir 
+cd (folder);
+%make a list with all nwbsephys
+list = dir();
+list = struct2table(list);
+list = list(list.bytes>10000,:); %only files with actual data
+
+%% USE THIS nwb2: 
+for i = 1:numel(list.name) 
+    fn =cell2mat(list.name(i));
+ nwb = NWBfile(fn,[{'LP'} {'hresh'} {'CC'} {'teps'} {'LSFINEST'} {'LSCOARSE'}]);
+ obj =nwb.analyseNWB ;
+ obj.savename = sprintf('NWB_%s.mat',obj.filename(1:end-4));
+ saveme(obj,'/Volumes/Expansion/Temp_database/analyzed/batch2', obj.savename) 
+end
 
 %% Set path to load and save data; mat data load 
-basedir = '/Volumes/Expansion/Ephys Analysed/251' ;
+basedir = '/Volumes/Expansion/Temp_database/analyzed/batch2' ;
 savedir = '/Users/elinemertens/Data/ephys/Hippocampus/2022_Summary';
 savename = 'Summary_198' ; 
 
@@ -120,8 +135,11 @@ for i = 1:length(filelist)
         taus= NaN(NrofSweeps,1);
         for j = 1:NrofSweeps       
             step = find(strcmp({sweep(j).epoch.idxstr}, 'B'));
-            if sweep(j,1).currinj >= -100 && sweep(j,1).currinj < 0
-                voltageResponses(j,1) = sweep(j,1).vmresponse ; 
+            if sweep(j,1).currinj >= -100 && sweep(j,1).currinj < 0 && sweep(j,1).vmbase < -60
+                voltageResponses(j,1) = sweep(j,1).vmresponse  ; 
+                % for cells with a non fixed (-70mV) rmp, use the
+                % difference between vmresponse and the vmbase: 
+                % voltageResponses(j,1) = sweep(j,1).vmresponse - sweep(j,1).vmbase
                 currInjections_R(j,1) = sweep(j,1).currinj ;
                 if sweep(j,1).epoch(step).tau < 100 && sweep(j,1).epoch(step).tau > 0 && sweep(j,1).epoch(step).gof > 0.95
                     taus(j,1) = sweep(j,1).epoch(step).tau ;
@@ -151,25 +169,25 @@ for i = 1:length(filelist)
                 StimInts(j,1) = [sweep(j,1).currinj] ;                
             end 
             
-f_R=fittype('R*x+b');                         
-
-            if sweep(j).nrofaps > 1 
-                    Freq (j,1) = sweep(j).nrofaps; 
-                    Freq = Freq(~isnan(Freq));
-                    Freq = Freq(Freq~=0) ;
-                    Stim(j,1) = [sweep(j,1).currinj];
-                    Stim = Stim(~isnan(Stim));
-                    Stim(Stim == 0) = [];
-            end
-                
-        end
-        
-   if length(Freq) > 1
-    [fitFit] = fit(Stim, Freq, f_R, 'StartPoint', [0 0]); 
-    FIslope = fitFit.R;
-else  
-    FIslope = NaN;   
-end     
+% f_R=fittype('R*x+b');                         
+% 
+%             if sweep(j).nrofaps > 1 
+%                     Freq (j,1) = sweep(j).nrofaps; 
+%                     Freq = Freq(~isnan(Freq));
+%                     Freq = Freq(Freq~=0) ;
+%                     Stim(j,1) = [sweep(j,1).currinj];
+%                     Stim = Stim(~isnan(Stim));
+%                     Stim(Stim == 0) = [];
+%             end
+%                 
+         end
+%         
+%    if length(Freq) > 1
+%     [fitFit] = fit(Stim, Freq, f_R, 'StartPoint', [0 0]); 
+%     FIslope = fitFit.R;
+% else  
+%     FIslope = NaN;   
+% end     
 
         if sum(NrofRBAPs) > 0
             NrofRBAPsM = mean(NrofRBAPs(NrofRBAPs~=0)) ;

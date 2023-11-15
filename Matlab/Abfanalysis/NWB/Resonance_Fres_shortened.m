@@ -1,6 +1,6 @@
 %% Resonance analysis single files (raw nwb files): first select only correct protocol
 % We use the script NWBfile to select this 
-fn= '/Volumes/Expansion/L2L3 T/FreqStim/H23.29.239.11.01.02.nwb';
+fn= '/Volumes/Overig/Ephys from 226/H23.29.244.11/H23.29.244.11.11.03.nwb';
 nwb = NWBfile(fn,[{'CHIRP'}]) ; 
 %% Look at the sweeps, are they comparable? 
  signal = nwb.getstimset.getnwbchannel.getsweep([1:3]);
@@ -8,7 +8,7 @@ nwb = NWBfile(fn,[{'CHIRP'}]) ;
 %% Only average the sweeps that look comparable
 signal = nwb.getstimset.getnwbchannel.getsweep([1:3]).avtrace;
 plot(signal)
-stim = nwb.getstimset.getnwbchannel.getstimwave(3).Data ;
+stim = nwb.getstimset.getnwbchannel.getstimwave(1).Data ;
 %signal = signal.low_pass_filter(1000);
 signal=signal.resample(0:0.1:signal.TimeInfo.End).Data;
 %signal = lowpass(signal,1000,10000);
@@ -17,7 +17,8 @@ signal=signal.resample(0:0.1:signal.TimeInfo.End).Data;
     f = (0:L-1)*Fs/L;        
     plot(signal)
     grid off      
-    %% Fast fourier transformation: plot only smoothed signal 
+    
+    % Fast fourier transformation: plot only smoothed signal 
      signal_fft=fft(signal);
     stim_fft=fft(stim);
 figure(4)

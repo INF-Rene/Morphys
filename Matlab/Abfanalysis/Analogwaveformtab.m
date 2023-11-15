@@ -17,7 +17,7 @@ classdef Analogwaveformtab < Sharedmethods
         nrofsweeps  = [];    % default number of sweeps for this protocol
         tab         = table; % table with epoch specification (analogous to pClamp Analog Waveform tab)
         scalefactor = 1;     % scalefactor
-        units       = 'pA'   % important!! default is current clamp protocols!
+        units       = 'pA' ;  % important!! default is current clamp protocols!
     end
 
 %####################################################### METHODS ############################################################
