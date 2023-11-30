@@ -1,130 +1,117 @@
 %% Analysis script
+% Written by D.B. Heyer
 close all, clear all
+
+%% Make a batch with gui
+% The Abfbatch object allows you to handle a collection of Abffiles. 
+% Use GUI to select abf/mat files to add to batch, and select an setup settings object
+
+bb = Abfbatch('gui'); 
+ 
+%% inspect
+bb = bb.inspectbatch;
+
+%% analyse all files from batch
+bb = bb.analysebatch;  
+
 %%
-folder = uigetdir 
-cd (folder);
-%make a list with all nwbsephys
-list = dir();
-list = struct2table(list);
-list = list(list.bytes>10000,:); %only files with actual data
+%save bb 
+%and load in AnalyseCCstepsABFBatch script
 
-%% USE THIS nwb2: 
-for i = 1:numel(list.name) 
-    fn =cell2mat(list.name(i));
- nwb = NWBfile(fn,[{'LP'} {'hresh'} {'CC'} {'teps'} {'LSFINEST'} {'LSCOARSE'}]);
- obj =nwb.analyseNWB ;
- obj.savename = sprintf('NWB_%s.mat',obj.filename(1:end-4));
- saveme(obj,'/Volumes/Expansion/Temp_database/analyzed/batch2', obj.savename) 
+%% Set path to load and save data
+basedir = uigetdir  % specify path to analyzed abfBatch. File will be saved in this folder
+savename = 'Summary'; % specify filename to be saved
+
+%% extract data tables from obj 
+abfs = struct2table(bb.getabf.metadata) ;
+channels = struct2table(bb.getabf.getchannel.metadata) ;
+ins = struct2table(bb.getabf.getchannel.getin.metadata) ;
+outs = struct2table(bb.getabf.getchannel.getout.metadata) ;
+sweeps = struct2table(bb.getabf.getchannel.getin.getsweep.metadata) ;
+epochs = struct2table(bb.getabf.getchannel.getin.getsweep.getepoch.metadata) ;
+aps = struct2table(bb.getabf.getchannel.getin.getsweep.getepoch.getap.metadata) ;
+
+% get instantaneous freq bins 
+edges = 1:10:201 ;
+aps.freqbin = discretize(aps.freq, edges) ;
+aps.freqbin(isnan(aps.freqbin)) = 0 ;
+aps.currinj = aps.number*0 ;
+for ii = 1:height(aps)
+    aps(ii,:).currinj = epochs(ismember(epochs.guid,aps(ii,:).parent_guid),:).amplitude ;  
 end
-
-%% Set path to load and save data; mat data load 
-basedir = '/Volumes/Expansion/Temp_database/analyzed/batch2' ;
-savedir = '/Users/elinemertens/Data/ephys/Hippocampus/2022_Summary';
-savename = 'Summary_198' ; 
-
-%% load file list
-fileinfo  = dir(fullfile(basedir,'*.mat'));
- fileinfo = struct2table(fileinfo);
- fileinfo = fileinfo(fileinfo.bytes>10000,:);
- fileinfo = table2struct(fileinfo) ; 
-filelist  = {fileinfo.name};
-
-    %% Loop through abfs 
-index = 1 ; 
-for i = 1:length(filelist)
-    %% Make subset of data per abf file
-    fprintf('Looking for CC-step protocols: file nr %1.0f \n', i);
-    load(fullfile(basedir,filelist{i})) ;
+aps.updownratio = aps.maxdvdt./abs(aps.mindvdt) ;
+aps.onsetrapidity(aps.onsetrapidity > 100) = NaN ;
     
-   % either run through all protocols, if it can't resolve this, remove %
-   % on line 22-24 and put it at 24. It will now loop through stimsets to
-   % find ccsteps 
-%    
-%      stimnms={obj.getstimsets.name};
-%      CCsteploc=cellfun(@(x) contains(x, 'teps'), stimnms);
-%    stimsets = struct2table(obj.getstimsets(CCsteploc).metadata, 'AsArray', true) ;
-    stimsets = struct2table(obj.getstimsets.metadata, 'AsArray', true) ;
-    sweeps = struct2table(obj.getstimsets.getnwbchannel.getsweep.metadata) ;
-    epochs = struct2table(obj.getstimsets.getnwbchannel.getsweep.getepoch.metadata) ;
-    aps = struct2table(obj.getstimsets.getnwbchannel.getsweep.getepoch.getap.metadata) ;
-    % remove incomplete sweeps
-    sweeps(sweeps.nrofepochs < 3,:) = [] ;
-    %% get freqbins
-    edges = 1:10:201 ;
-    aps.freqbin = discretize(aps.freq, edges) ;
-    aps.freqbin(isnan(aps.freqbin)) = 0 ;
-    aps.currinj = aps.number*0 ;
-    for ii = 1:height(aps)
-        aps(ii,:).currinj = epochs(ismember(epochs.guid,aps(ii,:).parent_guid),:).amplitude ;  
-    end
-    aps.updownratio = aps.maxdvdt./abs(aps.mindvdt) ;
-    aps.onsetrapidity(aps.onsetrapidity > 100) = NaN ;
-
-    % Create nested structure
-    aps2 = table2struct(aps) ;
-    epochs2 = table2struct(epochs) ;
-    sweeps2 = table2struct(sweeps) ;
-    stimset = table2struct(stimsets) ;
     
-    for ii = 1:length(epochs2)    
-            epochs2(ii).ap = aps2(ismember({aps2.parent_guid},epochs2(ii).guid)) ;    
-    end
-    for ii = 1:length(sweeps2)    
-            sweeps2(ii).epoch = epochs2(ismember({epochs2.guid_swp},sweeps2(ii).guid)) ;    
-    end
-    for ii = 1:length(stimset)    
-            stimset(ii).sweep = sweeps2(ismember([sweeps2.number],stimset(ii).sweepnrs)) ;         
-    end
-
-    %% If abf is a stepprotocol: continue with analysis
-
-        fprintf('Retrieving analysis parameters from CC-step file %1.0f \n', index);
+  %% Make subset of data per abf file   
+ abf = SubsetTable2struct(abfs,channels,ins,outs,sweeps,epochs,aps) ;
+       
+%% loop through abf files
+index = 1 ;
+for i = 1:bb.nrofabfs
+    %% If abf is a stepprotocol: continue with analysis (preloop is preprocessing loop so afterwards we can just
+%use this part instead of redo-ing all analysis
+    %[ccabf, chs] = isccstep(abf) ; %not necessary if you're not bulk-loading your abffiles
+    %if ccabf == 1 
+      fprintf('Retrieving analysis parameters from CC-step file %1.0f \n', index);
         %% Analyze
-        sweep = sweeps2 ;
-        NrofSweeps = length(sweep) ;  
+        %sweep = abf.channel([abf.channel.number] == chs).in(strcmp({abf.channel([abf.channel.number] == chs).in.signal},'primary')).sweep ;
+        sweep = abf(i).channel(1).in(strcmp({abf(i).channel(1).in.signal},'primary')).sweep ;
+        NrofSweeps = length(sweep) ; 
+        
+
         % find current injection epoch and assign aps to sweep
         for step = 1:length(sweep(1).epoch)
-            if sweep(1).epoch(step).amplitude ~= 0 && seconds(sweep(1).epoch(step).timespan) > 0.03
-                break 
+            if sweep(1).epoch(step).stepdiff ~= 0 && (sweep(1).epoch(step).stepdiff + sweep(1).epoch(step+1).stepdiff) == 0 && seconds(sweep(1).epoch(step).timespan) > 0.03
+                break
             end
         end
-        for j = 1:NrofSweeps
-            step = find(strcmp({sweep(j).epoch.idxstr}, 'B'));
+        %for djai files has to go 
+%         for j = 1:NrofSweeps
+%             sweep(j).vmbase = sweep(j).epoch(step-1).steadystate ;
+%             sweep(j).jitter = sweep(j).epoch(step-1).jitter ;
+%             sweep(j).currinj = sweep(j).epoch(5).stepdiff ;
+%             sweep(j).vmresponse = sweep(j).epoch(5).vstep ;
+%             sweep(j).ap = sweep(j).epoch(5).ap ;
+%             for ap = 1:length(sweep(j).epoch(6).ap)
+%                 %if sweep(j).epoch(step+1).ap(ap).start_time > (sum(second({sweep(1).epoch(1:step).timespan}))*1000)+7 && sweep(j).epoch(step+1).ap(ap).start_time < (sum(second({sweep(1).epoch(1:step).timespan}))*1000)+300
+%                     sweep(j).rbap(ap) = sweep(j).epoch(6).ap(ap) ;
+%                 %end
+%             end
+%         end
+  
+ for j = 1:NrofSweeps
+     step = find(strcmp({sweep(j).epoch.idxstr}, 'B'));
             sweep(j).vmbase = sweep(j).epoch(step-1).steadystate ;
             sweep(j).jitter = sweep(j).epoch(step-1).jitter ;
-            sweep(j).currinj = sweep(j).epoch(step).amplitude ;
+            sweep(j).currinj = sweep(j).epoch(step).stepdiff ;
             sweep(j).vmresponse = sweep(j).epoch(step).vstep ;
             sweep(j).ap = sweep(j).epoch(step).ap ;
-            try
-                for ap = 1:length(sweep(j).epoch(step+1).ap)
-                    sweep(j).rbap(ap) = sweep(j).epoch(step+1).ap(ap) ;      
-                end
+            for ap = 1:length(sweep(j).epoch(step).ap)
+                %if sweep(j).epoch(step+1).ap(ap).start_time > (sum(second({sweep(1).epoch(1:step).timespan}))*1000)+7 && sweep(j).epoch(step+1).ap(ap).start_time < (sum(second({sweep(1).epoch(1:step).timespan}))*1000)+300
+                    sweep(j).rbap(ap) = sweep(j).epoch(step).ap(ap) ;
+                %end
             end
         end
-        
-        sweep=sortrows(struct2table(sweep),{'currinj','number'});
-        sweep=table2struct(sweep);
+  
         % find rheobase sweep
         apcrit=0;
         for frstspikeswp = 1:NrofSweeps
-            step = find(strcmp({sweep(frstspikeswp).epoch.idxstr}, 'B'));
-            if sweep(frstspikeswp).epoch(step).nrofaps > 0 && sweep(frstspikeswp).epoch(step).amplitude > 0
+            if sweep(frstspikeswp).epoch(step).nrofaps > 0 && sweep(frstspikeswp).epoch(step).stepdiff > 0
                 apcrit=1;
-                firstsweepname = sweep(frstspikeswp).Name ;
                 break
             end
         end
         
         idx1 = 1 ;
-        for j = frstspikeswp:NrofSweeps  
-            step = find(strcmp({sweep(frstspikeswp).epoch.idxstr}, 'B'));
+        for j = frstspikeswp:NrofSweeps           
             for ii = 1:length(sweep(j).epoch(step).ap)
                 apguids(idx1) = {sweep(j).epoch(step).ap(ii).guid} ;
                 idx1 = idx1 + 1 ;
             end
         end             
         aps2 = aps(ismember(aps.guid,apguids),:) ;
-        
+
         %if apcrit==1 %end at line 332
         % calculate variables
         vmbase = [sweep.vmbase] ;
@@ -132,16 +119,10 @@ for i = 1:length(filelist)
         StimInts= NaN(NrofSweeps,1) ;
         currInjections_R= NaN(NrofSweeps,1);
         voltageResponses= NaN(NrofSweeps,1);
-        taus= NaN(NrofSweeps,1);
-        for j = 1:NrofSweeps       
-            step = find(strcmp({sweep(j).epoch.idxstr}, 'B'));
-            if sweep(j,1).currinj >= -100 && sweep(j,1).currinj % < 0 && sweep(j,1).vmbase < -60               
-                % remove the % 1 row above when there are rinputs that aren negative (means that the cell was unhealthy and got depolarized
-                %throughout the subthreshold, by removing that vmbase < -60 you correct for that unsteady rmp
-                voltageResponses(j,1) = sweep(j,1).vmresponse  ; 
-                % for cells with a non fixed (-70mV) rmp, use the
-                % difference between vmresponse and the vmbase: 
-                % voltageResponses(j,1) = sweep(j,1).vmresponse - sweep(j,1).vmbase
+         taus= NaN(NrofSweeps,1);
+        for j = 1:NrofSweeps           
+            if sweep(j,1).currinj >= -120 && sweep(j,1).currinj < 0
+                voltageResponses(j,1) = sweep(j,1).vmresponse ; 
                 currInjections_R(j,1) = sweep(j,1).currinj ;
                 if sweep(j,1).epoch(step).tau < 100 && sweep(j,1).epoch(step).tau > 0 && sweep(j,1).epoch(step).gof > 0.95
                     taus(j,1) = sweep(j,1).epoch(step).tau ;
@@ -167,47 +148,33 @@ for i = 1:length(filelist)
             end
 
             if length(sweep(j).ap) >= 4 && sweep(j,1).currinj > 0
-               Freqs(j,1) =  mean([sweep(j).ap(4:end).freq]) ;
-                StimInts(j,1) = [sweep(j,1).currinj] ;                
-            end 
-            
-% f_R=fittype('R*x+b');                         
-% 
-%             if sweep(j).nrofaps > 1 
-%                     Freq (j,1) = sweep(j).nrofaps; 
-%                     Freq = Freq(~isnan(Freq));
-%                     Freq = Freq(Freq~=0) ;
-%                     Stim(j,1) = [sweep(j,1).currinj];
-%                     Stim = Stim(~isnan(Stim));
-%                     Stim(Stim == 0) = [];
-%             end
-%                 
-         end
-%         
-%    if length(Freq) > 1
-%     [fitFit] = fit(Stim, Freq, f_R, 'StartPoint', [0 0]); 
-%     FIslope = fitFit.R;
-% else  
-%     FIslope = NaN;   
-% end     
+                Freqs(j,1) =  mean([sweep(j).ap(4:end).freq]) ;
+                StimInts(j,1) = [sweep(j,1).currinj] ;
+            end         
+        end
 
         if sum(NrofRBAPs) > 0
             NrofRBAPsM = mean(NrofRBAPs(NrofRBAPs~=0)) ;
         else
             NrofRBAPsM = 0 ;
         end
-      
+       
+
+        % find trainsweep 
+        % Traincurr=rheobase+50 :
+        TrainCurr = sweep(frstspikeswp).epoch(step).stepdiff +50 ;
+        for j = 1:NrofSweeps
+            tmp(j) = abs(sweep(j).epoch(step).stepdiff - TrainCurr) ;
+        end
+   
         % find trainsweep 
         % Traincurr=rheobase+50 :
         step = find(strcmp({sweep(frstspikeswp).epoch.idxstr}, 'B'));
-       % changed this to 50 pA
+       % changed this to 250 pA
         TrainCurr = sweep(frstspikeswp).epoch(step).amplitude +50 ;
         for j = 1:NrofSweeps
             step = find(strcmp({sweep(j).epoch.idxstr}, 'B'));
             tmp(j) = abs(sweep(j).epoch(step).amplitude - TrainCurr) ;
-%          if isnan(sweep(j).ap(1).downstroke)
-%                   sweep(j).ap(1) = [] ;
-%          end
         end
         
         [TrSwp TrSwp] = min(tmp) ;
@@ -215,21 +182,41 @@ for i = 1:length(filelist)
         for TrainSweep = TrSwp:NrofSweeps  
             step = find(strcmp({sweep(TrainSweep).epoch.idxstr}, 'B'));
             if length(sweep(TrainSweep).ap) > 1
-                 TrSweepCrit=1;
-                CurrAbvRheo = sweep(TrainSweep).epoch(step).amplitude - (TrainCurr-50) ;     
-%                 if isnan(sweep(TrainSweep).ap(1).downstroke)
-%                     TrainSweep = TrainSweep + 1 ;  
-%                     if isnan(aps.downstroke(TrainSweep))
-%                     TrainSweep = TrainSweep + 2 ; 
+                TrSweepCrit=1;
+                CurrAbvRheo = sweep(TrainSweep).epoch(step).amplitude - (TrainCurr-50) ;               
                 break
                end
             if TrainSweep==NrofSweeps
                 TrSweepCrit=0;
             end  
         end
-        %    end
+        
+      
+        
+% Traincurr= sweep with AP freq (AP4:APend) closest to 15 Hz (and reasonable number of spikes):  
+%         TrSwp = find(abs(15-Freqs)<5);
+%         TrainSweep=[];
+%         if ~isempty(TrSwp)
+%             for j = 1:length(TrSwp)
+%                 nrofaps(j) = sweep(TrSwp(j)).nrofaps;
+%             end
+%             [~,tmp] = max(nrofaps);
+%             TrainSweep=TrSwp(tmp);
+%         elseif ~isempty(Freqs)
+%             [~,TrainSweep] = min(abs(15-Freqs));
+%         end
+%         if isempty(TrainSweep)
+%             TrainSweep = NrofSweeps;
 %         end
 %         
+%         CurrAbvRheo=NaN;
+%         if length(sweep(TrainSweep).ap)>=4
+%             TrSweepCrit=1;
+%             CurrAbvRheo = sweep(TrainSweep).epoch(step).stepdiff - (sweep(frstspikeswp).epoch(step).stepdiff) ;
+%         else
+%             TrSweepCrit=0;
+%         end
+        
         if ~isempty(sweep(TrainSweep).ap)
             for l = 1:length(sweep(TrainSweep).ap)           
                 if ~isempty(sweep(TrainSweep).ap(l,1).halfwidth)
@@ -247,9 +234,10 @@ for i = 1:length(filelist)
             AHPsTS = [sweep(TrainSweep).ap.relahp] ;
             AHPslowTS = [sweep(TrainSweep).ap.relahp_slow] ;
             ISIsTS = [sweep(TrainSweep).ap(2:end).isi] ;
+            ISIsTS1 = [sweep(TrainSweep).ap(2).isi] ;
             FreqTrSwp = mean([sweep(TrainSweep).ap(4:end).freq]) ;
-            NrOfAPsTrSwp = length(sweep(TrainSweep).ap) ; 
-            OnsetTSFAP = sweep(TrainSweep).ap(1).thresh_time - (seconds(sum([sweep(TrainSweep).epoch(1:find(strcmp({sweep(TrainSweep,1).epoch.idxstr}, 'A'))).timespan]))*1000) ;
+            NrOfAPsTrSwp = length(sweep(TrainSweep).ap) ;
+            OnsetTSFAP = NaN ;%sweep(TrainSweep).ap(1).thresh_time - (sum(second({sweep(TrainSweep).epoch(1:step-1).timespan}))*1000) ;
         else
             TSbasetothresh = NaN;
             TSpeaktoahp = NaN;
@@ -261,8 +249,8 @@ for i = 1:length(filelist)
             NrOfAPsTrSwp = NaN;
             OnsetTSFAP = NaN;
         end
-%         
-        % third try
+
+          % nwb based 150 pA above rheo
          TrainCurr2 = sweep(frstspikeswp).epoch(step).amplitude +150 ;
         for j = 1:NrofSweeps
             step = find(strcmp({sweep(j).epoch.idxstr}, 'B'));
@@ -284,7 +272,7 @@ for i = 1:length(filelist)
         end
        
         
-        if ~isempty(sweep(TrainSweep2).ap)
+         if ~isempty(sweep(TrainSweep2).ap)
             for l = 1:length(sweep(TrainSweep2).ap)           
                 if ~isempty(sweep(TrainSweep2).ap(l,1).halfwidth)
                     HWsTS2(l,1) = [sweep(TrainSweep2).ap(l,1).halfwidth] ;  
@@ -314,8 +302,8 @@ for i = 1:length(filelist)
             FreqTrSwp2 = NaN;
             NrOfAPsTrSwp2 = NaN;
             OnsetTSFAP2 = NaN;
-        end      
-        
+        end
+
         % calculate input resistance     
         f_R=fittype('R*x+b');
         tmp=length(find(currInjections_R~=0 & ~isnan(voltageResponses)));
@@ -332,82 +320,32 @@ for i = 1:length(filelist)
         else
             Rin=NaN;
         end
-        
-        
         % determine sweep for sag, (minimum voltage response closest to -100)
-        %commented on 04-05-2023 by deduction from abf of lower part
-%         tmp = abs(MinVmResponse+100) ;
-%        tmp = tmp(~isnan(tmp));
-%          [sagswp sagswp] = min(tmp)  ;
- % sagsweepname = sweep(sagswp).Name ;
- 
-  tmp = abs(MinVmResponse+100) ;
-  % tmp = tmp(~isnan(tmp));
+        tmp = abs(MinVmResponse+100) ;
         [sagswp sagswp] = min(tmp) ;
-        tmp = abs(MinVmResponse+90) ; 
-         %tmp2 = tmp2(~isnan(tmp2));
-        [sagswp2 sagswp2] = min(tmp) ;
-        tmp = abs(MinVmResponse+80) ;
-        % tmp3 = tmp3(~isnan(tmp3));
-        [sagswp3 sagswp3] = min(tmp) ; 
-        
-          
-        step = find(strcmp({sweep(sagswp).epoch.idxstr}, 'B'));
-            
+        tmp2 = abs(MinVmResponse+90) ; 
+        [sagswp2 sagswp2] = min(tmp2) ;
+        tmp3 = abs(MinVmResponse+80) ;
+        [sagswp3 sagswp3] = min(tmp3) ; 
+         
         Sag                = sweep(sagswp,1).epoch(step).sag / PkDeflect(sagswp,1) ;
         Sag2               = sweep(sagswp2,1).epoch(step).sag / PkDeflect(sagswp2,1) ;
         Sag3               = sweep(sagswp3,1).epoch(step).sag / PkDeflect(sagswp3,1) ;
-        SagMedian             = nanmedian([Sag Sag2 Sag3]) ; 
+        SagMedian             = median([Sag Sag2 Sag3]) ; 
         
- 
-Freqs = Freqs(~isnan(Freqs));
+      Freqs = Freqs(~isnan(Freqs));
 StimInts = StimInts(~isnan(StimInts));
-Freqs = Freqs(Freqs~=0) ;
-StimInts = StimInts(StimInts~=0) ;
-
-if length(Freqs) > 1
-    [fitFi] = fit(StimInts, Freqs, f_R, 'StartPoint', [0 0]); 
-    FrqChngStimInt = fitFi.R;
-else  
-    FrqChngStimInt = NaN;   
-end
-        
-
-
-        % calculate input frequency curve
-       % this caused problems after fixing the input resistance 
-%         Freqs = Freqs(Freqs~=0) ;
-%         StimInts = StimInts(StimInts~=0) ;
-%         if length(Freqs) > 1
-%             [fitFi]=fit(StimInts,Freqs,f_R, 'StartPoint', [0 0]); 
-%             FrqChngStimInt = fitFi.R ;
-%         else  
-%             FrqChngStimInt = NaN ;   
-%         end
-
-        % bursting & adaptation index
-        if TrSweepCrit2==1
-            isis2=ISIsTS2; %exclude stuttering ISIs since that can mess with adaptation analysis
-            amps2=AmpsTSthresh2;
-            hws2=HWsTS2;
-        else
-            isis2=NaN;
-            amps2=NaN;
-            hws2=NaN;
+% calculate input frequency curve
+        Freqs = Freqs(Freqs~=0) ;
+        StimInts = StimInts(StimInts~=0) ;
+        if length(Freqs) > 1
+            [fitFi]=fit(StimInts,Freqs,f_R, 'StartPoint', [0 0]); 
+            FrqChngStimInt = fitFi.R ;
+        else  
+            FrqChngStimInt = NaN ;   
         end
-        if length(isis2) > 2
-            ISIRatio1toAll2 = mean(isis2(2:end)) / mean(isis2(1)) ;
-            N = length(isis2)-1 ;
-            for n = 1:N
-                ISIchanges2(n,1) = (isis2(n+1)-isis2(n)) / (isis2(n+1)+isis2(n));
-            end
-            AdaptIdx2 = (1/N)*sum(ISIchanges2) ;        
-        else
-            ISIRatio1toAll2 = NaN;
-            AdaptIdx2 = NaN;
-        end
-       
-          % bursting & adaptation index
+
+         % bursting & adaptation index
         if TrSweepCrit==1
             isis=ISIsTS; %exclude stuttering ISIs since that can mess with adaptation analysis
             amps=AmpsTSthresh;
@@ -429,6 +367,27 @@ end
             AdaptIdx = NaN;
         end
         
+        % bursting & adaptation index
+%         if TrSweepCrit==1
+%             isis=ISIsTS(~stutterISI); %exclude stuttering ISIs since that can mess with adaptation analysis
+%             amps=AmpsTSthresh(~stutterAP);
+%             hws=HWsTS(~stutterAP);
+%         else
+%             isis=ISIsTS;
+%             amps=AmpsTSthresh;
+%             hws=HWsTS;
+%         end
+%         if length(isis) > 2
+%             ISIRatio1toAll = mean(isis(2:end)) / mean(isis(1)) ;
+%             N = length(isis)-1 ;
+%             for n = 1:N
+%                 ISIchanges(n,1) = (isis(n+1)-isis(n)) / (isis(n+1)+isis(n));
+%             end
+%             AdaptIdx = (1/N)*sum(ISIchanges) ;        
+%         else
+%             ISIRatio1toAll = NaN;
+%             AdaptIdx = NaN;
+%         end
         
         % Amplitude accomodation
         if TrSweepCrit==1
@@ -445,43 +404,47 @@ end
         else
             AmpAccom = NaN;    
             HWAccom = NaN; 
-        end     
+        end        
         if ~isempty(Freqs)
             freqmax = max(Freqs) ;
         else
             freqmax = NaN ;
         end
-        
-        
-         % Firstsweep and lastsweep ISIS EM edits
+
+        % Firstsweep and lastsweep ISIS EM edits
           % nr of APs first sweep (Eline Edit)
-   
+         NrOfAPfrstSwp = length(sweep(frstspikeswp).ap) ;
+         NrofAPtrainSwp = length(sweep(TrainSweep).ap);
+         NrofAPtrainSwp2 = length(sweep(TrainSweep2).ap);
+         NrofAPlastSwp = length(sweep(NrofSweeps).ap);
+         
         if length(sweep(frstspikeswp).ap) > 1
             isis_FS = [sweep(frstspikeswp).ap(2:end).isi];
             isis_FS1 = [sweep(frstspikeswp).ap(2).isi];
         else 
             isis_FS = NaN ;
-            isis_FS1 = NaN ; 
+           isis_FS1 = NaN ; 
+           
         end
         
          if length(sweep(TrainSweep).ap) > 1
             isis_TS = [sweep(TrainSweep).ap(2:end).isi];
             isis_TS1 = [sweep(TrainSweep).ap(2).isi];
-          %  isis_TSend = [sweep(TrainSweep).ap(end).isi];
         else 
             isis_TS = NaN ;
-            isis_TS1 = NaN  ;
+           isis_TS1 = NaN ; 
+           
          end
         
-      
-         if TrSweepCrit2 == 0
-           isis_TS2 = NaN ;
-           isis_TS2_1 = NaN ; 
-         elseif length(sweep(TrainSweep2).ap) > 1
+         if length(sweep(TrainSweep2).ap) > 1
             isis_TS2 = [sweep(TrainSweep2).ap(2:end).isi];
-            isis_TS2_1 = [sweep(TrainSweep2).ap(2).isi];          
+            isis_TS2_1 = [sweep(TrainSweep2).ap(2).isi];
+        else 
+            isis_TS2 = NaN ;
+           isis_TS2_1 = NaN ; 
+           
          end
-
+    
         if length(sweep(NrofSweeps).ap) > 1
             isis_LS = [sweep(NrofSweeps).ap(2:end).isi];
             isis_LS1 = [sweep(NrofSweeps).ap(2).isi];
@@ -489,93 +452,39 @@ end
             isis_LS = NaN ;
             isis_LS1 = NaN  ;
         end
+        
      
-        %get the holding current 
-        lb = obj.getstimset(1).getnwbchannel(1).labbooknum ; 
-        vals=lb.I0x2DClampHoldingLevel(~isnan(lb.I0x2DClampHoldingLevel)) ; 
-        currentinj_avg = nanmean(vals) ; 
-        
-% %end if you want to make a large summary, remove the end here 
-% TrainSweep1 = sweep(TrainSweep).Name ; 
-if isempty(TrainSweep2)
-    TrainSweep2 = NaN;
-end
-
-%  figure(1)
-%         for j = 1:length(obj.stimsets)
-%             if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},firstsweepname))
-%                 obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).getepoch(step).aps(1).plot('superimpose','peak');
-%                 legend(filelist)
-%                 xlim([-5 10])
-%                 title('First AP')
-%             %   ylabel('mV')
-%             %    xlabel('ms')
-%             end
-%         end
-      
-        
- trainsweepname  = sweep(TrainSweep).Name ;   
- trainsweep2name = sweep(TrainSweep2).Name ; 
-% figure(5)
-%         for j = 1:length(obj.stimsets)
-%             if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},trainsweepname)) 
-%                  obj.getstimset(j).getnwbchannel.getsweep('Name',trainsweepname).plot ;
-%                 legend(filelist)
-%                 xlim([-5 2000])
-%                 title('trainsweep')
-%             %   ylabel('mV')
-%             %    xlabel('ms')
-%             end
-%         end
-% 
-
-%   sagsweepname  = sweep(sagswp).Name    ;    
-% figure(3)
-%  for j = 1:length(obj.stimsets)
-%             if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},sagsweepname))
-%                 obj.getstimset(j).getnwbchannel.getsweep('Name',sagsweepname).plot;
-%                 legend(filelist)
-%                 xlim([0 1800])
-%                 title('Sag')
-%                 grid off
-%                  set(gca, 'TickDir', 'out')
-%                  ylabel('mV')
-%               xlabel('ms')
-%             end
-%         end
-      
-
+             
         % Create summary  
-        Summary(index).File               = stimset(1).filename ;
-        Summary(index).Date               = obj.filetimestart ;
-        Summary(index).UserID             = obj.userid ;
-        Summary(index).guid               = obj.guid ;
+        Summary(index).File               = abf(i).filename ;
+        Summary(index).Date               = abf(i).filetimestart ;
+        Summary(index).UserID             = abf(i).userid ;
+        Summary(index).guid               = abf(i).guid ;
         Summary(index).Channel            = NaN ;
-        Summary(index).scalefactor        = NaN ;
-        Summary(index).holdingcurrent     = NaN ;
-       % Summary(index).currentinj         = currentinj_avg ;
-        Summary(index).holdingvoltage     = NaN ;
+        Summary(index).scalefactor        = abf(i).channel(1).out.scalefactor ;
+        Summary(index).holdingcurrent     = abf(i).channel(1).out.holdingI ;
+        Summary(index).holdingvoltage     = abf(i).channel(1).out.holdingV ;
        % Summary(index).NrofSweeps         = NrofSweeps ;
-       % Summary(index).PDur               = seconds(sweep(1).epoch(strcmp({sweep(1).epoch.idxstr}, 'B')).timespan)*1000 ;
+       % Summary(index).PDur               = seconds(sweep(1).epoch(step).timespan)*1000 ;
         Summary(index).FrstP              = sweep(1).currinj ;
         Summary(index).DeltaP             = sweep(2).currinj - sweep(1).currinj ;
         Summary(index).Rheobase           = sweep(frstspikeswp).currinj ;
-        Summary(index).FrstSpikeSwp       = frstspikeswp ; 
+        Summary(index).FrstSpikeSwp       = frstspikeswp ;
         Summary(index).TrainSwp           = TrainSweep ; 
-        Summary(index).TrainSwp2          = TrainSweep2 ; 
-        Summary(index).CurrAbvRheo        = CurrAbvRheo ;
-        Summary(index).CurrAbvRheo2        = CurrAbvRheo2 ;
-        Summary(index).NrOfAPfrstSwp = length(sweep(frstspikeswp).ap) ;
-        Summary(index).NrofAPtrainSwp = length(sweep(TrainSweep).ap);
-        Summary(index).NrofAPtrainSwp2 = length(sweep(TrainSweep2).ap);
-        Summary(index).NrofAPlastSwp = length(sweep(NrofSweeps).ap);
-        Summary(index).isis_FS            = isis_FS ;
+        Summary(index).TrainSwp2          = TrainSweep2 ;
+        Summary(index).CurrAbvRheo1       = CurrAbvRheo ;
+        Summary(index).CurrAbvRheo2       = CurrAbvRheo2 ;
+        Summary(index).NrofAPsFrstSwp     = NrOfAPfrstSwp ; 
+        Summary(index).NrOfAPsTrSwp       = NrOfAPsTrSwp ;
+        Summary(index).NrOfAPsTrSwp2      = length(sweep(TrainSweep2).ap) ;
+        Summary(index).NrofAPlastSwp      = NrofAPlastSwp ; 
+        Summary(index).isis_FS            = NaN %isis_FS ;
         Summary(index).isis_FS1           = isis_FS1 ;
-        Summary(index).isis_TS            = isis_TS ;
+        Summary(index).isis_TS            = NaN %isis_TS ;
         Summary(index).isis_TS1           = isis_TS1 ;
-        Summary(index).isis_TS2           = isis_TS2 ;
+        Summary(index).isis_TS2           = NaN %isis_TS2 ;
         Summary(index).isis_TS2_1         = isis_TS2_1 ;
-        Summary(index).isis_LS            = isis_LS ;
+        Summary(index).isis_LS            = NaN %isis_LS ;
         Summary(index).isis_LS1           = isis_LS1 ;
         Summary(index).vmbaseM            = nanmean(vmbase) ;
         Summary(index).vmbaseSD           = nanstd(vmbase) ;
@@ -583,11 +492,9 @@ end
         Summary(index).InputR             = Rin ;% in MOhm...
         Summary(index).FreqMax            = freqmax ;
         Summary(index).NrOfAPs            = sum(NrofAPs) ;
-        Summary(index).NrOfAPsMax         = max(NrofAPs) ;
-        Summary(index).FreqTrSwp          = FreqTrSwp ;
-        %Summary(index).NrOfAPsTrSwp       = NrOfAPsTrSwp ; 
+        Summary(index).NrOfAPsMax         = max(NrofAPs) ; 
+        Summary(index).FreqTrSwp          = FreqTrSwp ; 
         Summary(index).FrqChngStimInt     = FrqChngStimInt ;
-        %Summary(index).FrqChngStimInt     = NaN ;
         Summary(index).NrofRBAPs          = sum(NrofRBAPs) ;
         Summary(index).NrofRBAPsM         = NrofRBAPsM ;
         Summary(index).Sag                = Sag ;
@@ -596,26 +503,28 @@ end
         Summary(index).SagMedian          = SagMedian ; 
         Summary(index).VmatSag            = MinVmResponse(sagswp,1) ;
         Summary(index).VmatSag2           = MinVmResponse(sagswp2,1) ;
-        Summary(index).VmatSag3           = MinVmResponse(sagswp3,1) ; 
+        Summary(index).VmatSag3           = MinVmResponse(sagswp3,1) ;
         Summary(index).TauM               = nanmean(taus(taus~=0)) ;
         Summary(index).TauSD              = nanstd(taus(taus~=0)) ;
-       % Summary(index).curr_FrstAP        = sweep(frstspikeswp).ap(1).currinj ;
-        Summary(index).OnsetFAP        = sweep(frstspikeswp).ap(1).thresh_time - (seconds(sum([sweep(frstspikeswp).epoch(1:find(strcmp({sweep(frstspikeswp,1).epoch.idxstr}, 'A'))).timespan]))*1000) ; 
-        Summary(index).ThreshFAP       = sweep(frstspikeswp).ap(1).thresh ; 
+    %    Summary(index).curr_FrstAP        = sweep(frstspikeswp).ap(1).currinj ; 
+        Summary(index).OnsetFrstAP        = NaN; %sweep(frstspikeswp).ap(1).thresh_time - (sum(seconds({sweep(frstspikeswp).epoch(1:step-1).timespan}))*1000) ; 
+       % here I made it epoch(step) instead of epoch(4) EM 221005
+        Summary(index).ThreshFrstAP       = sweep(frstspikeswp).ap(1).thresh ; 
         Summary(index).FAPbasetothresh    = sweep(frstspikeswp).ap(1).thresh-sweep(frstspikeswp).vmbase ; 
         Summary(index).AmpFAPthresh       = sweep(frstspikeswp).ap(1).amp ;
         Summary(index).PeakFrstAP         = sweep(frstspikeswp).ap(1).thresh + sweep(frstspikeswp).ap(1).amp ; 
         Summary(index).FAPpeaktoahp       = sweep(frstspikeswp).ap(1).ahp_time - sweep(frstspikeswp).ap(1).peak_time ;
-        Summary(index).HalfWFAP        = sweep(frstspikeswp).ap(1).halfwidth ; 
-        Summary(index).AHPFAP          = sweep(frstspikeswp).ap(1).relahp ;
-        Summary(index).AHPslowFAP      = sweep(frstspikeswp).ap(1).relahp_slow ;
-        Summary(index).UpStrokeFAP       = sweep(frstspikeswp).ap(1).upstroke ;
-        Summary(index).DwnStrokeFAP      = sweep(frstspikeswp).ap(1).downstroke ;
-        Summary(index).UpDwnStrkRatioFAP     = abs(sweep(frstspikeswp).ap(1).upstroke) / abs(sweep(frstspikeswp).ap(1).downstroke) ;
-        Summary(index).MaxUpStrkFAP       = sweep(frstspikeswp).ap(1).maxdvdt ;
-        Summary(index).MaxDwnStrkFAP      = sweep(frstspikeswp).ap(1).mindvdt ;
-        Summary(index).OnsetTSAP        = sweep(TrainSweep).ap(1).thresh_time - (seconds(sum([sweep(TrainSweep).epoch(1:find(strcmp({sweep(TrainSweep,1).epoch.idxstr}, 'A'))).timespan]))*1000) ; 
-        Summary(index).ThreshTSAP       = sweep(TrainSweep).ap(1).thresh ; 
+        Summary(index).HalfWFrstAP        = sweep(frstspikeswp).ap(1).halfwidth ; 
+        Summary(index).AHPFrstAP          = sweep(frstspikeswp).ap(1).relahp ;
+        Summary(index).AHPslowFrstAP      = sweep(frstspikeswp).ap(1).relahp_slow ;
+        Summary(index).UpStrkFrstAP       = sweep(frstspikeswp).ap(1).upstroke ;
+        Summary(index).DwnStrkFrstAP      = sweep(frstspikeswp).ap(1).downstroke ;
+        Summary(index).UpDwnStrkRatio     = abs(sweep(frstspikeswp).ap(1).upstroke) / abs(sweep(frstspikeswp).ap(1).downstroke) ;
+        Summary(index).MaxUpFrstAP        = sweep(frstspikeswp).ap(1).maxdvdt ;
+        Summary(index).MaxDwnFrstAP        = sweep(frstspikeswp).ap(1).mindvdt ;
+      %  Summary(index).TrSweepCrit        = TrSweepCrit ;
+        Summary(index).OnsetTSFAP         = OnsetTSFAP ;  
+         Summary(index).ThreshTSAP       = sweep(TrainSweep).ap(1).thresh ; 
         Summary(index).TSAPbasetothresh    = sweep(TrainSweep).ap(1).thresh-sweep(TrainSweep).vmbase ; 
         Summary(index).AmpTSAPthresh       = sweep(TrainSweep).ap(1).amp ;
         Summary(index).HalfWTSAP        = sweep(TrainSweep).ap(1).halfwidth ; 
@@ -642,42 +551,59 @@ end
         Summary(index).AdaptIndexTS       = AdaptIdx ;
         Summary(index).AmpAccomTS         = AmpAccom ;
         Summary(index).HWAccomTS          = HWAccom ;
-        Summary(index).ISIRatio1toAll     = ISIRatio1toAll ;
+        Summary(index).ISIRatio1toAll       = ISIRatio1toAll ;
         Summary(index).amp1to20  = nanmean(aps2.amp(aps2.freqbin>=1 & aps2.freqbin<=2)) ; 
-        Summary(index).upstroke1to20  = nanmean(aps2.upstroke(aps2.freqbin>=1 & aps2.freqbin<=2)) ;    
-        Summary(index).downstroke1to20  = nanmean(aps2.downstroke(aps2.freqbin>=1 & aps2.freqbin<=2)) ;    
+        Summary(index).upstroke1to20  = nanmean(aps2.maxdvdt(aps2.freqbin>=1 & aps2.freqbin<=2)) ;    
+        Summary(index).downstroke1to20  = nanmean(aps2.mindvdt(aps2.freqbin>=1 & aps2.freqbin<=2)) ;    
         Summary(index).HalfW1to20  = nanmean(aps2.halfwidth(aps2.freqbin>=1 & aps2.freqbin<=2)) ;    
         Summary(index).thresh1to20  = nanmean(aps2.thresh(aps2.freqbin>=1 & aps2.freqbin<=2)) ; 
         Summary(index).onsetrap1to20  = nanmean(aps2.onsetrapidity(aps2.freqbin>=1 & aps2.freqbin<=2)) ;
         Summary(index).updwnratio1to20  = nanmean(aps2.updownratio(aps2.freqbin>=1 & aps2.freqbin<=2)) ;   
         Summary(index).amp21to40  = nanmean(aps2.amp(aps2.freqbin>=3 & aps2.freqbin<=4)) ; 
-        Summary(index).upstroke21to40  = nanmean(aps2.upstroke(aps2.freqbin>=3 & aps2.freqbin<=4)) ;    
-        Summary(index).downstroke21to40  = nanmean(aps2.downstroke(aps2.freqbin>=3 & aps2.freqbin<=4)) ;    
+        Summary(index).upstroke21to40  = nanmean(aps2.maxdvdt(aps2.freqbin>=3 & aps2.freqbin<=4)) ;    
+        Summary(index).downstroke21to40  = nanmean(aps2.mindvdt(aps2.freqbin>=3 & aps2.freqbin<=4)) ;    
         Summary(index).HalfW21to40  = nanmean(aps2.halfwidth(aps2.freqbin>=3 & aps2.freqbin<=4)) ;    
         Summary(index).thresh21to40  = nanmean(aps2.thresh(aps2.freqbin>=3 & aps2.freqbin<=4)) ; 
         Summary(index).onsetrap21to40  = nanmean(aps2.onsetrapidity(aps2.freqbin>=3 & aps2.freqbin<=4)) ;
         Summary(index).updwnratio21to40  = nanmean(aps2.updownratio(aps2.freqbin>=3 & aps2.freqbin<=4)) ;
-        Summary(index).AdaptIndexTS2       = AdaptIdx2 ;
-      %  Summary(index).AmpAccomTS2         = AmpAccom2 ;
-       % Summary(index).HWAccomTS2          = HWAccom2 ;
-        Summary(index).ISIRatio1toAll2     = ISIRatio1toAll2 ;
         
-        
-        
-        %end %if at line 64 
+        %end %if at line 64
         %clear variables assigned in "sweep" For loop
-      %  clearvars -except Summary i basedir savedir savename filelist index
+        %clearvars -except abf Summary i basedir savename abfs aps channels ins outs epochs sweeps index
         index = index + 1 ;
     end
-%% save
-save(fullfile(savedir, savename), 'Summary') ;
-clearvars -except Summary i
+%end   
+
+%% 
+%if you dont want the whole row to be exported into excel, you can remove
+%the whole list of vlaues from first sweep and trainsweeps etc like this
+%if you're summary is called differently, say: Summ = Summary ; 
+ Summ.isis_FS = NaN(size(Summ.isis_FS));
+ Summ.isis_TS = NaN(size(Summ.isis_TS));
+ Summ.isis_TS2 = NaN(size(Summ.isis_TS2));
+ Summ.isis_LS = NaN(size(Summ.isis_LS));
+ 
+%% save this is the good one 
+save(fullfile(basedir, savename), 'Summ') ;
+
+writetable(Summ, 'Summary_ayoub_all.xlsx');
+
+
+%% do this only in the end, otherwise you'll remove the bb too
+clearvars -except bb
+
+
 
 
 %%
+basedir = '/Users/elinemertens/Data/ephys/abf/Human/2023/matlab/good';  % specify path to analyzed abfBatch. File will be saved in this folder
+savename = 'Summary_Ayoub_all' ;
+save(fullfile(basedir, savename), 'Summary_Ayoub_all') ;
 
-Summary_T = struct2table(Summary) ; 
-writetable(Summary_T, 'summary_h245_test.xlsx');
+%%
+
+ Summary_All = struct2table(Summary) ; 
+ writetable(Summary_All, 'Summary_ayoub0.xlsx');
 
 
 

@@ -13,7 +13,7 @@ data_cell_table(data_cell_table == 0) = NaN;
 
 %% With a new / adjusted table, make sure all of these are specified
 %Specify column names
-columnNames = {'RelativeLoc','Tau', 'Sagratio', 'Rinput', 'Rheobase' , 'Thresh', 'Amp', 'Halfw', 'Upstroke', 'Downstroke', 'updownratio', 'Adaptindex', 'ISIratio','freqstim' 'Fres'};
+columnNames = {'RelativeLoc','Tau', 'Sagratio', 'Rinput', 'Rheobase' , 'Threshold', 'Amplitude', 'Halfwidth', 'Upstroke', 'Downstroke', 'updownratio', 'Adaptindex', 'ISIratio','f-Islope' 'Fres'};
 % Create a new table with column titles
 data_cell_table = array2table(data_cell_table, 'VariableNames', columnNames);
 
@@ -43,7 +43,7 @@ smp = reshape(significant_correlations, size(p));
 custom_colormap = [1, 1, 1; 0, 0, 0];
 
 % Plot the significant matrix using imagesc
-figure;
+figure(1);
 smatrixp = tril(smp);
 smatrixp(logical(eye(size(smatrixp)))) = 0;
 imagesc(smatrixp);
@@ -51,8 +51,8 @@ imagesc(smatrixp);
 % Apply the custom colormap
 colormap(custom_colormap);
 title('Custom Colormap for P-Values Heatmap');
-xticks(1:15);
-yticks(1:15);
+xticks(1:22);
+yticks(1:22);
 caxis([0, 0.5]); 
 set(gca, 'TickDir', 'out')
 xticklabels(columnNames);
@@ -65,35 +65,17 @@ disp(rho);
 % rho = corr(data_cell, 'Type', 'Spearman');
 % [rho, p] = corr(data_cell, 'Type', 'Spearman');
 
-%% % Define the number of colormap steps (you can adjust this value)
-% not in use! just load in a working colormap, called 'custommie'
-nSteps = 64;
-% Create a custom colormap for blue
-blue_colormap = [linspace(0, 0, nSteps)', linspace(0, 0, nSteps)', linspace(1, 1, nSteps)'];  % Blue
-% Create a custom colormap for red
-red_colormap = [linspace(1, 1, nSteps)', linspace(0, 0, nSteps)', linspace(0, 0, nSteps)'];  % Red
-% Determine the index where the white color starts and ends
-white_start_index = round(nSteps / 3);  % Adjust this value for the desired width of the white area
-white_end_index = nSteps - white_start_index;
-% Create a gradient colormap from blue to white (-1 to -0.2)
-gradient_blue_to_white = [linspace(0, 1, white_end_index-white_start_index)', linspace(0, 1, white_end_index-white_start_index)', linspace(1, 1, white_end_index-white_start_index)'];  % Gradient from Blue to White
-% Create a gradient colormap from white to red (0.2 to 1)
-% Create a gradient colormap from white to red (0.2 to 1)
-gradient_white_to_red = [linspace(1, 1, white_end_index-white_start_index)', linspace(0, 1, white_end_index-white_start_index)', linspace(0, 1, white_end_index-white_start_index)'];  % Gradient from White to Red
-% Combine the two colormaps for blue and red, and the gradient in the middle
-%custom_colormap = [blue_colormap(1:white_start_index, :); gradient_blue_to_white; repmat([1, 1, 1], white_end_index-white_start_index, 1); gradient_white_to_red; red_colormap(1:white_start_index, :)];
-%custom_colormap = [blue_colormap(1:white_start_index, :); gradient_blue_to_white; repmat([1, 1, 1], white_end_index-white_start_index, 1); gradient_white_to_red; red_colormap(white_end_index:end, :)];
-custom_colormap = [blue_colormap(1:white_start_index, :); gradient_blue_to_white; repmat([1, 1, 1], white_end_index-white_start_index, 1); gradient_white_to_red; red_colormap(white_end_index:end, :)];
 %% Plot the rho colormap with the custom colormap
 %hier laad je de colormap in, custommie, staan bij ch3, fig4. deze bevatten
 %de gradienten 
 % Extract the lower triangular part of the matrix
+figure(2)
 lower_triangle = tril(rho);
 lower_triangle(logical(eye(size(lower_triangle)))) = 0;
 imagesc(lower_triangle);
 colormap(custommie);  % Use the custom colormap directly
 colorbar;
-caxis([-1, 1]);  % Adjust the range as needed
+caxis([-1, 1]);  % Adjust the range as neededx
 title('Custom Colormap for Rho Heatmap');
 xticks(1:15);
 yticks(1:15);
@@ -104,35 +86,6 @@ yticklabels(columnNames);
 xlabel('Variables');
 ylabel('Variables');
 
-
-%%
-% % Create a custom colormap with bright red (for values < 0.05) and a gradient from red to white (for values >= 0.05)
-% red_colormap = [linspace(1, 1, nSteps)', linspace(0, 0, nSteps)', linspace(0, 0, nSteps)'];  % Bright Red
-% 
-% % Determine the index where the threshold falls
-% threshold_index = round(threshold * nSteps);
-% 
-% % Create a gradient from red to white for values >= 0.05
-% gradient_colormap = [linspace(1, 1, nSteps-threshold_index)', linspace(0, 1, nSteps-threshold_index)', linspace(0, 1, nSteps-threshold_index)'];  % Gradient from Red to White
-% 
-% % Combine the two colormaps
-% custom_colormap = [red_colormap(1:threshold_index, :); gradient_colormap];
-
-% Plot the p-values colormap with the custom colormap
-figure(2)
-imagesc(p);
-colormap(custom_colormap);  % Use the custom colormap directly
-colorbar;
-caxis([0, 0.3]); 
-title('Custom Colormap for P-Values Heatmap');
-xticks(1:13);
-yticks(1:13);
-caxis([0, 0.5]); 
- set(gca, 'TickDir', 'out')
-xticklabels(variable_names);
-yticklabels(variable_names);
-xlabel('Variables');
-ylabel('Variables');
 
 %%
 % Extract the data for the variables of interest
