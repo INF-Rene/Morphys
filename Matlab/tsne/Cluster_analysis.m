@@ -1,7 +1,7 @@
 %%
 clear, clc, close all
 %% Load in csv excel file 
-fn = ('/Users/elinemertens/Data/Projects/Ch3.Method section/Data/cluster analysis/T_L2L3.csv');
+fn = ('/Users/elinemertens/Data/Projects/Ch1. NEW_Hippocampus_2022_07/Data/SOP hipp pca based cluster analysis /Hipp_em3_cluster_analysis_ephys_morph_1_n=31.csv');
 opts = detectImportOptions(fn, "VariableNamingRule", "preserve");
 charVars = contains(opts.VariableNames, 'char');
 opts.VariableTypes(charVars) = {'double'};
@@ -17,7 +17,7 @@ patients = readcell('/Users/elinemertens/Data/Projects/Ch3.Method section/Data/c
 
 %% alternatively color on hierarchical clusters isntead of groups
 N_components= 7;          % set the number of principal components to include
-n_clusters = 4;              % set the number of clusters you want 
+n_clusters = 2;              % set the number of clusters you want 
 N = length(mat_feat);        % number of observations from your file
 
 [coeff, score, latent] = pca(normalize(mat_feat));
@@ -36,7 +36,7 @@ writetable(Summary_coeff, 'summary_coeff.xlsx');
 %% actual TSNE mapping, check these features and its explanation on
 % mathworks help center TSNE
 
-rng(4) % set random seed for reproducibility (3 works for tsne hipp)
+rng(11) % set random seed for reproducibility (3 works for tsne hipp)
 tm = tsne(mat_feat,'Distance', 'euclidean', 'Perplexity', 10,...
 'Standardize', true, 'NumPCAComponents', 7); % num pca isn't that 7???
 

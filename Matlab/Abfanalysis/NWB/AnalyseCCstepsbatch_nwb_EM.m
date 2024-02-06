@@ -14,11 +14,11 @@ for i = 1:numel(list.name)
  nwb = NWBfile(fn,[{'LP'} {'hresh'} {'CC'} {'teps'} {'LSFINEST'} {'LSCOARSE'}]);
  obj =nwb.analyseNWB ;
  obj.savename = sprintf('NWB_%s.mat',obj.filename(1:end-4));
- saveme(obj,'/Volumes/Expansion/Temp_database/analyzed/batch2', obj.savename) 
+ saveme(obj,'/Volumes/Expansion/Hippocampus/Data/ephys/Hippocampus/H21.29.198.21/interest', obj.savename) 
 end
 
 %% Set path to load and save data; mat data load 
-basedir = '/Volumes/Expansion/Temp_database/analyzed/batch2' ;
+basedir = '/Users/elinemertens/Data/ephys/Analyzed/242 new' ;
 savedir = '/Users/elinemertens/Data/ephys/Hippocampus/2022_Summary';
 savename = 'Summary_198' ; 
 
@@ -31,6 +31,9 @@ filelist  = {fileinfo.name};
 
     %% Loop through abfs 
 index = 1 ; 
+ApsTimeArray = [];
+ApsDataArray = [];
+DerivativesArray = [];
 for i = 1:length(filelist)
     %% Make subset of data per abf file
     fprintf('Looking for CC-step protocols: file nr %1.0f \n', i);
@@ -501,18 +504,27 @@ if isempty(TrainSweep2)
     TrainSweep2 = NaN;
 end
 
-%  figure(1)
-%         for j = 1:length(obj.stimsets)
-%             if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},firstsweepname))
-%                 obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).getepoch(step).aps(1).plot('superimpose','peak');
-%                 legend(filelist)
-%                 xlim([-5 10])
-%                 title('First AP')
-%             %   ylabel('mV')
-%             %    xlabel('ms')
-%             end
-%         end
+ 
+        for j = 1:length(obj.stimsets)
+            if any(ismember({obj.getstimset(j).getnwbchannel.getsweep.Name},firstsweepname))
+                obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).aps(1).plotanalysis;
+                ApsData = obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).aps(1).ts.Data ;
+                ApsTime = obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).aps(1).ts.Time ; 
+                 derivatives = obj.getstimset(j).getnwbchannel.getsweep('Name',firstsweepname).aps(1).getdvdt();        
+               legend(obj.filename) 
+                 ApsData = ApsData(1:2700);
+                 ApsTime = ApsTime(1:2700);
+                 derivativestime = derivatives(1:2700);
+       ApsTimeArray = [ApsTimeArray; ApsTime'];
+    ApsDataArray = [ApsDataArray; ApsData'];
+    DerivativesArray = [DerivativesArray ; derivativestime'];
+             %   title('First AP')
+            %   ylabel('mV')
+            %    xlabel('ms')
+            end
+        end
       
+        
         
  trainsweepname  = sweep(TrainSweep).Name ;   
  trainsweep2name = sweep(TrainSweep2).Name ; 
@@ -600,7 +612,8 @@ end
         Summary(index).TauM               = nanmean(taus(taus~=0)) ;
         Summary(index).TauSD              = nanstd(taus(taus~=0)) ;
        % Summary(index).curr_FrstAP        = sweep(frstspikeswp).ap(1).currinj ;
-        Summary(index).OnsetFAP        = sweep(frstspikeswp).ap(1).thresh_time - (seconds(sum([sweep(frstspikeswp).epoch(1:find(strcmp({sweep(frstspikeswp,1).epoch.idxstr}, 'A'))).timespan]))*1000) ; 
+      %  Summary(index).OnsetFAP        = sweep(frstspikeswp).ap(1).thresh_time - (seconds(sum([sweep(frstspikeswp).epoch(1:find(strcmp({sweep(frstspikeswp,1).epoch.idxstr}, 'A'))).timespan]))*1000) ; 
+        Summary(index).onsetrapidity = sweep(frstspikeswp).ap(1).onsetrapidity ; 
         Summary(index).ThreshFAP       = sweep(frstspikeswp).ap(1).thresh ; 
         Summary(index).FAPbasetothresh    = sweep(frstspikeswp).ap(1).thresh-sweep(frstspikeswp).vmbase ; 
         Summary(index).AmpFAPthresh       = sweep(frstspikeswp).ap(1).amp ;
@@ -614,7 +627,8 @@ end
         Summary(index).UpDwnStrkRatioFAP     = abs(sweep(frstspikeswp).ap(1).upstroke) / abs(sweep(frstspikeswp).ap(1).downstroke) ;
         Summary(index).MaxUpStrkFAP       = sweep(frstspikeswp).ap(1).maxdvdt ;
         Summary(index).MaxDwnStrkFAP      = sweep(frstspikeswp).ap(1).mindvdt ;
-        Summary(index).OnsetTSAP        = sweep(TrainSweep).ap(1).thresh_time - (seconds(sum([sweep(TrainSweep).epoch(1:find(strcmp({sweep(TrainSweep,1).epoch.idxstr}, 'A'))).timespan]))*1000) ; 
+       % Summary(index).OnsetTSAP        = sweep(TrainSweep).ap(1).thresh_time - (seconds(sum([sweep(TrainSweep).epoch(1:find(strcmp({sweep(TrainSweep,1).epoch.idxstr}, 'A'))).timespan]))*1000) ; 
+        Summary(index).onsetrapidityTSAP = sweep(TrainSweep).ap(1).onsetrapidity ; 
         Summary(index).ThreshTSAP       = sweep(TrainSweep).ap(1).thresh ; 
         Summary(index).TSAPbasetothresh    = sweep(TrainSweep).ap(1).thresh-sweep(TrainSweep).vmbase ; 
         Summary(index).AmpTSAPthresh       = sweep(TrainSweep).ap(1).amp ;
@@ -626,7 +640,8 @@ end
         Summary(index).UpDwnStrkRatioTSAP     = abs(sweep(TrainSweep).ap(1).upstroke) / abs(sweep(TrainSweep).ap(1).downstroke) ;
         Summary(index).MaxUpStrkTSAP       = sweep(TrainSweep).ap(1).maxdvdt ;
         Summary(index).MaxDwnStrkTSAP      = sweep(TrainSweep).ap(1).mindvdt ;
-        Summary(index).OnsetTSAP2        = sweep(TrainSweep2).ap(1).thresh_time - (seconds(sum([sweep(TrainSweep2).epoch(1:find(strcmp({sweep(TrainSweep2,1).epoch.idxstr}, 'A'))).timespan]))*1000) ; 
+        %Summary(index).OnsetTSAP2        = sweep(TrainSweep2).ap(1).thresh_time - (seconds(sum([sweep(TrainSweep2).epoch(1:find(strcmp({sweep(TrainSweep2,1).epoch.idxstr}, 'A'))).timespan]))*1000) ; 
+         Summary(index).onsetrapidityTSAP2 = sweep(TrainSweep2).ap(1).onsetrapidity ; 
         Summary(index).ThreshTSAP2       = sweep(TrainSweep2).ap(1).thresh ; 
         Summary(index).TSAP2basetothresh    = sweep(TrainSweep2).ap(1).thresh-sweep(TrainSweep2).vmbase ; 
         Summary(index).AmpTSAP2thresh       = sweep(TrainSweep2).ap(1).amp ;
@@ -669,7 +684,61 @@ end
       %  clearvars -except Summary i basedir savedir savename filelist index
         index = index + 1 ;
     end
-%% save
+%% 
+    ApsTimeArray = ApsTimeArray' ; 
+    ApsDataArray = ApsDataArray' ;   
+    DerivativesArray = DerivativesArray' ; 
+    %% Calculate the average of the first 5 columns for each row
+% Calculate the average of the first 5 columns for each row
+ApsData_avg = mean(ApsDataArray(:, 1:end), 2);
+Derivatives_avg = mean(DerivativesArray(:, 1:end),2);
+% Add the average as a new column to ApsDataArray
+% ApsDataArray_with_avg = [ApsData_avg, ApsDataArray];
+% Derivatives_with_avg = [Derivatives_avg,DerivativesArray];
+
+%% Create a figure
+ % Apply a moving average filter to smooth the data
+    smoothed_ApsDataArray = smoothdata(ApsDataArray, 'movmean', 5);
+    smoothed_ApsDerivativesArray = smoothdata(DerivativesArray, 'movmean', 5);
+figure;
+subplot(2,2,1)
+% Plot individual traces in red
+for i = 1:size(ApsDataArray, 2)-1
+    plot(ApsDataArray(:, i), 'Color', 'red');
+    hold on;
+end
+
+% Plot average trace in thick black
+plot(ApsData_avg, 'Color', 'black', 'LineWidth', 2);
+% Customize the plot as needed
+xlabel('Time');
+ylabel('ApsData');
+legend('Trace 1', 'Trace 2', 'Trace 3', 'Trace 4', 'Trace 5', 'Average', 'Location', 'best');
+title('ApsData Traces');
+
+subplot(2,2,2)
+for i = 1:size(DerivativesArray, 2)-1
+    plot(DerivativesArray(:, i), 'Color', 'red');
+    hold on;
+end
+plot(Derivatives_avg, 'Color', 'black', 'LineWidth', 2);
+% Add any additional customization as needed
+hold off;
+
+
+    subplot(2,2,3);
+    plot(ApsDataArray, DerivativesArray, 'b', 'LineWidth', 2);
+    title('Original Phase Plane');
+    xlabel('Voltage');
+    ylabel('dV/dt');
+
+    subplot(2,2,4);
+    plot(smoothed_ApsDataArray, smoothed_ApsDerivativesArray, 'r', 'LineWidth', 2);
+    title('Smoothed Phase Plane');
+    xlabel('Voltage');
+    ylabel('dV/dt');
+    
+    %%
 save(fullfile(savedir, savename), 'Summary') ;
 clearvars -except Summary i
 

@@ -55,7 +55,7 @@ stim = zabf.channels(1).analogins(2).sweeps(1).Data   ;
     %% plot only smoothed   
     smoothed=smooth((abs(signal_fft)./abs(stim_fft)*1000),23,  'lowess');
     plot(f, smoothed);
-    xlim([1.2 25])
+    xlim([1.0 25])
     grid off   
             
  ylabel('MOhm')
@@ -64,7 +64,7 @@ set(gca, 'TickDir', 'out')
     % Set the remaining axes properties
 
    [max_imp, loc] = max(smoothed(f>1.2 & f<25));
-    f2 = f(f>1.2 & f<25);
+    f2 = f(f>1.0 & f<25);
     res_freq = f2(loc);
     
    %% 3db cutoff
@@ -77,7 +77,7 @@ set(gca, 'TickDir', 'out')
    hold on
    line(xlim,[sqrt(0.5), sqrt(0.5)],'linewidth',2,'lineStyle',':','color','k')
    %line([cutoff_3db, cutoff_3db],ylim,'linewidth',2,'lineStyle',':','color','k')
- ylim([0.1 1.2])
+ ylim([0.1 1])
  set(gca, 'TickDir', 'out')
 
 

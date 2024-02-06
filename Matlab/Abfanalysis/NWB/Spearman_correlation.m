@@ -33,8 +33,10 @@ rho = corr(data_cell_table{:,:}, 'Type', 'Spearman', 'rows', 'pairwise');
 %% multiple corrections, p value correlation
 % Number of tests
 num_tests = numel(p);
+% Assuming you have a data matrix named 'data_cell_table'
+num_deduct = size(data_cell_table, 2);  % Number of columns
 % Apply the Bonferroni correction
-alpha_adjusted = 0.05 / ((num_tests / 2 ) -15);
+alpha_adjusted = 0.05 / ((num_tests- num_deduct) / 2 );
 % Identify significant correlations based on the adjusted significance level
 significant_correlations = p < alpha_adjusted;
 % Reshape the boolean vector back into a matrix of the same size as the original correlation matrix
@@ -55,8 +57,11 @@ xticks(1:22);
 yticks(1:22);
 caxis([0, 0.5]); 
 set(gca, 'TickDir', 'out')
-xticklabels(columnNames);
-yticklabels(columnNames);
+% Set x and y axis labels directly from the table
+xticklabels(data_cell_table.Properties.VariableNames);
+yticklabels(data_cell_table.Properties.VariableNames);
+%xticklabels(columnNames);
+%yticklabels(columnNames);
 xlabel('Variables');
 ylabel('Variables');
 
