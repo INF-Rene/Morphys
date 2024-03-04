@@ -585,7 +585,7 @@ end
         Summary(index).isis_FS1           = isis_FS1 ;
         Summary(index).isis_TS            = isis_TS ;
         Summary(index).isis_TS1           = isis_TS1 ;
-        Summary(index).isis_TS2           = isis_TS2 ;
+        %Summary(index).isis_TS2           = isis_TS2 ;
         Summary(index).isis_TS2_1         = isis_TS2_1 ;
         Summary(index).isis_LS            = isis_LS ;
         Summary(index).isis_LS1           = isis_LS1 ;

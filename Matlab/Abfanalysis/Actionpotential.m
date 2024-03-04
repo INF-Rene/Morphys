@@ -43,6 +43,7 @@ classdef Actionpotential < Sharedmethods
         isi                 = nan;% inter-spike-interval (ms)
         freq                = nan;% instantaneous firing frequency (Hz)
         number              = nan;% number of AP in set
+        samplefreq          = nan; %test
     end
     
     %####################################################### METHODS ############################################################
@@ -311,6 +312,37 @@ classdef Actionpotential < Sharedmethods
                 fity = polyval(obj.onsetrapfit,fitx);
                 line(fitx,fity,'linewidth',2,'color','r')
             catch
+            end
+        end
+        
+        function obj = runmean(obj,runwin,varargin)
+            % apply a running average over timeseries data using a window of specified size (milliseconds). 
+            % Common use: rm = obj.runmean(30). The varargin optional input can be used to access other features of the
+            % runmean function. 
+            %
+            % See also RUNMEAN, GETDATA, TIMESERIES. 
+            for i=1:numel(obj)
+                runwin = floor(runwin/(1e3/obj(i).samplefreq));
+                obj(i) = obj(i).set('Data',runmean(obj(i).getdata, runwin, varargin{:}));
+            end
+        end
+        
+          %   See also MEDFILT1, GETDATA, TIMESERIES.
+           function obj = medianfilter(obj,filtwin,varargin)
+           for i = 1:numel(obj)
+                if nargin == 1, obj(i) = obj(i).set('Data',medfilt1(obj.getdata));
+                else
+                    filtwin = floor(filtwin/(1e3/obj(i).samplefreq));
+                    obj(i) = obj(i).set('Data',medfilt1(obj(i).getdata, filtwin, varargin{:}));
+                end
+            end
+        end
+        
+        function obj = low_pass_filter(obj, freq)
+            for i=1:numel(obj)
+                Wn = ((freq/(obj(i).samplefreq/2)));
+                [B,A] = butter(2,Wn, 'low');
+                obj(i).Data = filtfilt(B,A,double(obj(i).Data));
             end
         end
         

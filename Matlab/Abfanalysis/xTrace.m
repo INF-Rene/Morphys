@@ -721,62 +721,52 @@ classdef Trace < timeseries
                 end
             end
             if cnt>0, fprintf('%d out of %d action potentials: no downstroke.\n',cnt,obj.nrofaps); end
-        end  
+        end
         
 %         function obj = getonsrapidity(obj)
-%     % find the onset rapidity of an action potential.
-%     % Resamples AP to a specified frequency to ensure the same precision when estimating AP onset rapidity, regardless of the original sampling frequency.
-%     % Of course, the value obtained for onset rapidity still depends heavily on the sampling frequency!
-%     % NOTE: Needs maxdvdt time and threshold time of APs to calculate. 
-%     % See also ACTIONPOTENTIAL, GETTHRESH, GETMAXDVDT.
-%     
-%     if ~isscalar(obj)
-%         error('Object must be scalar');
-%     end
-%     
-%     cnt = 0;
-%     
-%     for i = 1:obj.nrofaps 
-%         if ~isempty(obj.getap(i).thresh_time) && ~isempty(obj.getap(i).maxdvdt_time) && ~isnan(obj.getap(i).thresh_time) && ~isnan(obj.getap(i).maxdvdt_time)
-%             if obj.getap(i).maxdvdt > obj.apThreshRapidity
-% 
-%                 ts = obj.getsampleusingtime(obj.getap(i).thresh_time, obj.getap(i).maxdvdt_time);
-%                 
-%                 % Resample the timeseries to the desired frequency
-%                 ts_resampled = ts.resample(ts.TimeInfo.Start:1/obj.upsample:ts.Time(end-1), 'linear');
-%                 
-%                 vm = ts_resampled.getdata;
-%                 dvts = ts.getdvdtts;
-%                 dv = dvts.resample(dvts.TimeInfo.Start:1/obj.upsample:dvts.TimeInfo.End, 'linear').getdata;
-% 
-%                 % find rapidity threshold crossing and make a fitting window.
-%                 strtidx = max([1, length(dv) - find(flipud(dv) < obj.apThreshRapidity, 1) - obj.onsetrapfitwin + 1]);
-%                 endidx = min([strtidx + obj.onsetrapfitwin * 2, length(vm)]);
-% 
-%                 % linear fit
-%                 x = vm(strtidx:endidx);
-%                 y = dv(strtidx:endidx);
-%                 vmcentre = min(x) + 0.5 * range(x);
-%                 onsetrapfit = polyfit(x, y, 1); % straight fit through points enclosed in window
-%                 obj = obj.updateap(i, 'onsetrapidity', onsetrapfit(1), 'onsetrapfit', onsetrapfit, 'onsetrapvm', vmcentre); % update AP 
-%             end
-%         else
-%             cnt = cnt + 1;
-%         end
-%     end
-%     
-%     if cnt > 0
-%         fprintf('%d out of %d action potentials: no onset rapidity.\n', cnt, obj.nrofaps); 
-%     end
-%         end
-        
-        
-         function obj = getonsrapidity(obj)
 %              % find the onset rapidity of an action potential.
 %             % Resamples AP to 1MHz to ensure same precision when estimating AP halfwidth, regardless of sampling frequency.
 %             % Of course, the value obtained for onset rapidity still depends hewavily on sampling frequency!
 %             % NOTE: Needs maxdvdt time, and threshold time of aps to calculate. 
 %             % See also ACTIONPOTENTIAL, GETTHRESH, GETMAXDVDT.
+%             if ~isscalar(obj), error('Object must be scalar'); end
+%             cnt = 0;
+%             for i = 1:obj.nrofaps 
+%                 if ~isempty(obj.getap(i).thresh_time) && ~isempty(obj.getap(i).maxdvdt_time) && ~isnan(obj.getap(i).thresh_time) && ~isnan(obj.getap(i).maxdvdt_time)
+%                     if obj.getap(i).maxdvdt > obj.apThreshRapidity
+% 
+%                         ts   = obj.getsampleusingtime(obj.getap(i).thresh_time,obj.getap(i).maxdvdt_time);
+%                         vm   = ts.resample(ts.TimeInfo.Start:obj.upsample:ts.Time(end-1),'linear').getdata;
+%                         dvts = ts.getdvdtts;
+%                         dv   = dvts.resample(dvts.TimeInfo.Start:obj.upsample:dvts.TimeInfo.End,'linear').getdata;
+% 
+%                         % find rapidity threshold crossing and make a fitting window.
+%                         strtidx = max([1, length(dv) - find(flipud(dv)<obj.apThreshRapidity,1) - obj.onsetrapfitwin + 1]);
+%                         endidx  = min([strtidx + obj.onsetrapfitwin*2, length(vm)]);
+% 
+%                         % linear fit
+%                         x = vm(strtidx:endidx);
+%                         y = dv(strtidx:endidx);
+%                         vmcentre = min(x)+0.5*range(x);
+%                         onsetrapfit = polyfit(x, y, 1); % straight fit through points enclosed in window
+%                         obj = obj.updateap(i,'onsetrapidity',onsetrapfit(1),'onsetrapfit',onsetrapfit,'onsetrapvm',vmcentre); % update AP 
+% 
+%                     end
+%                 else
+%                     cnt = cnt+1;
+%                 end
+%             end
+%             if cnt>0, 
+%                 fprintf('%d out of %d action potentials: no onset rapidity.\n',cnt,obj.nrofaps); 
+%             end
+%         end 
+   
+ function obj = getonsrapidity(obj)
+             % find the onset rapidity of an action potential.
+            % Resamples AP to 1MHz to ensure same precision when estimating AP halfwidth, regardless of sampling frequency.
+            % Of course, the value obtained for onset rapidity still depends hewavily on sampling frequency!
+            % NOTE: Needs maxdvdt time, and threshold time of aps to calculate. 
+            % See also ACTIONPOTENTIAL, GETTHRESH, GETMAXDVDT.
             if ~isscalar(obj), error('Object must be scalar'); end
             cnt = 0;
             for i = 1:obj.nrofaps 
@@ -784,9 +774,14 @@ classdef Trace < timeseries
                     if obj.getap(i).maxdvdt > obj.apThreshRapidity
 
                         ts   = obj.getsampleusingtime(obj.getap(i).thresh_time,obj.getap(i).maxdvdt_time);
-                        vm   = ts.resample(ts.TimeInfo.Start:obj.upsample:ts.Time(end-1),'linear').getdata;
+%                         vm   = ts.resample(ts.TimeInfo.Start:obj.upsample:ts.Time(end-1),'linear').getdata;
+%                         dvts = ts.getdvdtts;
+%                         dv   = dvts.resample(dvts.TimeInfo.Start:obj.upsample:dvts.TimeInfo.End,'linear').getdata;
+                        new_sampling_rate = 100e3; % 100 kHz
+                        vm = ts.resample(new_sampling_rate).Data;
                         dvts = ts.getdvdtts;
-                        dv   = dvts.resample(dvts.TimeInfo.Start:obj.upsample:dvts.TimeInfo.End,'linear').getdata;
+                        dv = dvts.resample(new_sampling_rate).Data;
+
 
                         % find rapidity threshold crossing and make a fitting window.
                         strtidx = max([1, length(dv) - find(flipud(dv)<obj.apThreshRapidity,1) - obj.onsetrapfitwin + 1]);
@@ -807,8 +802,7 @@ classdef Trace < timeseries
             if cnt>0, 
                 fprintf('%d out of %d action potentials: no onset rapidity.\n',cnt,obj.nrofaps); 
             end
-        end 
-   
+ end 
         
         function obj = getapstartend(obj)
             % find start and end time of APs. Mainly used for waveform, so takes few ms before threshold as startpoint

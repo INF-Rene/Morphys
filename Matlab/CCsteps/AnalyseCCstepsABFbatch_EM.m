@@ -59,7 +59,7 @@ epochs = struct2table(bb.getabf.getchannel.getin.getsweep.getepoch.metadata) ;
 aps = struct2table(bb.getabf.getchannel.getin.getsweep.getepoch.getap.metadata) ;
 
 %% get instantaneous freq bins 
-edges = 1:10:201 ;
+edges = 1:20:201 ;
 aps.freqbin = discretize(aps.freq, edges) ;
 aps.freqbin(isnan(aps.freqbin)) = 0 ;
 aps.currinj = aps.number*0 ;
